@@ -1,0 +1,35 @@
+# ---------------------------------------------------------------
+# Aviva Investors | Internal Portfolio Builder
+#
+# What SHOULD be committed: index.html, data/*.json, refresh_dashboard.py, CLAUDE.md
+# Nothing below excludes those. data/*.json is the published payload and must be tracked.
+# ---------------------------------------------------------------
+
+# Source workbooks stay local. The repo publishes the derived JSON payload only,
+# never the raw pricing workbook it was built from.
+*.xlsx
+*.xls
+*.xlsm
+
+# Excel lock files, created while a workbook is open
+~$*
+
+# Local history snapshots taken before each change. Useful on disk, not in the repo,
+# and each one embeds a full copy of the fund data.
+*.bak.html
+*.zip
+
+# Scratch/preview files used while testing
+_*.html
+
+# macOS
+.DS_Store
+
+# Local tooling state
+.claude/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/

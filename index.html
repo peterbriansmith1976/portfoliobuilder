@@ -1,0 +1,1297 @@
+<!DOCTYPE html>
+<html lang="en-IE">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aviva Investors | Internal Portfolio Builder</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%231A4FD6'/%3E%3Crect x='4' y='15' width='8' height='3' rx='1.5' fill='white'/%3E%3Crect x='4' y='10.5' width='12' height='3' rx='1.5' fill='white'/%3E%3Crect x='4' y='6' width='16' height='3' rx='1.5' fill='white'/%3E%3C/svg%3E">
+<link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:opsz,wght@6..12,400;6..12,600;6..12,700;6..12,800;6..12,900&family=Source+Serif+4:opsz,wght@8..60,600&display=swap" rel="stylesheet">
+<style>
+:root{
+  color-scheme:light;
+  /* surfaces */
+  --bg:#FBFCFD; --surface:#FFFFFF; --surface-dim:#F4F6F9; --raised:#EEF1F5; --hover:#E6ECFB;
+  /* text */
+  --ink:#0D1B2A; --muted:#66737F; --faint:#97A1AA;
+  /* accent - ACTION ONLY, never decoration */
+  --signal:#1A4FD6; --signal-wash:#E6ECFB; --signal-ink:#FFFFFF;
+  --hair:#E2E6EB;
+  /* semantic */
+  --pos:#2E8B57; --neg:#B23B2E; --sim:#66737F;
+  /* data palette - charts and fund identity only, kept separate from --signal */
+  --d1:#3E7CB1; --d2:#C77D3A; --d3:#4F9D7E; --d4:#8A6BAF; --d5:#6B7B8A;
+  --portB:#C77D3A;
+  --band-outer:rgba(62,124,177,.16); --band-inner:rgba(62,124,177,.34);
+  --shadow:0 1px 2px rgba(13,27,42,.04), 0 8px 24px -12px rgba(13,27,42,.10);
+}
+[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#0D1B2A; --surface:#142534; --surface-dim:#101F2D; --raised:#1C2E3F; --hover:#1E3556;
+  --ink:#E8ECF1; --muted:#94A3B0; --faint:#6B7B8A;
+  --signal:#5B8DEF; --signal-wash:#1E3556; --signal-ink:#08131E;
+  --hair:#24384A;
+  --pos:#5FBF8A; --neg:#E8796B; --sim:#94A3B0;
+  --d1:#63A0D8; --d2:#E0A063; --d3:#6FC2A0; --d4:#AC8FD1; --d5:#94A3B0;
+  --portB:#E0A063;
+  --band-outer:rgba(99,160,216,.16); --band-inner:rgba(99,160,216,.34);
+  --shadow:0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Nunito Sans',sans-serif;background:var(--bg);color:var(--ink);font-size:14px}
+.topstrip{height:0}
+.brandband{background:transparent;color:var(--ink);padding:14px 0;border-bottom:1px solid var(--hair)}
+.brandband .wrap{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:6px}
+.bname{font-weight:900;font-size:15px;letter-spacing:.02em}
+.bsub{font-weight:700;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase}
+.wrap{max-width:1240px;margin:0 auto;padding:0 20px}
+header.top{padding:28px 0 18px}
+header.top .head-row{display:flex;flex-wrap:wrap;align-items:flex-end;gap:14px;justify-content:space-between;margin-bottom:16px}
+.title-row{display:flex;align-items:flex-end;gap:16px}
+.logomark{width:48px;height:48px;flex:0 0 48px;background:var(--signal);color:var(--signal-ink);border-radius:12px;display:flex;align-items:center;justify-content:center}
+.eyebrow-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.eyebrow{font-size:11px;font-weight:800;letter-spacing:.14em;color:var(--muted);text-transform:uppercase}
+.tag-internal{font-size:9.5px;font-weight:800;letter-spacing:.1em;color:var(--ink);border:1.5px solid var(--ink);border-radius:4px;padding:2px 7px;text-transform:uppercase}
+.trust{display:flex;align-items:center;gap:9px;font-size:12px;color:var(--muted);padding:11px 16px;background:var(--surface);border-radius:10px;width:fit-content;box-shadow:var(--shadow)}
+.trust svg{flex:0 0 auto;color:var(--ink)}
+.trust b{color:var(--ink);font-weight:800}
+.iconbtn{width:34px;height:34px;border:1px solid var(--hair);background:var(--surface);color:var(--muted);border-radius:8px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-family:inherit;padding:0}
+.iconbtn:hover{color:var(--ink);border-color:var(--muted)}
+/* visible keyboard focus - signal blue is correct here because focus IS interaction */
+:where(button,input,select,a):focus-visible{outline:2px solid var(--signal);outline-offset:2px;border-radius:4px}
+@media(prefers-reduced-motion:no-preference){
+  .fundrow,.tab,.ptab,.btn,.iconbtn,.card{transition:background-color .16s ease,color .16s ease,border-color .16s ease}
+}
+h1{font-weight:900;font-size:clamp(28px,4vw,42px);color:var(--ink);line-height:1.08;letter-spacing:-.02em}
+.databadge{font-size:12.5px;font-weight:600;color:var(--muted);border:1px solid var(--hair);border-radius:99px;padding:6px 14px;font-variant-numeric:tabular-nums}
+main.grid{max-width:1240px;margin:0 auto;padding:0 20px 30px;display:grid;grid-template-columns:360px 1fr;gap:20px;align-items:start}
+.card{background:var(--surface);border:1px solid var(--hair);border-radius:10px;margin-bottom:20px}
+.card-head{padding:13px 16px;border-bottom:1px solid var(--hair);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+.card-head h2{font-size:15px;font-weight:800;color:var(--ink);display:flex;align-items:center}
+.card-body{padding:16px}
+.count{font-size:12px;font-weight:700;color:var(--muted);font-variant-numeric:tabular-nums}
+.btn{font-size:12.5px;font-weight:800;padding:6px 14px;border-radius:99px;cursor:pointer;font-family:inherit}
+.btn-primary{border:1.5px solid var(--signal);background:var(--signal);color:var(--signal-ink)}
+.btn-primary:hover{background:var(--signal)}
+.btn-quiet{border:1.5px solid var(--hair);background:transparent;color:var(--muted)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+/* portfolio tabs */
+.ptabs{display:flex;gap:6px}
+.ptab{border:1.5px solid var(--hair);background:transparent;color:var(--muted);border-radius:99px;padding:5px 13px;font-size:12px;font-weight:800;cursor:pointer;font-family:inherit}
+.ptab.on{border-color:var(--signal);background:var(--signal-wash);color:var(--signal)}
+.ptab.on.b{border-color:var(--portB);background:var(--hover);color:var(--portB)}
+.editchip{font-size:11px;font-weight:800;border-radius:4px;padding:2px 7px;background:var(--signal-wash);color:var(--signal)}
+.editchip.b{background:var(--hover);color:var(--portB)}
+/* picker */
+#filter{width:100%;padding:9px 12px;border:1px solid var(--hair);border-radius:6px;font-size:13.5px;font-family:inherit;background:var(--raised);color:var(--ink);margin-bottom:10px}
+#filter::placeholder{color:var(--muted)}
+#filter:focus{outline:2px solid var(--signal);outline-offset:1px}
+.tabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+.tab{display:inline-flex;align-items:center;gap:5px;background:transparent;border:1px solid var(--hair);color:var(--muted);border-radius:20px;padding:5px 11px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit}
+.tab svg{flex:0 0 auto;opacity:.75}
+/* Neutral tile, deliberately not signal blue: these are static headings, not actions.
+   Borrows the logomark's tile shape, not its colour. */
+.sec-icon{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;flex:0 0 30px;margin-right:10px;background:var(--raised);border-radius:8px;color:var(--ink)}
+.tab.on{background:var(--signal);color:var(--signal-ink);border-color:var(--signal)}
+.fundlist{max-height:520px;overflow-y:auto}
+.cat{font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);padding:12px 4px 4px}
+.fundrow{display:flex;align-items:center;gap:10px;width:100%;height:42px;text-align:left;background:transparent;border:none;border-radius:6px;padding:0 8px;cursor:pointer;font-family:inherit;color:var(--ink);font-size:13.5px}
+.fundrow:hover{background:var(--raised)}
+.fundrow.checked{background:var(--signal-wash)}
+.fundrow:disabled{opacity:.4;cursor:not-allowed}
+.fundrow .box{width:15px;height:15px;flex:0 0 15px;border-radius:3px;border:2px solid var(--muted);background:transparent}
+.fundrow .nm{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fundrow .meta{display:flex;align-items:center;gap:6px;flex:0 0 auto}
+.fundrow .esma{font-size:11px;font-weight:700;color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums;width:52px;text-align:right}
+.costtag{font-size:10.5px;font-weight:800;border-radius:4px;padding:1px 5px;white-space:nowrap;font-variant-numeric:tabular-nums;width:54px;text-align:center}
+.costtag.up{background:transparent;color:var(--neg)}
+.costtag.down{background:transparent;color:var(--pos)}
+.costtag.none{background:transparent}
+.simmark{color:var(--sim);font-size:11px}
+.hint{color:var(--muted);font-size:11.5px;margin-top:8px;line-height:1.5}
+/* section 2 */
+.controls{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-end;margin-bottom:14px}
+.ctrl label{display:block;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+.ctrl input{background:var(--raised);border:1px solid var(--hair);color:var(--ink);border-radius:6px;padding:7px 9px;font-family:inherit;font-size:13px;width:130px}
+.ctrl input.edit{background:var(--raised);border:1px solid var(--signal);font-weight:700;font-variant-numeric:tabular-nums}
+.ctrl input:focus{outline:2px solid var(--signal);outline-offset:1px}
+table.hold{width:100%;border-collapse:collapse;font-size:13px}
+table.hold th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);border-bottom:1px solid var(--hair);padding:7px 8px}
+table.hold td{padding:7px 8px;border-bottom:1px solid var(--hair);vertical-align:middle;height:48px}
+table.hold td.nm{max-width:330px}
+table.hold td.nm .t{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.3;font-weight:600}
+.sw{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:7px;vertical-align:-1px;border:1px solid var(--hair)}
+table.hold input.alloc{width:64px;background:var(--raised);border:1px solid var(--signal);color:var(--ink);border-radius:6px;padding:6px;font-family:inherit;font-size:13px;font-weight:700;text-align:right;font-variant-numeric:tabular-nums}
+table.hold.compact{font-size:12px}
+table.hold.compact th{font-size:9.5px;padding:6px 8px;white-space:nowrap}
+table.hold.compact td{padding:5px 8px;height:40px}
+table.hold.compact input.alloc{font-size:12px;padding:5px 6px}
+table.hold .rm{background:none;border:none;color:var(--neg);font-size:16px;cursor:pointer;font-family:inherit}
+tr.total td{font-weight:800;border-bottom:none}
+#allocTotal.bad{color:var(--neg)} #allocTotal.ok{color:var(--ink)}
+#railwrap{margin-top:14px;display:none}
+#rail{display:flex;height:26px;border-radius:6px;overflow:hidden;border:1px solid var(--hair);background:var(--raised)}
+#rail .seg{transition:width .25s ease}
+@media(prefers-reduced-motion:reduce){#rail .seg{transition:none}}
+.rail-meta{display:flex;justify-content:space-between;margin-top:8px;align-items:baseline;flex-wrap:wrap;gap:6px;font-size:12.5px;color:var(--muted)}
+.rail-meta b{color:var(--ink)}
+/* section 3 */
+.wbtns{display:flex;gap:5px;flex-wrap:wrap}
+.wbtn{background:var(--raised);border:1px solid var(--hair);color:var(--muted);border-radius:6px;padding:7px 11px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit}
+.wbtn.on{background:var(--signal);color:var(--signal-ink);border-color:var(--signal)}
+.cards{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin:10px 0}
+.scard{background:var(--raised);border:1px solid var(--hair);border-radius:10px;padding:13px}
+.scard .lbl{font-size:10.5px;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);font-weight:700}
+.scard .val{font-size:21px;font-weight:800;margin-top:5px}
+.scard .val .b2{font-size:15px;color:var(--portB);font-weight:800}
+.scard .sub{font-size:11px;color:var(--muted);margin-top:3px}
+.rowlbl{font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;margin:12px 0 4px}
+.rowlbl.a{color:var(--d1)} .rowlbl.b{color:var(--portB)}
+.subhead{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin:18px 0 8px}
+svg text{font-family:'Nunito Sans',sans-serif}
+.legend{display:flex;gap:16px;font-size:12px;color:var(--muted);margin-top:6px;flex-wrap:wrap}
+.legend .swl{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.note{font-size:11.5px;color:var(--muted);line-height:1.55;margin-top:10px}
+.callout{background:var(--raised);border-left:3px solid var(--pos);border-radius:6px;padding:10px 14px;margin-top:10px;font-size:12.5px;color:var(--ink)}
+.note strong{color:var(--ink)}
+.simflag{color:var(--sim);font-weight:700}
+.empty{color:var(--muted);text-align:center;padding:50px 20px;font-size:14px}
+table.proj{width:100%;border-collapse:collapse;font-size:13px;margin-top:10px}
+table.proj th,table.proj td{padding:7px 10px;border-bottom:1px solid var(--hair);text-align:right;font-variant-numeric:tabular-nums}
+table.proj th:first-child,table.proj td:first-child{text-align:left}
+table.proj th{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)}
+table.proj td.neg{color:var(--neg)}
+table.proj td.acol{color:var(--d1)} table.proj td.bcol{color:var(--portB)}
+table.proj.compact{font-size:11.5px;margin-top:2px}
+table.proj.compact th,table.proj.compact td{padding:6px 7px;white-space:nowrap}
+table.proj.compact td:first-child,table.proj.compact th:first-child{white-space:normal}
+#bblocks .rowlbl{margin-bottom:2px}
+@media(max-width:980px){main.grid{grid-template-columns:1fr}.cards{grid-template-columns:repeat(2,1fr)}}
+/* footer disclaimers */
+.disc-wrap{padding:0 0 30px}
+.disc{background:var(--surface);border:1px solid var(--hair);border-left:4px solid var(--ink);border-radius:10px;padding:18px 20px}
+.disc h3{font-size:13px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#fff;margin-bottom:10px}
+.disc ul{margin:0 0 12px;padding-left:18px}
+.disc li{font-size:12.5px;line-height:1.6;color:var(--ink)}
+.disc li b{font-weight:800}
+.disc p{font-size:12px;color:var(--muted);line-height:1.65;margin-bottom:9px}
+.disc p:last-child{margin-bottom:0}
+@media print{.disc-wrap{display:none!important}}
+/* ---------- print ---------- */
+#printdoc{display:none}
+@media print{
+  @page{size:A4 portrait;margin:10mm}
+  body{background:#fff!important}
+  .topstrip,.brandband,header.top,main.grid{display:none!important}
+  #printdoc{display:block!important;font-family:'Nunito Sans',sans-serif;color:#0D1B2A}
+  .pd-sec{break-inside:avoid;page-break-inside:avoid}
+  /* Restrained wordmark rule rather than a solid colour band: matches the on-screen
+     brandband and uses far less ink on a real printer. */
+  .pd-band{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;
+           padding:0 0 8px;border-bottom:2px solid #1A4FD6}
+  .pd-band .bm{display:flex;align-items:center;gap:8px}
+  .pd-band .mark{width:20px;height:20px;background:#1A4FD6;border-radius:5px;display:flex;align-items:center;justify-content:center}
+  .pd-band .t1{font-weight:900;font-size:12px;letter-spacing:.16em;color:#0D1B2A}
+  .pd-band .t2{font-weight:700;font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:#66737F}
+  .pd-title{font-weight:900;font-size:21px;color:#0D1B2A;margin:12px 0 2px;letter-spacing:-.02em}
+  .pd-sub{font-size:10px;color:#66737F;margin:0 0 12px}
+  .pd-h{font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#0D1B2A;margin:14px 0 6px;border-bottom:2px solid #0D1B2A;padding-bottom:3px}
+  .pd-table{width:100%;border-collapse:collapse;font-size:9px}
+  .pd-table th{background:#0D1B2A;color:#fff;text-align:left;padding:4px 7px;font-size:8.5px;letter-spacing:.06em;text-transform:uppercase;font-weight:800}
+  .pd-table th.r,.pd-table td.r{text-align:right;font-variant-numeric:tabular-nums}
+  .pd-table td{padding:4.5px 7px;border-bottom:1px solid #E2E6EB;vertical-align:middle;color:#0D1B2A;font-weight:600}
+  .pd-table tr:nth-child(even) td{background:#F4F6F9}
+  .pd-chart{border:1px solid #E2E6EB;border-radius:5px;padding:8px 10px 4px;margin:4px 0 0}
+  .pd-chart svg{width:100%;height:auto;display:block}
+  .pd-sw{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:5px;vertical-align:middle;border:1px solid #E2E6EB}
+  .pd-stats{display:flex;gap:10px;margin-top:12px}
+  .pd-stat{flex:1;border:1px solid #E2E6EB;border-top:3px solid #0D1B2A;border-radius:5px;padding:7px 9px}
+  .pd-stat.gold{border-top-color:#1A4FD6}
+  .pd-stat .l{font-size:8px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#66737F}
+  .pd-stat .v{font-size:16px;font-weight:900;color:#0D1B2A;font-variant-numeric:tabular-nums;margin-top:2px}
+  .pd-stat .v.neg{color:#B23B2E}
+  .pd-note{font-size:8px;color:#66737F;margin:7px 0 0;line-height:1.4}
+  .pd-lbl{font-size:8.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;margin:8px 0 3px}
+  .pd-lbl.a{color:#3E7CB1}
+  .pd-lbl.b{color:#C77D3A}
+  .pd-meth{font-size:8px;color:#66737F;margin:8px 0 0;line-height:1.4}
+  .pd-disc{margin-top:14px;border:1px solid #E2E6EB;border-left:4px solid #0D1B2A;border-radius:5px;padding:8px 10px}
+  .pd-disc h4{font-size:8.5px;font-weight:900;text-transform:uppercase;letter-spacing:.06em;margin:0 0 4px;color:#0D1B2A}
+  .pd-disc ul{margin:0 0 5px;padding-left:13px;font-size:7.6px;line-height:1.45;color:#0D1B2A}
+  .pd-disc p{font-size:7px;color:#66737F;line-height:1.45;margin:0 0 3.5px}
+  .pd-disc p:last-child{margin:0}
+}
+</style>
+</head>
+<body>
+<div class="topstrip"></div>
+<div class="brandband"><div class="wrap"><span class="bname">AVIVA INVESTORS</span><span class="bsub">Fund Centre · Model portfolio tool</span></div></div>
+<header class="top"><div class="wrap">
+  <div class="head-row">
+    <div class="title-row">
+      <div class="logomark" aria-hidden="true">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
+          <rect x="3" y="15" width="8" height="3" rx="1.5" fill="currentColor"/>
+          <rect x="3" y="10.5" width="13" height="3" rx="1.5" fill="currentColor"/>
+          <rect x="3" y="6" width="18" height="3" rx="1.5" fill="currentColor"/>
+        </svg>
+      </div>
+      <div>
+        <div class="eyebrow-row"><span class="eyebrow">Investment funds</span><span class="tag-internal">Internal</span></div>
+        <h1>Internal Portfolio Builder</h1>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <div class="databadge">Data to <span id="asOf"></span> · EUR · Gross of AMC · v12</div>
+      <button class="iconbtn" id="themeBtn" title="Switch between light and dark" aria-label="Switch between light and dark"></button>
+    </div>
+  </div>
+  <div class="trust"><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" aria-hidden="true"><path d="M8 1.5 13.5 3.5v4c0 4-2.5 6.3-5.5 7-3-.7-5.5-3-5.5-7v-4Z"/><path d="M5.7 8.2 7.3 9.8l3-3.6" stroke-linecap="round"/></svg>This tool models and illustrates portfolios — <b>it does not recommend one.</b></div>
+</div></header>
+
+<main class="grid">
+  <section>
+    <div class="card">
+      <div class="card-head"><h2><span class="sec-icon"><svg width="19" height="19" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="3" y1="6" x2="17" y2="6"/><circle cx="8" cy="6" r="2" fill="currentColor" stroke="none"/><line x1="3" y1="10" x2="17" y2="10"/><circle cx="13" cy="10" r="2" fill="currentColor" stroke="none"/><line x1="3" y1="14" x2="17" y2="14"/><circle cx="6" cy="14" r="2" fill="currentColor" stroke="none"/></svg></span>1 · Choose funds</h2><span class="count"><span class="editchip" id="editchip">Portfolio A</span> <span id="selcount">0/5</span></span></div>
+      <div class="card-body">
+        <input id="filter" placeholder="Filter funds…" aria-label="Filter funds">
+        <div class="tabs" id="tabs"></div>
+        <div class="fundlist" id="fundlist"></div>
+        <div class="hint">Tags show fund cost vs the standard fee. <span class="simmark">◆</span> Index/simulated performance prior to the fund's live pricing date — the date is shown in the allocations table and shaded on the growth chart.</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="card">
+      <div class="card-head">
+        <div style="display:flex;align-items:center;gap:12px"><h2><span class="sec-icon"><svg width="19" height="19" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M10 2v8l6.5 4A8 8 0 1 0 10 18" stroke-linecap="round"/><path d="M10 2A8 8 0 0 1 17.9 9H10z" opacity=".45"/></svg></span>2 · Set allocations &amp; cost</h2>
+          <div class="ptabs">
+            <button class="ptab on" data-p="A" id="ptabA">Portfolio A</button>
+            <button class="ptab" data-p="B" id="ptabB">Portfolio B · compare</button>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-primary" id="splitBtn" disabled>Equal split</button>
+          <button class="btn btn-quiet" id="clearBtn" disabled>Clear</button>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="controls">
+          <div class="ctrl"><label>Investment €</label><input type="number" id="amt" class="edit" value="100000" min="1000" step="1000"></div>
+          <div class="ctrl"><label>Standard portfolio cost % p.a.</label><input type="number" id="stdFee" class="edit" value="1.00" min="0" max="3" step="0.05"></div>
+        </div>
+        <p class="empty" id="allocEmpty" style="padding:14px 0">Choose funds on the left to start building. Each fund gets a weight; the portfolio must total exactly 100%. Portfolio B is optional — build it to compare two portfolios side by side.</p>
+        <div id="holdWrap" style="display:none">
+        <table class="hold compact">
+          <thead><tr><th>Fund</th><th>Category</th><th>ESMA</th><th>Fund cost</th><th>History from</th><th style="text-align:right">Alloc %</th><th></th></tr></thead>
+          <tbody id="holdBody"></tbody>
+          <tfoot><tr class="total"><td colspan="5">Total</td><td style="text-align:right"><span id="allocTotal">0</span>%</td><td></td></tr></tfoot>
+        </table>
+        <div id="railwrap">
+          <div id="rail" role="img" aria-label="Allocation bar"></div>
+          <div class="rail-meta"><span id="totaltxt"></span><span id="railnote"></span></div>
+        </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h2><span class="sec-icon"><svg width="19" height="19" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="2" y1="17" x2="18" y2="17"/><rect x="4" y="11" width="3" height="6" fill="currentColor" stroke="none"/><rect x="8.5" y="7" width="3" height="10" fill="currentColor" stroke="none"/><rect x="13" y="3" width="3" height="14" fill="currentColor" stroke="none"/></svg></span>3 · Model portfolio results</h2><div style="display:flex;gap:8px"><button class="btn btn-quiet" id="copyEmailBtn" disabled>Copy for email</button><button class="btn btn-primary" id="printBtn" disabled>Print / save PDF</button></div></div>
+      <div class="card-body">
+        <div class="controls" style="margin-bottom:0">
+          <div class="ctrl"><label>Analysis window</label>
+            <div class="wbtns" id="wbtns">
+              <button class="wbtn" data-w="12">1Y</button><button class="wbtn" data-w="36">3Y</button>
+              <button class="wbtn on" data-w="60">5Y</button><button class="wbtn" data-w="120">10Y</button>
+              <button class="wbtn" data-w="max">Max</button><button class="wbtn" data-w="custom">Custom</button>
+            </div>
+          </div>
+          <div class="ctrl" id="customWrap" style="display:none"><label>From / To</label>
+            <input type="month" id="cFrom" style="width:140px"> <input type="month" id="cTo" style="width:140px">
+          </div>
+        </div>
+        <div class="hint" id="windowNote"></div>
+        <div id="resultsEmpty" class="empty">Results appear here once you've built a portfolio.</div>
+        <div id="resultsInner" style="display:none">
+          <div id="cardsWrap"></div>
+          <div class="subhead">Portfolio performance — standard periods</div>
+          <div id="perfChart"></div>
+          <div class="legend" id="perfLegend"></div>
+          <div class="subhead">Portfolio building blocks</div>
+          <div id="bblocks"></div>
+          <div class="subhead">Growth of investment — selected window (gross of AMC)</div>
+          <div id="growthChart"></div>
+          <div class="subhead">Drawdown — selected window (gross of AMC)</div>
+          <div id="drawdownChart"></div>
+          <div class="subhead" id="rollVolHead" style="display:none">Rolling 5-year volatility</div>
+          <div id="rollVolChart"></div>
+          <div class="note" id="rollVolNote" style="display:none"></div>
+          <div class="subhead">Historical stress episodes</div>
+          <table class="proj compact" id="stressTable"></table>
+          <div class="note" id="stressNote"></div>
+          <div class="subhead">Stochastic projection — 20 years (gross of AMC)</div>
+          <div class="controls" style="margin:4px 0 10px">
+            <div class="ctrl"><label>Monthly contribution €</label><input type="number" id="contrib" class="edit" value="0" min="0" step="50"></div>
+            <div class="ctrl"><label>Monthly withdrawal €</label><input type="number" id="wd" class="edit" value="0" min="0" step="50"></div>
+          </div>
+          <div id="fanChart"></div>
+          <div class="legend">
+            <span><span class="swl" style="background:var(--band-outer)"></span>5th–95th percentile</span>
+            <span><span class="swl" style="background:var(--band-inner)"></span>25th–75th percentile</span>
+            <span><span class="swl" style="background:var(--d1)"></span>Median (A)</span>
+            <span id="fanBLegend" style="display:none"><span class="swl" style="background:var(--portB)"></span>Median (B, dashed)</span>
+          </div>
+          <table class="proj compact" id="projTable"></table>
+          <div class="note" id="simNote"></div>
+          <div class="subhead">Methodology &amp; important information</div>
+          <div class="note" id="methodNote"></div>
+        </div>
+      </div>
+    </div>
+    <div class="disc-wrap"><div class="disc">
+      <h3>Warnings &amp; important information</h3>
+      <ul>
+        <li><b>Warning:</b> The value of your investment may go down as well as up.</li>
+        <li><b>Warning:</b> If you invest in these funds you may lose some or all of the money you invest.</li>
+        <li><b>Warning:</b> Past performance is not a reliable guide to future performance.</li>
+        <li><b>Warning:</b> These funds may be affected by changes in currency exchange rates.</li>
+      </ul>
+      <p>Source of performance and prices is Longboat Analytics / MoneyMate. We believe the sources to be reliable, but we cannot guarantee the accuracy or completeness of the information provided by the Fund Managers/Longboat Analytics. The figures quoted are calculated on an offer to offer basis with income reinvested. Performance is quoted gross of annual management charge. The returns on policies linked to a fund may not be the same because of the effects of any other policy specific charges. Fund availability varies by product type — please contact your Financial Broker for details of the funds available by product type. For information on risk ratings, charges, securities lending or other fund related topics on how our funds work, please see the "Your Investment Options" brochure, which you can download on www.avivabroker.ie / www.aviva.ie, or contact your Financial Broker. The information contained in this service should not be construed as an investment recommendation.</p>
+      <p>For certain funds, performance prior to the fund's live pricing date is index or simulated performance and not actual fund performance. These figures are marked with ◆ throughout this tool and noted beneath any portfolio result that includes them. Simulated or index performance does not reflect actual fund returns and is not a reliable guide to future performance.</p>
+      <p>Portfolio cost figures are based on the standard portfolio cost entered by the user, adjusted by each fund's published fee adjustment, weighted by allocation. Performance figures are shown gross of charges; the portfolio cost is displayed separately and has not been deducted from the returns shown.</p>
+      <p>Portfolio volatility, maximum drawdown and the portfolio ESMA band are computed from the combined portfolio's own monthly return series (weighted by allocation, rebalanced monthly), so they reflect diversification between funds. Monthly pricing understates true maximum drawdown relative to daily data. Stochastic projections are illustrative simulations and are not guaranteed.</p>
+      <p>Except where stated as otherwise, the source of all information is Aviva Investors Global Services Limited (AIGSL). Unless stated otherwise any views and opinions are those of Aviva Investors. They should not be viewed as indicating any guarantee of return from an investment managed by Aviva Investors nor as advice of any nature. Information contained herein has been obtained from sources believed to be reliable but, has not been independently verified by Aviva Investors and is not guaranteed to be accurate. Past performance is not a guide to the future. The value of an investment and any income from it may go down as well as up and the investor may not get back the original amount invested. Nothing in this material, including any references to specific securities, assets classes and financial markets is intended to or should be construed as advice or recommendations of any nature. Some data shown are hypothetical or projected and may not come to pass as stated due to changes in market conditions and are not guarantees of future outcomes. This material is not a recommendation to sell or purchase any investment. The information contained herein is for general guidance only. It is the responsibility of any person or persons in possession of this information to inform themselves of, and to observe, all applicable laws and regulations of any relevant jurisdiction. The information contained herein does not constitute an offer or solicitation to any person in any jurisdiction in which such offer or solicitation is not authorised or to any person to whom it would be unlawful to make such offer or solicitation. In Europe this document is issued by Aviva Investors Luxembourg S.A. Registered Office: 2 rue du Fort Bourbon, 1st Floor, 1249 Luxembourg. Supervised by Commission de Surveillance du Secteur Financier. An Aviva company. In the UK: Issued by Aviva Investors Global Services Limited. Registered in England and Wales No.1151805. Registered Office: 80 Fenchurch Street, London EC3M 4AE. Authorised and regulated by the Financial Conduct Authority. Firm Reference No. 119178. In Switzerland, this document is issued by Aviva Investors Schweiz GmbH.</p>
+      <p>This model portfolio tool is illustrative only and is not investment advice.</p>
+    </div></div>
+  </section>
+</main>
+
+<div id="printdoc"></div>
+<div id="emailCopySrc" style="position:fixed;left:-99999px;top:0;width:640px;background:#ffffff"></div>
+
+<script>
+const DATA = {asOf:null, funds:[]};  // populated at runtime by loadData()
+
+/* ---------- helpers ---------- */
+const pIdx = p => { const [y,m]=p.split("-").map(Number); return y*12+(m-1); };
+const pLbl = i => { const M=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]; return `${M[i%12]} ${Math.floor(i/12)}`; };
+const END = () => pIdx(DATA.asOf);
+
+/* Screen chart colours resolve through CSS custom properties so they follow the theme
+   toggle automatically. Print and email render outside that cascade, so they use the
+   literal light-theme values in SEG_FIXED instead. */
+const SEG=["var(--d1)","var(--d2)","var(--d3)","var(--d4)","var(--d5)"];
+const SEG_FIXED=["#3E7CB1","#C77D3A","#4F9D7E","#8A6BAF","#6B7B8A"];
+const CA="var(--d1)", CB="var(--d2)";
+const CA_FIXED="#3E7CB1", CB_FIXED="#C77D3A";
+const state = { act:"A", P:{A:{sel:[],alloc:{}},B:{sel:[],alloc:{}}}, cat:"All", win:"60", cFrom:null, cTo:null };
+const fmtE = v => "€" + Math.round(v).toLocaleString("en-IE");
+const fmtP = (v,d=1) => (v===null||v===undefined||!isFinite(v))?"n/a":(v*100).toFixed(d) + "%";
+const short=n=>n.replace(/^Aviva\s+/,"").replace(/\s+Series\s+(C|1|G|K)$/,"").replace(/\s+\(Ireland\)/,"").replace(/\s+Fund$/,"");
+const esc=s=>s.replace(/&/g,"&amp;").replace(/</g,"&lt;");
+const stdFee=()=> (+document.getElementById("stdFee").value||0)/100;
+
+function fundRet(f, i){ const k = i - f.startIdx; return (k>=0 && k<f.returns.length) ? f.returns[k] : null; }
+function selFunds(k){ return state.P[k].sel.map(n => DATA.funds.find(f=>f.name===n)); }
+function weights(k){ return state.P[k].sel.reduce((s,n)=>s+(+state.P[k].alloc[n]||0),0); }
+function valid(k){ return state.P[k].sel.length>0 && Math.abs(weights(k)-100)<0.01; }
+function validKeys(){ return ["A","B"].filter(valid); }
+function commonStart(keys){ return Math.max(...keys.flatMap(k=>selFunds(k).map(f=>f.startIdx))); }
+
+function windowRange(keys){
+  const end = END(), cs = commonStart(keys);
+  if(state.win==="max") return [cs,end];
+  if(state.win==="custom"){
+    let a = state.cFrom?pIdx(state.cFrom):cs, b = state.cTo?pIdx(state.cTo):end;
+    return [Math.max(cs,Math.min(a,b)), Math.min(end,Math.max(a,b))];
+  }
+  return [Math.max(cs, end-(+state.win)+1), end];
+}
+function series(k,from,to){
+  const fs = selFunds(k), tot = weights(k)/100, sf=stdFee();
+  const g=[], sim=[];
+  for(let i=from;i<=to;i++){
+    let rg=0, anySim=false;
+    for(const f of fs){
+      const w = (+state.P[k].alloc[f.name]||0)/100/tot;
+      const r = fundRet(f,i); if(r===null) return null;
+      rg += w*r;
+      if(i < f.liveIdx) anySim = true;
+    }
+    g.push(rg); sim.push(anySim);
+  }
+  return {g,sim,from,to};
+}
+const cum = a => a.reduce((s,r)=>s*(1+r),1)-1;
+const ann = a => Math.pow(1+cum(a),12/a.length)-1;
+const vol = a => { const m=a.reduce((s,x)=>s+x,0)/a.length;
+  return Math.sqrt(a.reduce((s,x)=>s+(x-m)*(x-m),0)/(a.length-1))*Math.sqrt(12); };
+function maxDD(a){ let idx=1,pk=1,dd=0; for(const r of a){ idx*=(1+r); pk=Math.max(pk,idx); dd=Math.min(dd,idx/pk-1);} return dd; }
+function drawdownPath(a){ let idx=1,pk=1; const out=[]; for(const r of a){ idx*=(1+r); pk=Math.max(pk,idx); out.push(idx/pk-1); } return out; }
+function srri(v){ return v<0.005?1:v<0.02?2:v<0.05?3:v<0.10?4:v<0.15?5:v<0.25?6:7; }
+function wCost(k){ const tot=weights(k)/100, sf=stdFee();
+  return selFunds(k).reduce((a,f)=>a+((+state.P[k].alloc[f.name]||0)/100/tot)*(sf+f.costAdj),0); }
+
+function niceAxis(anchor,mn,mx){
+  const raw=Math.max((mx-mn)/5, Math.max(anchor,1)*0.01);
+  const base=Math.pow(10,Math.floor(Math.log10(raw)));
+  const step=[1,2,2.5,5,10].map(m=>m*base).find(v=>v>=raw);
+  const lo=anchor-Math.ceil(Math.max(0,anchor-mn)/step+0.0001)*step;
+  const hi=anchor+Math.ceil(Math.max(0,mx-anchor)/step+0.0001)*step;
+  const ticks=[]; for(let v=lo;v<=hi+step*0.001;v+=step) ticks.push(v);
+  return {lo,hi,step,ticks};
+}
+function mulberry32(s){return function(){s|=0;s=s+0x6D2B79F5|0;let t=Math.imul(s^s>>>15,1|s);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const svgOpen=(w,h)=>`<svg viewBox="0 0 ${w} ${h}" width="100%" role="img">`;
+
+/* ---------- Monte Carlo with cashflows ---------- */
+function simulate(rets, amt, contrib, wd){
+  const lr = rets.map(r=>Math.log(1+r));
+  const mu = lr.reduce((s,x)=>s+x,0)/lr.length;
+  const sd = Math.sqrt(lr.reduce((s,x)=>s+(x-mu)*(x-mu),0)/(lr.length-1));
+  const rnd = mulberry32(20260630), N=2000, T=240;
+  const vals=[]; for(let t=0;t<T;t++) vals.push(new Float64Array(N));
+  for(let p=0;p<N;p++){
+    let V=amt;
+    for(let t=0;t<T;t++){
+      if(V>0){
+        const u1=Math.max(rnd(),1e-12), u2=rnd();
+        const z=Math.sqrt(-2*Math.log(u1))*Math.cos(2*Math.PI*u2);
+        V = V*Math.exp(mu+sd*z) + contrib - wd;
+        if(V<0) V=0;
+      } else { V = Math.max(0, contrib - wd); }
+      vals[t][p]=V;
+    }
+  }
+  const at=t=>{ const v=Array.from(vals[t-1]).sort((a,b)=>a-b);
+    return {p5:v[Math.floor(.05*(N-1))],p25:v[Math.floor(.25*(N-1))],p50:v[Math.floor(.5*(N-1))],
+            p75:v[Math.floor(.75*(N-1))],p95:v[Math.floor(.95*(N-1))],
+            depleted:vals[t-1].reduce((s,x)=>s+(x<=0?1:0),0)/N};};
+  return {at, muA: Math.exp(mu*12)-1, sdA: sd*Math.sqrt(12)};
+}
+
+/* ---------- picker ---------- */
+const CAT_ORDER=["Multi-Asset","Equity","Alternative","Fixed Income"];
+const CAT_ICON={
+  "Multi-Asset":'<svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><rect x="2" y="2" width="8" height="8" rx="1.5"/><rect x="6" y="6" width="8" height="8" rx="1.5"/></svg>',
+  "Equity":'<svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="2,12 6,7 9,9 14,3"/><polyline points="10,3 14,3 14,7"/></svg>',
+  "Alternative":'<svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M8 1.5 14.5 8 8 14.5 1.5 8Z"/></svg>',
+  "Fixed Income":'<svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M8 1.5 14 3.5v4c0 4-2.5 6.3-6 7-3.5-.7-6-3-6-7v-4Z"/></svg>'
+};
+const catSort=arr=>[...arr].sort((a,b)=>{
+  const ia=CAT_ORDER.indexOf(a), ib=CAT_ORDER.indexOf(b);
+  return (ia<0?99:ia)-(ib<0?99:ib) || a.localeCompare(b);
+});
+function renderPicker(){
+  const k=state.act, P=state.P[k];
+  const chip=document.getElementById("editchip");
+  chip.textContent="Portfolio "+k; chip.className="editchip"+(k==="B"?" b":"");
+  const cats = ["All", ...catSort([...new Set(DATA.funds.map(f=>f.category))])];
+  document.getElementById("tabs").innerHTML = cats.map(c=>
+    `<button class="tab ${c===state.cat?'on':''}" data-c="${c}">${CAT_ICON[c]||""}${c}</button>`).join("");
+  document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{state.cat=b.dataset.c;renderPicker();});
+  const q=(document.getElementById("filter").value||"").trim().toLowerCase();
+  const groups=catSort([...new Set(DATA.funds.map(f=>f.category))]).filter(c=>state.cat==="All"||c===state.cat);
+  let html="";
+  groups.forEach(cat=>{
+    const fs=DATA.funds.filter(f=>f.category===cat&&(!q||f.name.toLowerCase().includes(q)));
+    if(!fs.length) return;
+    html+=`<div class="cat">${cat}</div>`;
+    fs.forEach(f=>{
+      const si=P.sel.indexOf(f.name), checked=si>=0, dis=!checked&&P.sel.length>=5;
+      const tag=f.costAdj?`<span class="costtag ${f.costAdj>0?"up":"down"}">${f.costAdj>0?"+":"−"}${Math.abs(f.costAdj*100).toFixed(2)}%</span>`:`<span class="costtag none"></span>`;
+      html+=`<button class="fundrow${checked?" checked":""}" data-f="${esc(f.name)}" title="${esc(f.name)}" ${dis?"disabled":""}>
+        <span class="box" style="${checked?`border-color:${SEG[si]};background:${SEG[si]}`:""}"></span>
+        <span class="nm">${esc(short(f.name))}${f.simulated?' <span class="simmark">◆</span>':""}</span>
+        <span class="meta"><span class="esma">ESMA ${f.esma??"–"}</span>${tag}</span></button>`;
+    });
+  });
+  document.getElementById("fundlist").innerHTML=html||'<p class="empty">No funds match — try another tab or clear the filter.</p>';
+  document.querySelectorAll(".fundrow").forEach(el=>el.onclick=()=>toggleFund(el.dataset.f));
+  document.getElementById("selcount").textContent=`${P.sel.length}/5`;
+}
+function toggleFund(name){
+  const P=state.P[state.act];
+  if(P.sel.includes(name)){ P.sel=P.sel.filter(n=>n!==name); delete P.alloc[name]; }
+  else { if(P.sel.length>=5) return; P.sel.push(name); }
+  renderAll();
+}
+function splitEqually(){
+  const P=state.P[state.act], n=P.sel.length; if(!n) return;
+  const base=Math.floor(100/n), rem=100-base*n;
+  P.sel.forEach((nm,i)=>P.alloc[nm]=base+(i<rem?1:0));
+  renderAll();
+}
+function clearAll(){ state.P[state.act]={sel:[],alloc:{}}; renderAll(); }
+
+/* ---------- section 2 ---------- */
+function renderHoldings(){
+  const k=state.act, P=state.P[k], has=P.sel.length>0;
+  document.getElementById("allocEmpty").style.display=has?"none":"block";
+  document.getElementById("holdWrap").style.display=has?"block":"none";
+  document.getElementById("splitBtn").disabled=!has;
+  document.getElementById("clearBtn").disabled=!has;
+  document.getElementById("ptabA").className="ptab"+(state.act==="A"?" on":"");
+  document.getElementById("ptabB").className="ptab"+(state.act==="B"?" on b":"");
+  if(!has) return;
+  const sf=stdFee();
+  document.getElementById("holdBody").innerHTML = selFunds(k).map((f,i)=>`
+    <tr><td class="nm"><div class="t"><span class="sw" style="background:${SEG[i]}"></span>${f.name} ${f.simulated?'<span class="simmark">◆</span>':''}</div></td>
+    <td>${f.category}</td><td>${f.esma??"–"}</td>
+    <td>${fmtP(sf+f.costAdj,2)}</td>
+    <td>${pLbl(f.startIdx)}${f.simulated?` <span class="simflag">(live ${pLbl(f.liveIdx)})</span>`:""}</td>
+    <td style="text-align:right"><input class="alloc" data-f="${esc(f.name)}" type="number" min="0" max="100" step="1" placeholder="–" value="${P.alloc[f.name]??""}"></td>
+    <td><button class="rm" data-f="${esc(f.name)}" title="Remove">✕</button></td></tr>`).join("");
+  document.querySelectorAll("input.alloc").forEach(el=>el.onchange=()=>{P.alloc[el.dataset.f]=+el.value;renderAll(false);});
+  document.querySelectorAll(".rm").forEach(el=>el.onclick=()=>toggleFund(el.dataset.f));
+  const t = weights(k), el = document.getElementById("allocTotal");
+  el.textContent = t; el.className = Math.abs(t-100)<0.01 ? "ok" : "bad";
+  document.getElementById("railwrap").style.display="block";
+  document.getElementById("rail").innerHTML = P.sel.map((n,i)=>
+    `<div class="seg" title="${esc(short(n))} ${+P.alloc[n]||0}%" style="width:${Math.min(+P.alloc[n]||0,100)}%;background:${SEG[i]}"></div>`).join("");
+  document.getElementById("totaltxt").innerHTML=`Portfolio ${k} allocated: <b>${t}%</b>`;
+  document.getElementById("railnote").textContent = Math.abs(t-100)<0.01 ? "Portfolio complete." :
+    t<100 ? `${(100-t)} percentage points unallocated.` : `Over-allocated by ${(t-100)} percentage points.`;
+}
+
+/* ---------- charts ---------- */
+function computeBars(k){
+  const end = END(), cs = commonStart([k]);
+  const ytdLen = end - (Math.floor(end/12)*12 - 1);
+  const defs = [["1M",1,false],["YTD",ytdLen,false],["1Y",12,false],["3Y p.a.",36,true],["5Y p.a.",60,true],["10Y p.a.",120,true]];
+  const bars=[];
+  for(const [lbl,m,pa] of defs){
+    const from = end-m+1;
+    if(from<cs){ bars.push({lbl,na:true}); continue; }
+    const ss = series(k,from,end);
+    bars.push({lbl, g: pa?ann(ss.g):cum(ss.g), sim: ss.sim.some(x=>x)});
+  }
+  return bars;
+}
+function barChartSVG(sets,th){ // sets: [{bars,color,negColor}]
+  const vals = sets.flatMap(st=>st.bars.filter(b=>!b.na).map(b=>b.g));
+  let mx=Math.max(0.02,...vals), mn=Math.min(0,...vals);
+  const pad=(mx-mn)*0.10; mx+=pad; if(mn<0) mn-=pad;
+  const nB=sets[0].bars.length, nS=sets.length;
+  const W=760,H=230,P={t:16,b:34,l:52,r:10}, ih=H-P.t-P.b, iw=W-P.l-P.r;
+  const y=v=>P.t+ih*(mx-v)/(mx-mn), bw=iw/nB;
+  const grpW=bw*(nS===1?0.40:0.62), barW=(grpW-(nS-1)*3)/nS, grpX=i=>P.l+i*bw+(bw-grpW)/2;
+  let g=svgOpen(W,H);
+  for(let i=0;i<=4;i++){const v=mn+(mx-mn)*i/4, yy=y(v);
+    g+=`<line x1="${P.l}" x2="${W-P.r}" y1="${yy}" y2="${yy}" stroke="${th.grid}" stroke-width="1"/>
+        <text x="${P.l-6}" y="${yy+4}" font-size="10" fill="${th.label}" text-anchor="end">${(v*100).toFixed(0)}%</text>`;}
+  for(let i=0;i<nB;i++){
+    const cx=P.l+i*bw+bw/2;
+    sets.forEach((st,j)=>{
+      const b=st.bars[i], x0=grpX(i)+j*(barW+3);
+      if(b.na){
+        if(j===0) g+=`<rect x="${grpX(i)}" y="${y(0)-34}" width="${grpW}" height="34" rx="3" fill="${th.naFill}" stroke="${th.naStroke}" stroke-dasharray="3 3"/>
+          <text x="${cx}" y="${y(0)-14}" font-size="11" fill="${th.label}" text-anchor="middle">n/a</text>`;
+        return;
+      }
+      const col=b.g<0?(st.negColor||th.neg):st.color;
+      const yg=y(Math.max(0,b.g)), hg=Math.abs(y(b.g)-y(0));
+      const ly = b.g>=0 ? yg-5 : y(b.g)+13;
+      g+=`<rect x="${x0}" y="${yg}" width="${barW}" height="${Math.max(hg,1)}" rx="2" fill="${col}"/>
+          <text x="${x0+barW/2}" y="${ly}" font-size="${nS===1?10.5:9}" font-weight="700" fill="${nS===1?th.text:st.color}" text-anchor="middle">${fmtP(b.g)}${b.sim?" ◆":""}</text>`;
+    });
+    g+=`<text x="${cx}" y="${H-P.b+15}" font-size="11" fill="${th.label}" text-anchor="middle">${sets[0].bars[i].lbl}</text>`;
+  }
+  g+=`<line x1="${P.l}" x2="${W-P.r}" y1="${y(0)}" y2="${y(0)}" stroke="${th.label}" stroke-width="1"/></svg>`;
+  return g;
+}
+function growthChartSVG(lines,th){ // lines: [{s,color,label}]
+  const amt=+document.getElementById("amt").value||100000;
+  const built=lines.map(L=>{
+    let idx=amt; const pts=[[L.s.from-1,amt]];
+    L.s.g.forEach((r,i)=>{idx*=(1+r);pts.push([L.s.from+i,idx]);});
+    return {...L,pts};
+  });
+  const W=760,H=240,P={t:16,b:28,l:70,r:84},ih=H-P.t-P.b,iw=W-P.l-P.r;
+  const vs=built.flatMap(L=>L.pts.map(p=>p[1])),mxv=Math.max(...vs),mnv=Math.min(...vs);
+  const ax=niceAxis(amt,mnv,mxv);
+  const x0=built[0].pts[0][0], x1=built[0].pts[built[0].pts.length-1][0];
+  const x=i=>P.l+iw*(i-x0)/(x1-x0);
+  const y=v=>P.t+ih*(ax.hi-v)/((ax.hi-ax.lo)||1);
+  let g=svgOpen(W,H);
+  for(const v of ax.ticks){
+    const yy=y(v), isStart=Math.abs(v-amt)<ax.step*0.001;
+    g+=`<line x1="${P.l}" x2="${W-P.r}" y1="${yy}" y2="${yy}" stroke="${isStart?th.gridEm:th.grid}" ${isStart?'stroke-dasharray="4 3"':''}/>
+        <text x="${P.l-6}" y="${yy+4}" font-size="10" fill="${isStart?th.text:th.label}" font-weight="${isStart?'700':'400'}" text-anchor="end">${fmtE(v)}</text>`;}
+  if(lines.length===1){
+    const s=lines[0].s;
+    let simTo=null; for(let i=0;i<s.sim.length;i++) if(s.sim[i]) simTo=s.from+i;
+    if(simTo!==null) g+=`<rect x="${x(x0)}" y="${P.t}" width="${x(simTo)-x(x0)}" height="${ih}" fill="${th.simFill}"/>
+      <text x="${x(x0)+4}" y="${P.t+12}" font-size="9.5" fill="${th.simText}">simulated history</text>`;
+  }
+  const labelYs=[];
+  built.forEach((L,li)=>{
+    const d=L.pts.map((p,i)=>`${i?"L":"M"}${x(p[0]).toFixed(1)},${y(p[1]).toFixed(1)}`).join("");
+    if(li===0) g+=`<path d="${d} L${x(x1)},${y(ax.lo)} L${x(x0)},${y(ax.lo)} Z" fill="${th.area}"/>`;
+    g+=`<path d="${d}" fill="none" stroke="${L.color}" stroke-width="2"/>`;
+    const lyv=L.pts[L.pts.length-1][1]; let ly=Math.max(P.t+10,Math.min(H-P.b-4,y(lyv)+4));
+    while(labelYs.some(v=>Math.abs(v-ly)<13)) ly+=13;
+    labelYs.push(ly);
+    g+=`<circle cx="${x(x1)}" cy="${y(lyv)}" r="3.5" fill="${L.color}"/>
+        <text x="${x(x1)+7}" y="${ly}" font-size="11" font-weight="800" fill="${L.color}">${fmtE(lyv)}</text>`;
+  });
+  const pts=built[0].pts, n=pts.length, ticks=[0,Math.floor(n/3),Math.floor(2*n/3),n-1];
+  ticks.forEach((i,k)=>g+=`<text x="${x(pts[i][0])}" y="${H-8}" font-size="10" fill="${th.label}" text-anchor="${k===0?'start':'middle'}">${pLbl(pts[i][0])}</text>`);
+  return g+"</svg>";
+}
+function drawdownChartSVG(lines,th){ // lines: [{s,color}] — 0 at top, negative going down
+  const built=lines.map(L=>{
+    const dp=drawdownPath(L.s.g);
+    const pts=[[L.s.from-1,0]];
+    dp.forEach((v,i)=>pts.push([L.s.from+i,v]));
+    return {...L,pts};
+  });
+  const W=760,H=240,P={t:16,b:28,l:70,r:84},ih=H-P.t-P.b,iw=W-P.l-P.r;
+  const vs=built.flatMap(L=>L.pts.map(p=>p[1])),mnv=Math.min(...vs);
+  const ax=niceAxis(0,mnv,0);
+  const x0=built[0].pts[0][0], x1=built[0].pts[built[0].pts.length-1][0];
+  const x=i=>P.l+iw*(i-x0)/(x1-x0);
+  const y=v=>P.t+ih*(ax.hi-v)/((ax.hi-ax.lo)||1);
+  let g=svgOpen(W,H);
+  for(const v of ax.ticks){
+    const yy=y(v), isZero=Math.abs(v)<ax.step*0.001;
+    g+=`<line x1="${P.l}" x2="${W-P.r}" y1="${yy}" y2="${yy}" stroke="${isZero?th.gridEm:th.grid}" ${isZero?'stroke-dasharray="4 3"':''}/>
+        <text x="${P.l-6}" y="${yy+4}" font-size="10" fill="${isZero?th.text:th.label}" font-weight="${isZero?'700':'400'}" text-anchor="end">${fmtP(v,0)}</text>`;}
+  if(lines.length===1){
+    const s=lines[0].s;
+    let simTo=null; for(let i=0;i<s.sim.length;i++) if(s.sim[i]) simTo=s.from+i;
+    if(simTo!==null) g+=`<rect x="${x(x0)}" y="${P.t}" width="${x(simTo)-x(x0)}" height="${ih}" fill="${th.simFill}"/>
+      <text x="${x(x0)+4}" y="${P.t+12}" font-size="9.5" fill="${th.simText}">simulated history</text>`;
+  }
+  // Pass 1: draw every line's fill/stroke first, so no line can later paint over another's label.
+  built.forEach((L,li)=>{
+    const d=L.pts.map((p,i)=>`${i?"L":"M"}${x(p[0]).toFixed(1)},${y(p[1]).toFixed(1)}`).join("");
+    if(li===0) g+=`<path d="${d} L${x(x1)},${y(ax.hi)} L${x(x0)},${y(ax.hi)} Z" fill="${th.area}"/>`;
+    g+=`<path d="${d}" fill="none" stroke="${L.color}" stroke-width="2"/>`;
+  });
+  // Pass 2: trough markers + labels, drawn last so they sit on top of every line, with a dark
+  // halo behind the text for legibility even where a label overlaps its own line or a gridline.
+  const labelYs=[];
+  built.forEach(L=>{
+    let troughI=0; for(let i=1;i<L.pts.length;i++) if(L.pts[i][1]<L.pts[troughI][1]) troughI=i;
+    const tp=L.pts[troughI];
+    let ly=Math.max(P.t+10,Math.min(H-P.b-4,y(tp[1])+4));
+    while(labelYs.some(v=>Math.abs(v-ly)<13)) ly+=13;
+    labelYs.push(ly);
+    const lx=Math.min(x(tp[0])+7,W-P.r-40);
+    g+=`<circle cx="${x(tp[0])}" cy="${y(tp[1])}" r="3.5" fill="${L.color}"/>
+        <text x="${lx}" y="${ly}" font-size="11" font-weight="800" fill="${L.color}" stroke="var(--surface)" stroke-width="3" stroke-linejoin="round" paint-order="stroke">${fmtP(tp[1])}</text>`;
+  });
+  const pts2=built[0].pts, n2=pts2.length, ticks2=[0,Math.floor(n2/3),Math.floor(2*n2/3),n2-1];
+  ticks2.forEach((i,k)=>g+=`<text x="${x(pts2[i][0])}" y="${H-8}" font-size="10" fill="${th.label}" text-anchor="${k===0?'start':'middle'}">${pLbl(pts2[i][0])}</text>`);
+  return g+"</svg>";
+}
+function rollingVolChartSVG(lines,th){ // lines: [{pts,color}] — pts: [{i,v,sim}], vol always >=0
+  const W=760,H=240,P={t:16,b:28,l:70,r:84},ih=H-P.t-P.b,iw=W-P.l-P.r;
+  const vs=lines.flatMap(L=>L.pts.map(p=>p.v)), mxv=Math.max(...vs);
+  const ax=niceAxis(0,0,mxv);
+  const x0=Math.min(...lines.map(L=>L.pts[0].i)), x1=Math.max(...lines.map(L=>L.pts[L.pts.length-1].i));
+  const x=i=>P.l+iw*(i-x0)/((x1-x0)||1);
+  const y=v=>P.t+ih*(ax.hi-v)/((ax.hi-ax.lo)||1);
+  let g=svgOpen(W,H);
+  for(const v of ax.ticks){
+    const yy=y(v);
+    g+=`<line x1="${P.l}" x2="${W-P.r}" y1="${yy}" y2="${yy}" stroke="${th.grid}"/>
+        <text x="${P.l-6}" y="${yy+4}" font-size="10" fill="${th.label}" text-anchor="end">${fmtP(v,0)}</text>`;}
+  if(lines.length===1){
+    let simTo=null; lines[0].pts.forEach(p=>{ if(p.sim) simTo=p.i; });
+    if(simTo!==null) g+=`<rect x="${x(x0)}" y="${P.t}" width="${x(simTo)-x(x0)}" height="${ih}" fill="${th.simFill}"/>
+      <text x="${x(x0)+4}" y="${P.t+12}" font-size="9.5" fill="${th.simText}">simulated history</text>`;
+  }
+  const labelYs=[];
+  lines.forEach(L=>{
+    const d=L.pts.map((p,i)=>`${i?"L":"M"}${x(p.i).toFixed(1)},${y(p.v).toFixed(1)}`).join("");
+    g+=`<path d="${d}" fill="none" stroke="${L.color}" stroke-width="2"/>`;
+    const last=L.pts[L.pts.length-1];
+    let ly=Math.max(P.t+10,Math.min(H-P.b-4,y(last.v)+4));
+    while(labelYs.some(v=>Math.abs(v-ly)<13)) ly+=13;
+    labelYs.push(ly);
+    g+=`<circle cx="${x(last.i)}" cy="${y(last.v)}" r="3.5" fill="${L.color}"/>
+        <text x="${x(last.i)+7}" y="${ly}" font-size="11" font-weight="800" fill="${L.color}">${fmtP(last.v)}</text>`;
+  });
+  const xticks=[x0, x0+Math.round((x1-x0)/3), x0+Math.round(2*(x1-x0)/3), x1];
+  xticks.forEach((i,k2)=>g+=`<text x="${x(i)}" y="${H-8}" font-size="10" fill="${th.label}" text-anchor="${k2===0?'start':'middle'}">${pLbl(i)}</text>`);
+  return g+"</svg>";
+}
+const DARK={grid:"var(--hair)",gridEm:"var(--muted)",label:"var(--muted)",text:"var(--ink)",neg:"var(--neg)",naFill:"var(--raised)",naStroke:"var(--hair)",area:"var(--signal-wash)",simFill:"var(--surface-dim)",simText:"var(--muted)"};
+const LIGHT={grid:"#E2E6EB",gridEm:"#97A1AA",label:"#66737F",text:"#0D1B2A",neg:"#B23B2E",naFill:"#F4F6F9",naStroke:"#E2E6EB",area:"rgba(62,124,177,.10)",simFill:"rgba(13,27,42,.04)",simText:"#66737F"};
+
+/* ---------- stress episodes ---------- */
+const EPISODES=[
+  {name:"Global Financial Crisis", a:"2007-11", b:"2009-02"},
+  {name:"Covid crash", a:"2020-02", b:"2020-03"},
+  {name:"2022 bond selloff", a:"2022-01", b:"2022-10"},
+];
+function stressRow(k,ep){
+  const a=pIdx(ep.a), b=pIdx(ep.b), cs=commonStart([k]), end=END();
+  if(a<cs) return null;
+  const full=series(k,cs,end);
+  const idx=[1]; full.g.forEach(r=>idx.push(idx[idx.length-1]*(1+r)));
+  const iAt=i=>idx[i-cs+1]; // index level at month-end i (idx[0]=level at cs-1)
+  const prePeak=Math.max(...idx.slice(0,a-cs+1));
+  let trough=Infinity, troughI=a;
+  for(let i=a;i<=b;i++){ if(iAt(i)<trough){trough=iAt(i);troughI=i;} }
+  const epRet = iAt(b)/iAt(a-1)-1;
+  const dd = trough/Math.max(prePeak,iAt(a-1))-1;
+  let rec=null;
+  for(let i=troughI+1;i<=end;i++){ if(iAt(i)>=Math.max(prePeak,iAt(a-1))){rec=i-troughI;break;} }
+  const anySim=full.sim.slice(a-cs,b-cs+1).some(x=>x);
+  return {epRet,dd,rec,anySim};
+}
+function renderStress(keys){
+  const two=keys.length===2;
+  let head=`<tr><th>Episode</th><th>Period</th>`;
+  keys.forEach(k=>head+=`<th>${two?k+" ":""}Return</th><th>${two?k+" ":""}Max DD</th><th>${two?k+" ":""}Recovery</th>`);
+  head+=`</tr>`;
+  let rows="", anyNa=false, anySim=false;
+  EPISODES.forEach(ep=>{
+    rows+=`<tr><td>${ep.name}</td><td>${pLbl(pIdx(ep.a))} – ${pLbl(pIdx(ep.b))}</td>`;
+    keys.forEach(k=>{
+      const r=stressRow(k,ep);
+      if(!r){ rows+=`<td>n/a</td><td>n/a</td><td>n/a</td>`; anyNa=true; return; }
+      if(r.anySim) anySim=true;
+      const cls=k==="B"?"bcol":(two?"acol":"");
+      rows+=`<td class="${cls}${r.epRet<0?" ":""}">${fmtP(r.epRet)}${r.anySim?" ◆":""}</td>
+             <td class="neg">${fmtP(r.dd)}</td>
+             <td>${r.rec===null?"not yet":r.rec+" mo"}</td>`;
+    });
+    rows+=`</tr>`;
+  });
+  document.getElementById("stressTable").innerHTML=head+rows;
+  document.getElementById("stressNote").innerHTML=
+    `Episode return is the portfolio's cumulative gross return over the stated months; max drawdown is measured against the pre-episode peak; recovery is months from the episode trough back to that peak. Monthly pricing understates intra-month falls, so true peak-to-trough losses were deeper than month-end data shows.${anyNa?" n/a where the selected funds' combined history does not cover the episode.":""}${anySim?" ◆ includes simulated history.":""}`;
+}
+
+/* ---------- results ---------- */
+function rollingVolSeries(k,to){
+  const cs=commonStart([k]);
+  const s=series(k,cs,to); if(!s) return [];
+  const pts=[];
+  for(let i=59;i<s.g.length;i++)
+    pts.push({i:cs+i, v:vol(s.g.slice(i-59,i+1)), sim:s.sim.slice(i-59,i+1).some(x=>x)});
+  return pts;
+}
+function diversificationBenefit(k,win){
+  const fs=selFunds(k); if(fs.length<2) return null;
+  const tot=weights(k)/100;
+  let wAvgVol=0;
+  for(const f of fs){
+    const w=(+state.P[k].alloc[f.name]||0)/100/tot;
+    const rets=[]; for(let i=win[0]; i<=win[1]; i++){ const r=fundRet(f,i); if(r===null) return null; rets.push(r); }
+    wAvgVol+=w*vol(rets);
+  }
+  return wAvgVol;
+}
+function riskContributions(k,win){
+  const fs=selFunds(k); if(fs.length<2) return null;
+  const tot=weights(k)/100;
+  const s=series(k,win[0],win[1]); const n=s.g.length;
+  const pMean=s.g.reduce((a,b)=>a+b,0)/n;
+  const pVar=s.g.reduce((a,x)=>a+(x-pMean)*(x-pMean),0)/(n-1);
+  if(!pVar) return null;
+  return fs.map((f,i)=>{
+    const w=(+state.P[k].alloc[f.name]||0)/100/tot;
+    const rets=[]; for(let i2=win[0]; i2<=win[1]; i2++) rets.push(fundRet(f,i2));
+    const fMean=rets.reduce((a,b)=>a+b,0)/n;
+    let cov=0; for(let i2=0;i2<n;i2++) cov+=(rets[i2]-fMean)*(s.g[i2]-pMean);
+    cov/=(n-1);
+    return {name:f.name, seg:SEG[i], pct:100*w*cov/pVar};
+  });
+}
+function renderRollingVol(keys,win){
+  const head=document.getElementById("rollVolHead"), chartEl=document.getElementById("rollVolChart"), note=document.getElementById("rollVolNote");
+  if(state.win!=="120" && state.win!=="max"){
+    head.style.display="none"; chartEl.innerHTML="";
+    note.style.display="block";
+    note.textContent="Rolling 5-year volatility is only shown for the 10Y or Max window — shorter windows don't contain enough months for even one 5-year rolling figure.";
+    return;
+  }
+  const lines=[], gaps=[];
+  keys.forEach(k=>{
+    const full=rollingVolSeries(k,win[1]);
+    const pts=full.filter(p=>p.i>=win[0]);
+    if(pts.length) lines.push({pts,color:k==="B"?CB:CA});
+    else gaps.push(k);
+  });
+  if(!lines.length){
+    head.style.display="none"; chartEl.innerHTML="";
+    note.style.display="block";
+    note.textContent=(keys.length===2?`Portfolio ${gaps.join(" and Portfolio ")} don't`:`Portfolio ${gaps[0]} doesn't`)+" have enough combined history for its selected funds to show a rolling 5-year figure yet.";
+    return;
+  }
+  head.style.display="block";
+  chartEl.innerHTML=rollingVolChartSVG(lines,{...DARK});
+  if(gaps.length){
+    note.style.display="block";
+    note.textContent=`Portfolio ${gaps.join(", ")} doesn't have enough combined history for its selected funds to show a rolling 5-year figure yet.`;
+  } else {
+    note.style.display="none"; note.textContent="";
+  }
+}
+function renderCards(keys,win){
+  let html="";
+  keys.forEach(k=>{
+    const s=series(k,win[0],win[1]);
+    const gv=vol(s.g), col=k==="B"?"b":"a";
+    if(keys.length===2) html+=`<div class="rowlbl ${col}">Portfolio ${k} — ${selFunds(k).map(f=>esc(short(f.name))).join(", ")}</div>`;
+    const cards=[
+      ["Portfolio cost",fmtP(wCost(k),2),"weighted, p.a. — not deducted"],
+      ["Return (gross)",fmtP(ann(s.g)),"annualised, window"],
+      ["Volatility",fmtP(gv),"annualised, gross series"],
+      ["Max drawdown",fmtP(maxDD(s.g)),"gross series, monthly"],
+      ["Portfolio ESMA",String(srri(gv)),"SRRI band, selected window"]];
+    html+=`<div class="cards">`+cards.map(c=>
+      `<div class="scard"><div class="lbl">${c[0]}</div><div class="val">${c[1]}</div><div class="sub">${c[2]}</div></div>`).join("")+`</div>`;
+    const wAvg=diversificationBenefit(k,win);
+    if(wAvg!==null){
+      const benefit=wAvg-gv;
+      html+=`<div class="callout">Diversification reduced volatility by <b>${fmtP(benefit)}</b> — ${fmtP(gv)} actual vs ${fmtP(wAvg)} if the funds moved independently (weighted average of their own volatility).</div>`;
+    }
+    const rc=riskContributions(k,win);
+    if(rc){
+      html+=`<table class="proj compact" style="margin-top:10px"><thead><tr><th>Fund</th><th>Weight</th><th>Risk contribution</th></tr></thead><tbody>`+
+        rc.map(r=>`<tr><td><span class="sw" style="background:${r.seg}"></span>${esc(short(r.name))}</td><td>${+state.P[k].alloc[r.name]||0}%</td><td>${r.pct.toFixed(1)}%</td></tr>`).join("")+
+        `</tbody></table>`;
+    }
+  });
+  document.getElementById("cardsWrap").innerHTML=html;
+}
+function renderBuildingBlocks(keys){
+  const end=END(), sf=stdFee();
+  const ytdLen = end - (Math.floor(end/12)*12 - 1);
+  const pDefs=[["1M",1,false],["YTD",ytdLen,false],["1Y",12,false],["3Y P.A.",36,true],["5Y P.A.",60,true],["10Y P.A.",120,true]];
+  let html="";
+  keys.forEach(k=>{
+    if(keys.length===2) html+=`<div class="rowlbl ${k==="B"?"b":"a"}">Portfolio ${k}</div>`;
+    let rows="";
+    selFunds(k).forEach((f,i)=>{
+      rows+=`<tr><td><span class="sw" style="background:${SEG[i]}"></span>${esc(short(f.name))}${f.simulated?' <span class="simmark">◆</span>':''}</td>
+        <td><b>${+state.P[k].alloc[f.name]||0}%</b></td><td>${fmtP(sf+f.costAdj,2)}</td>`;
+      pDefs.forEach(([,m,pa])=>{
+        const r=fundPeriod(f,m,pa);
+        rows+=`<td class="${r.v!==null&&r.v<0?"neg":""}">${r.v===null?"—":fmtP(r.v)+(r.sim?" ◆":"")}</td>`;
+      });
+      const rk=fundRisk(f);
+      rows+=`<td>${fmtP(rk.vol)}</td><td class="neg">${fmtP(rk.mdd)}</td></tr>`;
+    });
+    html+=`<table class="proj compact"><thead><tr><th>Fund</th><th>Weight</th><th>Cost</th>${pDefs.map(d=>`<th>${d[0]}</th>`).join("")}<th>Vol</th><th>MDD</th></tr></thead><tbody>${rows}</tbody></table>`;
+  });
+  document.getElementById("bblocks").innerHTML=html;
+}
+function renderProjection(keys,win){
+  const amt=+document.getElementById("amt").value||100000;
+  const contrib=+document.getElementById("contrib").value||0;
+  const wd=+document.getElementById("wd").value||0;
+  const sims={};
+  keys.forEach(k=>{ sims[k]=simulate(series(k,win[0],win[1]).g, amt, contrib, wd); });
+  const A=sims[keys[0]];
+  // fan chart on primary portfolio
+  const W=760,H=260,P={t:14,b:28,l:82,r:16},ih=H-P.t-P.b,iw=W-P.l-P.r;
+  const yrs=20;
+  const grid=[]; for(let y2=1;y2<=yrs;y2++) grid.push({y:y2, ...A.at(y2*12)});
+  const gridB = keys.length===2 ? Array.from({length:yrs},(_,i)=>({y:i+1,...sims["B"].at((i+1)*12)})) : null;
+  const mxv=Math.max(grid[grid.length-1].p95, gridB?gridB[gridB.length-1].p95:0);
+  const mnv=Math.min(amt,...grid.map(r=>r.p5),...(gridB?gridB.map(r=>r.p5):[amt]));
+  const ax=niceAxis(amt,mnv,mxv);
+  const x=y2=>P.l+iw*y2/yrs, y=v=>P.t+ih*(ax.hi-v)/((ax.hi-ax.lo)||1);
+  const band=(lo,hi,tone)=>{ let d1=`M${x(0)},${y(amt)}`,d2="";
+    grid.forEach(r=>d1+=`L${x(r.y)},${y(r[hi])}`);
+    for(let i=grid.length-1;i>=0;i--)d2+=`L${x(grid[i].y)},${y(grid[i][lo])}`;
+    return `<path d="${d1}${d2}L${x(0)},${y(amt)}Z" fill="var(${tone})"/>`;};
+  let g=svgOpen(W,H);
+  for(const v of ax.ticks){
+    const yy=y(v), isStart=Math.abs(v-amt)<ax.step*0.001;
+    g+=`<line x1="${P.l}" x2="${W-P.r}" y1="${yy}" y2="${yy}" stroke="${isStart?'var(--muted)':'var(--hair)'}" ${isStart?'stroke-dasharray="4 3"':''}/>
+        <text x="${P.l-6}" y="${yy+4}" font-size="10" fill="${isStart?'var(--ink)':'var(--muted)'}" font-weight="${isStart?'700':'400'}" text-anchor="end">${fmtE(v)}</text>`;}
+  g+=band("p5","p95","--band-outer")+band("p25","p75","--band-inner");
+  let dm=`M${x(0)},${y(amt)}`; grid.forEach(r=>dm+=`L${x(r.y)},${y(r.p50)}`);
+  g+=`<path d="${dm}" fill="none" stroke="${CA}" stroke-width="2.5"/>`;
+  if(gridB){ let db=`M${x(0)},${y(amt)}`; gridB.forEach(r=>db+=`L${x(r.y)},${y(r.p50)}`);
+    g+=`<path d="${db}" fill="none" stroke="${CB}" stroke-width="2.5" stroke-dasharray="6 4"/>`; }
+  [0,5,10,15,20].forEach(y2=>g+=`<text x="${x(y2)}" y="${H-8}" font-size="10" fill="var(--muted)" text-anchor="middle">${y2}y</text>`);
+  g+="</svg>";
+  document.getElementById("fanChart").innerHTML=g;
+  document.getElementById("fanBLegend").style.display = gridB?"inline":"none";
+  // table
+  const two=keys.length===2, showDep=wd>0;
+  let head=`<tr><th>Horizon</th>`;
+  keys.forEach(k=>{ head+=`<th>${two?k+" ":""}5th pct</th><th>${two?k+" ":""}Median</th><th>${two?k+" ":""}95th pct</th>`;
+    if(showDep) head+=`<th>${two?k+" ":""}Depleted</th>`; });
+  head+=`</tr>`;
+  let rows="";
+  [5,10,20].forEach(y2=>{
+    rows+=`<tr><td>${y2} years</td>`;
+    keys.forEach(k=>{
+      const r=sims[k].at(y2*12), cls=two?(k==="B"?"bcol":"acol"):"";
+      rows+=`<td class="${cls}">${fmtE(r.p5)}</td><td class="${cls}"><strong>${fmtE(r.p50)}</strong></td><td class="${cls}">${fmtE(r.p95)}</td>`;
+      if(showDep) rows+=`<td class="${cls}${r.depleted>0?" neg":""}">${(r.depleted*100).toFixed(1)}%</td>`;
+    });
+    rows+=`</tr>`;
+  });
+  document.getElementById("projTable").innerHTML=head+rows;
+  let note=`Geometric Brownian motion, 2,000 paths, monthly steps, fixed seed, calibrated per portfolio to the selected window's gross series`;
+  note+=keys.map(k=>` (${k}: return ${fmtP(sims[k].muA)}, volatility ${fmtP(sims[k].sdA)})`).join(",")+`. `;
+  if(contrib>0||wd>0) note+=`Cashflows applied monthly: ${contrib>0?`contribution ${fmtE(contrib)}`:""}${contrib>0&&wd>0?", ":""}${wd>0?`withdrawal ${fmtE(wd)}`:""}. `;
+  if(wd>0){
+    keys.forEach(k=>{ const d20=sims[k].at(240).depleted;
+      note+=`<strong>Portfolio ${k}: ${(d20*100).toFixed(1)}% of paths are fully depleted within 20 years at this withdrawal rate.</strong> `; });
+    note+=`Withdrawals are fixed in euro terms (not indexed to inflation). `;
+  }
+  note+=`Values are gross of AMC and all other charges — the portfolio cost shown above and any adviser or plan-level charges would reduce these outcomes and raise depletion risk. Illustrative, not guaranteed.`;
+  document.getElementById("simNote").innerHTML=note;
+}
+function renderMethod(keys){
+  const simFunds=[...new Set(keys.flatMap(k=>selFunds(k)))].filter(f=>f.simulated);
+  document.getElementById("methodNote").innerHTML=`
+    <strong>Performance basis.</strong> Fund performance is computed from a continuous monthly return series built from MoneyMate offer prices (net of AMC), grossed up geometrically by each fund's AMC to match the fund centre's gross-of-AMC convention. All performance, growth, stress and projection figures are shown gross of AMC and any other charges: the weighted portfolio cost is displayed separately and has not been deducted, because adviser and plan-level charges vary and are not known here. Volatility, maximum drawdown and the portfolio ESMA band are computed on the actual portfolio return series (gross), so diversification between funds is fully reflected. The portfolio ESMA figure maps the window's annualised volatility to the SRRI bands and is indicative — the regulatory SRRI is measured over a fixed 5-year basis.${keys.length===2?" In comparison mode both portfolios are measured over the same window, based on the common history of all selected funds across A and B.":""}<br><br>
+    ${simFunds.length?`<strong>Simulated history.</strong> ${simFunds.map(f=>`${esc(short(f.name))} uses simulated / index performance before ${pLbl(f.liveIdx)}`).join("; ")}. Simulated series are already gross of charges and are not actual fund performance. Figures marked ◆ include simulated months.<br><br>`:""}
+    <strong>Limitations.</strong> Monthly pricing understates true maximum drawdown and intra-month stress losses relative to daily data. The gross-up assumes AMC is the only fund-level charge embedded in unit prices. Published fund centre figures may differ by small amounts due to business-day price sampling.<br><br>
+    Warning: Past performance is not a reliable guide to future performance. The value of your investment may go down as well as up. If you invest in these funds you may lose some or all of the money you invest. These funds may be affected by changes in currency exchange rates. Source of prices: Longboat Analytics / MoneyMate. Aviva Life &amp; Pensions Ireland DAC is regulated by the Central Bank of Ireland.`;
+}
+
+/* ---------- print ---------- */
+function fundPeriod(f, months, pa){
+  const end=END(), from=end-months+1;
+  if(from<f.startIdx) return {v:null,sim:false};
+  const rets=[]; for(let i=from;i<=end;i++) rets.push(fundRet(f,i));
+  const c=cum(rets);
+  return {v: pa?Math.pow(1+c,12/months)-1:c, sim: from<f.liveIdx};
+}
+function fundRisk(f){
+  const end=END(), from=Math.max(f.startIdx,end-59);
+  const rets=[]; for(let i=from;i<=end;i++) rets.push(fundRet(f,i));
+  return {vol: rets.length>=12?vol(rets):null, mdd: rets.length>=12?maxDD(rets):null};
+}
+function pdStats5(k){
+  const end=END(), cs=commonStart([k]);
+  const from=Math.max(cs,end-59), m=end-from+1;
+  const s=series(k,from,end), gv=vol(s.g);
+  return {lbl:m>=60?"5yr":`${m}m`, from, to:end, ret:ann(s.g), vol:gv, mdd:maxDD(s.g), esma:srri(gv), cost:wCost(k)};
+}
+function buildPrintDoc(){
+  const keys=validKeys(), sf=stdFee(), two=keys.length===2;
+  const amt=+document.getElementById("amt").value||100000;
+  const today=new Date().toLocaleDateString("en-IE",{day:"2-digit",month:"2-digit",year:"numeric"});
+  const end=END();
+  const [wFrom,wTo]=windowRange(keys);
+  const ytdLen = end - (Math.floor(end/12)*12 - 1);
+  const pDefs=[[1,false],[ytdLen,false],[12,false],[36,true],[60,true],[120,true]];
+  const fsByKey={}, stByKey={};
+  keys.forEach(k=>{ fsByKey[k]=selFunds(k); stByKey[k]=pdStats5(k); });
+  const clr = k => two && k==="B" ? CB_FIXED : CA_FIXED;
+  const legend = two ? `<p class="pd-note"><span class="pd-sw" style="background:${clr("A")}"></span>Portfolio A &nbsp; <span class="pd-sw" style="background:${clr("B")}"></span>Portfolio B</p>` : "";
+
+  let h=`<div class="pd-band"><span class="bm"><span class="mark"><svg width="12" height="12" viewBox="0 0 24 24" fill="none"><rect x="3" y="15" width="8" height="3" rx="1.5" fill="#fff"/><rect x="3" y="10.5" width="13" height="3" rx="1.5" fill="#fff"/><rect x="3" y="6" width="18" height="3" rx="1.5" fill="#fff"/></svg></span><span class="t1">AVIVA INVESTORS</span></span><span class="t2">Internal · Model Portfolio Review</span></div>
+  <div class="pd-title">Model Portfolio Review${two?" — Portfolio Comparison":""}</div>
+  <p class="pd-sub">Prepared ${today} · Performance data to ${pLbl(end)} · EUR · Returns gross of AMC · Standard portfolio cost ${fmtP(sf,2)} p.a. · Investment ${fmtE(amt)}</p>`;
+
+  h+=`<div class="pd-sec"><div class="pd-h">Portfolio composition</div>`;
+  keys.forEach(k=>{
+    const fs=fsByKey[k], st=stByKey[k];
+    if(two) h+=`<p class="pd-lbl ${k==="B"?"b":"a"}">Portfolio ${k}</p>`;
+    h+=`<table class="pd-table"><thead><tr><th>Fund</th><th>Asset class</th><th class="r">ESMA</th><th class="r">Weight</th><th class="r">Effective cost p.a.</th></tr></thead><tbody>`;
+    fs.forEach((f,i)=>{
+      h+=`<tr><td><span class="pd-sw" style="background:${SEG_FIXED[i]}"></span>${esc(f.name)}${f.simulated?' <b style="color:#66737F">◆</b>':""}</td><td>${f.category}</td><td class="r">${f.esma??"—"}</td><td class="r"><b>${+state.P[k].alloc[f.name]||0}%</b></td><td class="r">${fmtP(sf+f.costAdj,2)}</td></tr>`;
+    });
+    h+=`<tr><td colspan="3"><b>Total</b></td><td class="r"><b>${weights(k)}%</b></td><td class="r"><b>${fmtP(st.cost,2)}</b></td></tr></tbody></table>`;
+  });
+  h+=`</div>`;
+
+  h+=`<div class="pd-sec"><div class="pd-h">Portfolio summary</div>`;
+  keys.forEach(k=>{
+    const st=stByKey[k];
+    const basisTxt=`${st.lbl==="5yr"?"5-year basis":st.lbl+" basis"} (${pLbl(st.from)} – ${pLbl(st.to)})`;
+    h+=`<p class="pd-lbl ${two?(k==="B"?"b":"a"):""}">${two?`Portfolio ${k} — `:""}${basisTxt}</p>
+  <div class="pd-stats" style="margin-top:2px;margin-bottom:10px">
+    <div class="pd-stat gold"><div class="l">Total portfolio cost p.a.</div><div class="v">${fmtP(st.cost,2)}</div></div>
+    <div class="pd-stat"><div class="l">Return · ${st.lbl} p.a. gross</div><div class="v">${fmtP(st.ret)}</div></div>
+    <div class="pd-stat"><div class="l">Volatility · ${st.lbl} ann. std dev</div><div class="v">${fmtP(st.vol,2)}</div></div>
+    <div class="pd-stat"><div class="l">Max drawdown · ${st.lbl}</div><div class="v neg">${fmtP(st.mdd,2)}</div></div>
+    <div class="pd-stat"><div class="l">Portfolio ESMA · ${st.lbl}</div><div class="v">${st.esma}</div></div>
+  </div>`;
+  });
+  h+=`</div>`;
+
+  const barSets=keys.map(k=>({bars:computeBars(k),color:clr(k),negColor:"#B23B2E"}));
+  h+=`<div class="pd-sec"><div class="pd-h">Indicative performance by period</div>
+  <div class="pd-chart">${barChartSVG(barSets,LIGHT)}</div>${legend}</div>`;
+
+  const growthLines=keys.map(k=>({s:series(k,wFrom,wTo),color:clr(k)}));
+  h+=`<div class="pd-sec"><div class="pd-h">Growth of ${fmtE(amt)} · ${pLbl(wFrom)} – ${pLbl(wTo)} (gross of AMC)</div>
+  <div class="pd-chart">${growthChartSVG(growthLines,LIGHT)}</div>${legend}</div>`;
+
+  h+=`<div class="pd-sec"><div class="pd-h">Portfolio building blocks</div>`;
+  keys.forEach(k=>{
+    const fs=fsByKey[k], anySim=fs.some(f=>f.simulated);
+    if(two) h+=`<p class="pd-lbl ${k==="B"?"b":"a"}">Portfolio ${k}</p>`;
+    h+=`<table class="pd-table"><thead><tr><th>Fund</th><th class="r">Weight</th><th class="r">Cost</th><th class="r">1M</th><th class="r">YTD</th><th class="r">1Y</th><th class="r">3Y p.a.</th><th class="r">5Y p.a.</th><th class="r">10Y p.a.</th><th class="r">Vol</th><th class="r">MDD</th></tr></thead><tbody>`;
+    fs.forEach((f,i)=>{
+      h+=`<tr><td><span class="pd-sw" style="background:${SEG_FIXED[i]}"></span>${esc(short(f.name))}${f.simulated?' <b style="color:#66737F">◆</b>':""}</td><td class="r"><b>${+state.P[k].alloc[f.name]||0}%</b></td><td class="r">${fmtP(sf+f.costAdj,2)}</td>`;
+      pDefs.forEach(([m,pa])=>{
+        const r=fundPeriod(f,m,pa);
+        h+=`<td class="r" style="color:${r.v!==null&&r.v<0?"#B23B2E":"#0D1B2A"}">${r.v===null?"—":fmtP(r.v)+(r.sim?" ◆":"")}</td>`;
+      });
+      const rk=fundRisk(f);
+      h+=`<td class="r">${fmtP(rk.vol)}</td><td class="r" style="color:#B23B2E">${fmtP(rk.mdd)}</td></tr>`;
+    });
+    h+=`</tbody></table>`;
+    if(anySim)h+=`<p class="pd-note">◆ Marked funds use index or simulated performance prior to their live pricing date; marked figures include simulated months and are not actual fund performance.</p>`;
+  });
+  h+=`</div>`;
+
+  h+=`<div class="pd-sec"><div class="pd-h">Historical stress episodes</div>
+  <table class="pd-table"><thead><tr><th>Episode</th><th>Period</th>${keys.map(k=>`<th class="r">${two?k+" ":""}Return</th><th class="r">${two?k+" ":""}Max DD</th><th class="r">${two?k+" ":""}Recovery</th>`).join("")}</tr></thead><tbody>`;
+  EPISODES.forEach(ep=>{
+    h+=`<tr><td>${ep.name}</td><td>${pLbl(pIdx(ep.a))} – ${pLbl(pIdx(ep.b))}</td>`;
+    keys.forEach(k=>{
+      const r=stressRow(k,ep);
+      if(!r) h+=`<td class="r">n/a</td><td class="r">n/a</td><td class="r">n/a</td>`;
+      else h+=`<td class="r" style="color:${r.epRet<0?"#B23B2E":"#0D1B2A"}">${fmtP(r.epRet)}${r.anySim?" ◆":""}</td><td class="r" style="color:#B23B2E">${fmtP(r.dd)}</td><td class="r">${r.rec===null?"not yet":r.rec+" mo"}</td>`;
+    });
+    h+=`</tr>`;
+  });
+  h+=`</tbody></table></div>`;
+
+  const basisPhrase = two
+    ? "the basis stated above for each portfolio"
+    : `the ${stByKey[keys[0]].lbl} basis stated above`;
+  h+=`<div class="pd-sec"><p class="pd-meth" style="margin-top:10px">Portfolio figures are computed from the combined portfolio's own monthly return series (funds' spliced price histories, weighted by allocation, rebalanced monthly), so volatility, maximum drawdown and the ESMA band reflect diversification between funds. Fund and portfolio returns are gross of AMC; the total portfolio cost is shown separately and has not been deducted, and adviser or plan-level charges would further reduce outcomes. Stress episode returns use month-end pricing, which understates intra-month falls. Fund-level Vol and MDD and the portfolio summary cards are measured over ${basisPhrase}. The portfolio ESMA figure maps annualised volatility to the SRRI bands and is indicative only. Where any fund has no history for a period, the figure is shown as n/a.</p>
+  <div class="pd-disc"><h4>Warnings &amp; important information</h4>
+  <ul>
+    <li><b>Warning:</b> The value of your investment may go down as well as up.</li>
+    <li><b>Warning:</b> If you invest in these funds you may lose some or all of the money you invest.</li>
+    <li><b>Warning:</b> Past performance is not a reliable guide to future performance.</li>
+    <li><b>Warning:</b> These funds may be affected by changes in currency exchange rates.</li>
+  </ul>
+  <p>Source of performance and prices is Longboat Analytics / MoneyMate. We believe the sources to be reliable, but we cannot guarantee the accuracy or completeness of the information provided by the Fund Managers/Longboat Analytics. Performance is quoted gross of annual management charge. The returns on policies linked to a fund may not be the same because of the effects of any other policy specific charges. Fund availability varies by product type — please contact your Financial Broker for details of the funds available by product type. For information on risk ratings, charges, securities lending or other fund related topics on how our funds work, please see the "Your Investment Options" brochure, which you can download on www.avivabroker.ie / www.aviva.ie, or contact your Financial Broker. The information contained in this document should not be construed as an investment recommendation. This model portfolio review is illustrative only and is not investment advice.</p>
+  <p>Except where stated as otherwise, the source of all information is Aviva Investors Global Services Limited (AIGSL). Unless stated otherwise any views and opinions are those of Aviva Investors. They should not be viewed as indicating any guarantee of return from an investment managed by Aviva Investors nor as advice of any nature. Information contained herein has been obtained from sources believed to be reliable but, has not been independently verified by Aviva Investors and is not guaranteed to be accurate. Past performance is not a guide to the future. The value of an investment and any income from it may go down as well as up and the investor may not get back the original amount invested. Nothing in this material, including any references to specific securities, assets classes and financial markets is intended to or should be construed as advice or recommendations of any nature. Some data shown are hypothetical or projected and may not come to pass as stated due to changes in market conditions and are not guarantees of future outcomes. This material is not a recommendation to sell or purchase any investment. The information contained herein is for general guidance only. It is the responsibility of any person or persons in possession of this information to inform themselves of, and to observe, all applicable laws and regulations of any relevant jurisdiction. The information contained herein does not constitute an offer or solicitation to any person in any jurisdiction in which such offer or solicitation is not authorised or to any person to whom it would be unlawful to make such offer or solicitation. In Europe this document is issued by Aviva Investors Luxembourg S.A. Registered Office: 2 rue du Fort Bourbon, 1st Floor, 1249 Luxembourg. Supervised by Commission de Surveillance du Secteur Financier. An Aviva company. In the UK: Issued by Aviva Investors Global Services Limited. Registered in England and Wales No.1151805. Registered Office: 80 Fenchurch Street, London EC3M 4AE. Authorised and regulated by the Financial Conduct Authority. Firm Reference No. 119178. In Switzerland, this document is issued by Aviva Investors Schweiz GmbH.</p>
+  </div></div>`;
+  return h;
+}
+
+function buildEmailSummaryHTML(keys, win){
+  const sf=stdFee(), two=keys.length===2;
+  const amt=+document.getElementById("amt").value||100000;
+  const today=new Date().toLocaleDateString("en-IE",{day:"2-digit",month:"2-digit",year:"numeric"});
+  const FONT="'Nunito Sans',Arial,sans-serif";
+  /* Literal hex only - email renders outside this document, so CSS custom properties
+     cannot resolve. Outlook also drops inline SVG, so no icons travel here. */
+  const NAVY="#0D1B2A", MUT="#66737F", NEG="#B23B2E", BORDER="#E2E6EB", GOLD="#1A4FD6", STRIPE="#F4F6F9";
+  const LBL_A=CA_FIXED, LBL_B=CB_FIXED;
+  const clr = k => k==="B" ? LBL_B : LBL_A;
+  const th="font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:#ffffff;background:"+NAVY+";padding:6px 8px;text-align:left;font-family:"+FONT+";font-weight:bold;";
+  const thR=th+"text-align:right;";
+  const tdBase="padding:6px 8px;border-bottom:1px solid "+BORDER+";color:#1D2340;font-family:"+FONT+";font-size:12px;";
+  const td=bg=>tdBase+"background:"+bg+";";
+  const tdR=bg=>td(bg)+"text-align:right;";
+  const tdR2=bg=>tdR(bg)+"font-variant-numeric:tabular-nums;";
+  const cap=txt=>`<p style="font-size:8px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:${MUT};margin:0 0 4px;background:#ffffff;font-family:${FONT}">${txt}</p>`;
+  const statCell=(label,val,accent,negv,last)=>`<td style="width:20%;padding:9px 10px;border-top:3px solid ${accent};border-bottom:1px solid ${BORDER};background:#ffffff;font-family:${FONT}${last?"":`;border-right:1px solid ${BORDER}`}">
+      <div style="font-size:8px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:${MUT}">${label}</div>
+      <div style="font-size:15px;font-weight:900;color:${negv?NEG:NAVY};margin-top:2px;font-variant-numeric:tabular-nums">${val}</div>
+    </td>`;
+
+  let h=`<div style="font-family:${FONT};color:${NAVY};max-width:640px;background:#ffffff;padding:4px">
+  <table border="0" cellpadding="0" cellspacing="0" style="width:100%;background:#ffffff;margin-bottom:12px;border-bottom:2px solid ${GOLD}"><tr>
+    <td width="14" style="padding:0 0 8px;vertical-align:middle"><table border="0" cellpadding="0" cellspacing="0"><tr><td width="14" height="14" style="width:14px;height:14px;background:${GOLD};font-size:0;line-height:0">&nbsp;</td></tr></table></td>
+    <td style="padding:0 0 8px 8px;vertical-align:middle;font-weight:900;font-size:13px;letter-spacing:.14em;color:${NAVY};font-family:${FONT}">AVIVA INVESTORS</td>
+    <td style="padding:0 0 8px;vertical-align:middle;text-align:right;font-weight:bold;font-size:9px;letter-spacing:.06em;text-transform:uppercase;color:${MUT};font-family:${FONT}">Internal · Model Portfolio Summary</td>
+  </tr></table>
+  <p style="font-size:15px;font-weight:bold;color:${NAVY};margin:0 0 2px;background:#ffffff;font-family:${FONT}">Model Portfolio Summary${two?" — Portfolio Comparison":""}</p>
+  <p style="font-size:11px;color:${MUT};margin:0 0 16px;background:#ffffff;font-family:${FONT}">Prepared ${today} · ${pLbl(win[0])} – ${pLbl(win[1])} · EUR · Returns gross of AMC · Investment ${fmtE(amt)}</p>`;
+
+  keys.forEach(k=>{
+    const fs=selFunds(k), s=series(k,win[0],win[1]), gv=vol(s.g);
+    const accent=two?clr(k):GOLD;
+    h+=`<table border="0" cellpadding="0" cellspacing="0" style="width:100%;border:1px solid ${BORDER};border-left:4px solid ${accent};background:#ffffff;margin-bottom:${two?"14px":"0"}"><tr><td style="padding:14px 16px">`;
+    if(two) h+=`<p style="font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:${clr(k)};margin:0 0 10px;background:#ffffff;font-family:${FONT}">Portfolio ${k}</p>`;
+    h+=cap("Composition");
+    h+=`<table border="0" cellpadding="0" cellspacing="0" style="border-collapse:collapse;width:100%;background:#ffffff;margin-bottom:12px"><thead><tr>
+      <th style="${th}">Fund</th><th style="${th}">Asset class</th><th style="${thR}">ESMA</th><th style="${thR}">Weight</th><th style="${thR}">Cost p.a.</th>
+    </tr></thead><tbody>`;
+    fs.forEach((f,i)=>{
+      const bg=i%2?STRIPE:"#ffffff";
+      h+=`<tr><td style="${td(bg)}">${esc(f.name)}${f.simulated?" ◆":""}</td><td style="${td(bg)}">${f.category}</td><td style="${tdR2(bg)}">${f.esma??"—"}</td><td style="${tdR2(bg)}"><b>${+state.P[k].alloc[f.name]||0}%</b></td><td style="${tdR2(bg)}">${fmtP(sf+f.costAdj,2)}</td></tr>`;
+    });
+    h+=`<tr><td colspan="3" style="${td("#ffffff")}border-top:2px solid ${NAVY};"><b>Total</b></td><td style="${tdR2("#ffffff")}border-top:2px solid ${NAVY};"><b>${weights(k)}%</b></td><td style="${tdR2("#ffffff")}border-top:2px solid ${NAVY};"><b>${fmtP(wCost(k),2)}</b></td></tr>`;
+    h+=`</tbody></table>`;
+    h+=cap("Performance summary");
+    h+=`<table border="0" cellpadding="0" cellspacing="0" style="border-collapse:collapse;width:100%"><tr>
+      ${statCell("Portfolio cost",fmtP(wCost(k),2),accent,false,false)}
+      ${statCell("Return (gross)",fmtP(ann(s.g)),accent,false,false)}
+      ${statCell("Volatility",fmtP(gv),accent,false,false)}
+      ${statCell("Max drawdown",fmtP(maxDD(s.g)),accent,true,false)}
+      ${statCell("Portfolio ESMA",String(srri(gv)),accent,false,true)}
+    </tr></table>`;
+    h+=`</td></tr></table>`;
+  });
+
+  const p8=txt=>`<p style="font-size:8px;line-height:11px;mso-line-height-rule:exactly;color:${MUT};margin:0 0 5px;mso-margin-top-alt:0;mso-margin-bottom-alt:5pt;background:#ffffff;font-family:${FONT}">${txt}</p>`;
+  const p7=txt=>`<p style="font-size:7px;line-height:10px;mso-line-height-rule:exactly;color:${MUT};margin:0 0 4px;mso-margin-top-alt:0;mso-margin-bottom-alt:4pt;background:#ffffff;font-family:${FONT}">${txt}</p>`;
+  const h2=txt=>`<p style="font-size:11px;line-height:14px;mso-line-height-rule:exactly;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:${NAVY};margin:12px 0 4px;mso-margin-top-alt:12pt;mso-margin-bottom-alt:4pt;background:#ffffff;font-family:${FONT};border-bottom:2px solid ${NAVY};padding-bottom:3px">${txt}</p>`;
+
+  const simFunds=[...new Set(keys.flatMap(k=>selFunds(k)))].filter(f=>f.simulated);
+  h+=h2("Methodology &amp; important information");
+  h+=p8(`<b>Performance basis.</b> Fund performance is computed from a continuous monthly return series built from MoneyMate offer prices (net of AMC), grossed up geometrically by each fund's AMC to match the fund centre's gross-of-AMC convention. All performance, growth, stress and projection figures are shown gross of AMC and any other charges: the weighted portfolio cost is displayed separately and has not been deducted, because adviser and plan-level charges vary and are not known here. Volatility, maximum drawdown and the portfolio ESMA band are computed on the actual portfolio return series (gross), so diversification between funds is fully reflected. The portfolio ESMA figure maps the window's annualised volatility to the SRRI bands and is indicative — the regulatory SRRI is measured over a fixed 5-year basis.${two?" In comparison mode both portfolios are measured over the same window, based on the common history of all selected funds across A and B.":""}`);
+  if(simFunds.length) h+=p8(`<b>Simulated history.</b> ${simFunds.map(f=>`${esc(short(f.name))} uses simulated / index performance before ${pLbl(f.liveIdx)}`).join("; ")}. Simulated series are already gross of charges and are not actual fund performance. Figures marked ◆ include simulated months.`);
+  h+=p8(`<b>Limitations.</b> Monthly pricing understates true maximum drawdown and intra-month stress losses relative to daily data. The gross-up assumes AMC is the only fund-level charge embedded in unit prices. Published fund centre figures may differ by small amounts due to business-day price sampling.`);
+
+  h+=h2("Warnings &amp; important information");
+  const li=txt=>`<li style="font-size:8px;line-height:11px;mso-line-height-rule:exactly;color:${MUT};margin:0 0 2px;mso-margin-top-alt:0;mso-margin-bottom-alt:2pt;font-family:${FONT}">${txt}</li>`;
+  h+=`<ul style="margin:0 0 5px;mso-margin-top-alt:0;mso-margin-bottom-alt:5pt;padding-left:14px;background:#ffffff">
+    ${li("<b>Warning:</b> The value of your investment may go down as well as up.")}
+    ${li("<b>Warning:</b> If you invest in these funds you may lose some or all of the money you invest.")}
+    ${li("<b>Warning:</b> Past performance is not a reliable guide to future performance.")}
+    ${li("<b>Warning:</b> These funds may be affected by changes in currency exchange rates.")}
+  </ul>`;
+  h+=p7(`Source of performance and prices is Longboat Analytics / MoneyMate. We believe the sources to be reliable, but we cannot guarantee the accuracy or completeness of the information provided by the Fund Managers/Longboat Analytics. The figures quoted are calculated on an offer to offer basis with income reinvested. Performance is quoted gross of annual management charge. The returns on policies linked to a fund may not be the same because of the effects of any other policy specific charges. Fund availability varies by product type — please contact your Financial Broker for details of the funds available by product type. For information on risk ratings, charges, securities lending or other fund related topics on how our funds work, please see the "Your Investment Options" brochure, which you can download on www.avivabroker.ie / www.aviva.ie, or contact your Financial Broker. The information contained in this service should not be construed as an investment recommendation.`);
+  h+=p7(`For certain funds, performance prior to the fund's live pricing date is index or simulated performance and not actual fund performance. These figures are marked with ◆ throughout this tool and noted beneath any portfolio result that includes them. Simulated or index performance does not reflect actual fund returns and is not a reliable guide to future performance.`);
+  h+=p7(`Portfolio cost figures are based on the standard portfolio cost entered by the user, adjusted by each fund's published fee adjustment, weighted by allocation. Performance figures are shown gross of charges; the portfolio cost is displayed separately and has not been deducted from the returns shown.`);
+  h+=p7(`Portfolio volatility, maximum drawdown and the portfolio ESMA band are computed from the combined portfolio's own monthly return series (weighted by allocation, rebalanced monthly), so they reflect diversification between funds. Monthly pricing understates true maximum drawdown relative to daily data. Stochastic projections are illustrative simulations and are not guaranteed.`);
+  h+=p7(`Except where stated as otherwise, the source of all information is Aviva Investors Global Services Limited (AIGSL). Unless stated otherwise any views and opinions are those of Aviva Investors. They should not be viewed as indicating any guarantee of return from an investment managed by Aviva Investors nor as advice of any nature. Information contained herein has been obtained from sources believed to be reliable but, has not been independently verified by Aviva Investors and is not guaranteed to be accurate. Past performance is not a guide to the future. The value of an investment and any income from it may go down as well as up and the investor may not get back the original amount invested. Nothing in this material, including any references to specific securities, assets classes and financial markets is intended to or should be construed as advice or recommendations of any nature. Some data shown are hypothetical or projected and may not come to pass as stated due to changes in market conditions and are not guarantees of future outcomes. This material is not a recommendation to sell or purchase any investment. The information contained herein is for general guidance only. It is the responsibility of any person or persons in possession of this information to inform themselves of, and to observe, all applicable laws and regulations of any relevant jurisdiction. The information contained herein does not constitute an offer or solicitation to any person in any jurisdiction in which such offer or solicitation is not authorised or to any person to whom it would be unlawful to make such offer or solicitation. In Europe this document is issued by Aviva Investors Luxembourg S.A. Registered Office: 2 rue du Fort Bourbon, 1st Floor, 1249 Luxembourg. Supervised by Commission de Surveillance du Secteur Financier. An Aviva company. In the UK: Issued by Aviva Investors Global Services Limited. Registered in England and Wales No.1151805. Registered Office: 80 Fenchurch Street, London EC3M 4AE. Authorised and regulated by the Financial Conduct Authority. Firm Reference No. 119178. In Switzerland, this document is issued by Aviva Investors Schweiz GmbH.`);
+  h+=`<p style="font-size:7px;line-height:10px;mso-line-height-rule:exactly;color:${MUT};margin:0;mso-margin-top-alt:0;mso-margin-bottom-alt:0;background:#ffffff;font-family:${FONT}">This model portfolio tool is illustrative only and is not investment advice.</p>
+  </div>`;
+  return h;
+}
+
+/* ---------- main ---------- */
+function renderAll(){
+  renderPicker();
+  renderHoldings();
+  const keys=validKeys();
+  const ok=keys.length>0;
+  document.getElementById("printBtn").disabled=!ok;
+  document.getElementById("copyEmailBtn").disabled=!ok;
+  document.getElementById("resultsEmpty").style.display=ok?"none":"block";
+  document.getElementById("resultsInner").style.display=ok?"block":"none";
+  if(!ok){
+    const anySel=state.P.A.sel.length||state.P.B.sel.length;
+    document.getElementById("windowNote").textContent = anySel ? "Allocations must total 100%." : "";
+    return;
+  }
+  const win=windowRange(keys);
+  const cs=commonStart(keys);
+  let wn=`Effective analysis window: <strong>${pLbl(win[0])} – ${pLbl(win[1])}</strong> (${win[1]-win[0]+1} months)${keys.length===2?" · common history across Portfolios A and B":""}.`;
+  if(state.win!=="max" && state.win!=="custom" && (END()-(+state.win)+1)<cs)
+    wn+=` <span class="simflag">Requested window clamped: common history of the selected funds starts ${pLbl(cs)}.</span>`;
+  document.getElementById("windowNote").innerHTML=wn;
+  renderCards(keys,win);
+  const sets=keys.map(k=>({bars:computeBars(k),color:k==="B"?CB:CA}));
+  document.getElementById("perfChart").innerHTML=barChartSVG(sets,{...DARK,bar:CA});
+  document.getElementById("perfLegend").innerHTML=
+    (keys.length===2?`<span><span class="swl" style="background:${CA}"></span>Portfolio A</span><span><span class="swl" style="background:${CB}"></span>Portfolio B</span>`:
+    `<span><span class="swl" style="background:${CA}"></span>Gross of AMC — portfolio cost shown separately, not deducted</span>`)+
+    `<span><span class="swl" style="background:var(--sim)"></span>◆ period includes simulated history</span>`;
+  renderBuildingBlocks(keys);
+  const lines=keys.map(k=>({s:series(k,win[0],win[1]),color:k==="B"?CB:CA}));
+  document.getElementById("growthChart").innerHTML=growthChartSVG(lines,{...DARK});
+  document.getElementById("drawdownChart").innerHTML=drawdownChartSVG(lines,{...DARK});
+  renderRollingVol(keys,win);
+  renderStress(keys);
+  renderProjection(keys,win);
+  renderMethod(keys);
+}
+
+/* ---------- theme ---------- */
+const SUN='<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="8" cy="8" r="3.1"/><path d="M8 1v1.6M8 13.4V15M1 8h1.6M13.4 8H15M3.05 3.05l1.13 1.13M11.82 11.82l1.13 1.13M12.95 3.05l-1.13 1.13M4.18 11.82l-1.13 1.13"/></svg>';
+const MOON='<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M13.5 9.6A5.9 5.9 0 0 1 6.4 2.5a5.9 5.9 0 1 0 7.1 7.1Z"/></svg>';
+function applyTheme(t){
+  document.documentElement.setAttribute("data-theme", t);
+  document.getElementById("themeBtn").innerHTML = t==="dark" ? SUN : MOON;
+  try{ localStorage.setItem("apb-theme", t); }catch(e){}
+  // charts read colours from CSS custom properties, so they must be redrawn on a theme change
+  if(validKeys().length) renderAll();
+}
+(function initTheme(){
+  let t="light";
+  try{ t = localStorage.getItem("apb-theme") || (matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"); }catch(e){}
+  document.documentElement.setAttribute("data-theme", t);
+  document.getElementById("themeBtn").innerHTML = t==="dark" ? SUN : MOON;
+})();
+document.getElementById("themeBtn").onclick=()=>
+  applyTheme(document.documentElement.getAttribute("data-theme")==="dark"?"light":"dark");
+
+document.querySelectorAll(".wbtn").forEach(b=>b.onclick=()=>{
+  document.querySelectorAll(".wbtn").forEach(x=>x.classList.remove("on")); b.classList.add("on");
+  state.win=b.dataset.w;
+  document.getElementById("customWrap").style.display = state.win==="custom"?"block":"none";
+  renderAll();
+});
+document.querySelectorAll(".ptab").forEach(b=>b.onclick=()=>{ state.act=b.dataset.p; renderAll(); });
+["amt","stdFee","contrib","wd"].forEach(id=>document.getElementById(id).onchange=()=>renderAll());
+["cFrom","cTo"].forEach(id=>document.getElementById(id).onchange=e=>{state[id]=e.target.value;renderAll();});
+document.getElementById("splitBtn").onclick=splitEqually;
+document.getElementById("clearBtn").onclick=clearAll;
+document.getElementById("filter").addEventListener("input",renderPicker);
+document.getElementById("printBtn").onclick=()=>{
+  if(!validKeys().length) return;
+  document.getElementById("printdoc").innerHTML=buildPrintDoc();
+  window.print();
+};
+document.getElementById("copyEmailBtn").onclick=()=>{
+  const keys=validKeys(); if(!keys.length) return;
+  const src=document.getElementById("emailCopySrc");
+  src.innerHTML=buildEmailSummaryHTML(keys,windowRange(keys));
+  const range=document.createRange();
+  range.selectNodeContents(src);
+  const sel=window.getSelection();
+  sel.removeAllRanges();
+  sel.addRange(range);
+  const ok=document.execCommand("copy");
+  sel.removeAllRanges();
+  const btn=document.getElementById("copyEmailBtn");
+  const orig=btn.textContent;
+  btn.textContent=ok?"Copied!":"Copy failed";
+  setTimeout(()=>{btn.textContent=orig;},1500);
+};
+
+function applyData(nd){
+  DATA.asOf=nd.asOf; DATA.funds=nd.funds;
+  DATA.funds.forEach(f=>{f.startIdx=pIdx(f.start);f.liveIdx=pIdx(f.liveStart);});
+  const names=new Set(DATA.funds.map(f=>f.name));
+  ["A","B"].forEach(k=>{ state.P[k].sel=state.P[k].sel.filter(n=>names.has(n));
+    Object.keys(state.P[k].alloc).forEach(n=>{ if(!names.has(n)) delete state.P[k].alloc[n]; }); });
+  document.getElementById("asOf").textContent=pLbl(END());
+  renderAll();
+}
+
+/* ---------- data loading ----------
+   Data is fetched rather than embedded so the app and the numbers ship independently.
+   Cache-busted on every load: without this a broker keeps seeing last month's figures
+   from browser cache, which is the quietest way for this to go wrong. */
+function dataError(msg){
+  document.getElementById("resultsEmpty").innerHTML =
+    '<b>Could not load fund data.</b><br>' + msg +
+    '<br><span style="font-size:12px">Refresh to try again. If this persists the data file may be missing or malformed.</span>';
+  document.getElementById("resultsEmpty").style.display = "block";
+}
+function validShape(d){
+  if(!d || typeof d.asOf !== "string" || !/^\d{4}-\d{2}$/.test(d.asOf)) return "asOf missing or malformed";
+  if(!Array.isArray(d.funds) || !d.funds.length) return "no funds in payload";
+  for(const f of d.funds){
+    if(!f.name || !f.start || !f.liveStart) return "a fund is missing name/start/liveStart";
+    if(!Array.isArray(f.returns) || !f.returns.length) return `no returns for ${f.name}`;
+  }
+  return null;
+}
+async function loadData(){
+  try{
+    const res = await fetch("data/latest.json?v=" + Date.now(), {cache:"no-store"});
+    if(!res.ok) throw new Error("HTTP " + res.status);
+    const d = await res.json();
+    const bad = validShape(d);
+    if(bad) throw new Error(bad);
+    applyData(d);
+  }catch(err){
+    dataError(err.message);
+  }
+}
+loadData();
+</script>
+</body>
+</html>
