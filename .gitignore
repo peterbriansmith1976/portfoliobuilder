@@ -46,3 +46,6 @@ fetch_month.py
 # everything transient lives in work/, which never ships.
 *.bak.json
 work/
+fund_map.json
+reconcile.py
+refresh_daily.sh

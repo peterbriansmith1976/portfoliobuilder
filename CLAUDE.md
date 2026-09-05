@@ -52,47 +52,105 @@ replaces one JSON file and never touches the app.
 The previous self-contained `aviva_portfolio_builder_v12.html` was deleted once the split was
 verified. Dated `*.bak.html` snapshots of it remain in the project root.
 
-## Data refresh — the order is fixed
+## Data refresh — automated from Fund Focus
 
-The source workbook lives at `Portfolio builder files.xlsx` in the project root, under that
-exact fixed name. Each month the new workbook is saved over it, so the command never changes.
-`*.xlsx` is gitignored, so the workbook stays local and is never published.
+Since September 2026 the data comes from the Longboat Fund Focus API, not a workbook. The
+spreadsheet route still works and is the fallback, but it is no longer the normal path.
+CSS have confirmed automated access is acceptable.
 
-Do not select the workbook by "most recent file". Two workbooks have already existed with the
-identical name `Portfolio builder files 31072026.xlsx`, one holding 37 funds and one holding 32
-without the Dimensional range. Refreshing from the wrong one would have removed five funds from
-the live site. `update_data.sh` therefore reads the fixed name only.
+**Do not tell the user to download a workbook.** That was the old process. If they ask to
+update the data, use the pipeline below.
 
 ```
-./update_data.sh          # rebuild and review, does not publish
-./publish.sh "2026-08 data"
+./refresh_daily.sh        # what the scheduler runs: check, fetch, verify, stage
+./publish.sh "2026-09 data"
 ```
 
-`update_data.sh` builds to a staging file, runs `check_data.py` against the currently published
-`data/latest.json`, and installs into `data/latest.json` plus a dated `data/YYYY-MM.json` only
-after the user approves. `refresh_dashboard.py` is still the engine and is unchanged; it
-dispatches on output extension, and legacy three-file mode still works.
+A launchd agent (`cloud.portfoliobuilder.refresh`) runs `refresh_daily.sh` daily at 14:30.
+On most days it exits in about a second having done nothing. It **never publishes**.
 
-`check_data.py` reports and blocks on:
+**The project lives at `~/portfoliobuilder`, deliberately not in `~/Documents`.** macOS blocks
+background agents from Documents, Desktop and Downloads, so the scheduled job could not read its
+own data there. Moving it was chosen over granting Full Disk Access to `/bin/bash`, which would
+have given every shell script on the machine access to everything. Do not move it back.
+Keychain access from launchd works fine; only the folder was the problem.
 
-- **Funds disappearing.** A hard stop. Brokers lose them from the picker.
-- **As-at going backwards.** A hard stop, it means the wrong workbook.
-- **Already-published months changing value.** A hard stop. Adding a new month must never
-  alter a past one; if it does, something is wrong upstream, not in the dashboard.
-- As-at not advancing, or no fund gaining a month. Warnings, usually the same workbook twice.
+### The pieces
 
-The steps run in this order, every time:
+- `month_ready.py` — the readiness gate. Public Aviva API, no credentials.
+- `fundfocus.py` — Fund Focus client. Credentials come from the macOS keychain, service
+  `fundfocus`. Never logged, never passed as an argument, never in error text.
+- `reconcile.py` — method check against Longboat's own published figures.
+- `fetch_month.py` — fetch, overlap check, method check, append, stage to `work/staged.json`.
+- `fund_map.json` — the fund mapping, self-verifying.
 
-1. Run `./update_data.sh` and read the review report out to the user in full.
-2. If it reports a problem, stop. Do not install, do not publish, diagnose first.
-3. **Wait for the user to confirm the report looks right.** They know which funds and periods
-   to expect; Claude does not.
-4. Install, then start the local preview and have the user check the as-at badge and a
-   portfolio they recognise at `http://localhost:8000`.
+All are gitignored. `data/` holds only published payloads; anything transient goes in `work/`,
+because `publish.sh` globs `data/*.json` and would otherwise ship working files.
+
+### Readiness: do not gate on a month-end row existing
+
+A month-end row appears carrying a **forward-filled** value before the real price is struck.
+31 Aug 2026 returns 28 Aug's prices verbatim. Publishing that would write a wrong month, and
+the "published months must not change" rule would then block the correction.
+
+Gate on the **frontier**: the provider must have published prices at least two days beyond the
+month end. `Price/GetLatestDate` answers this in 21 bytes with no login.
+
+The "did the price move?" test cannot gate. It works when a month ends on a business day and
+fails when it ends at a weekend, where the month-end price legitimately is Friday's carried
+forward. Tested across seven months: correct on five, false negative on Feb (Sat) and May (Sun).
+It is kept only as a warning.
+
+### Reconciliation: use GetDaily, not GetMonthly
+
+`PerformanceReport/GetMonthly` lags — it read `2026-07-31` while prices ran to `2026-09-04` —
+and it was never established whether that reflected finality or a slow refresh. Do not gate or
+reconcile on it.
+
+`PerformanceReport/GetDaily` is current to the latest price date and reconciles **exactly**:
+1M, 3M, YTD, 1Y, 3Y and 5Y all agree to about 5e-7, the price-rounding floor. Longboat compute
+those figures in their own system; we derive ours from their raw prices. Agreement to seven
+decimals is a regression detector, not a tolerance. Tolerance is 1e-5, and it has been verified
+to fail when tightened below the floor.
+
+Covers the 32 Aviva funds. The 5 Dimensional funds are not on the public feed and are covered
+by the overlap check.
+
+### Things that will bite
+
+- **Longboat publishes net of AMC; the dashboard stores gross.** Comparing the wrong basis
+  manufactures a ~4.6pp error that looks like a real fault.
+- **Stamping is D+1.** A price stamped date D is the price for D-1, so the stamp on the 1st of
+  month M+1 is the month end of M. Shifting by one day breaks the reconciliation immediately.
+- **`(FundId, isMaster)` is the only unique key** across the Longboat universe: 189 records
+  share 142 FundIds, base funds and series variants carrying different AMCs. Inside the saved
+  report FundId alone is safe, since the 37 selections are explicit.
+- The saved report is **"AA Price", id 111116**, 37 funds, 32 Aviva and 5 Dimensional.
+
+### Order, every time
+
+1. `refresh_daily.sh` runs the gate, fetch and all checks, and stages. Read its report out in full.
+2. Any problem, stop. Do not install, do not publish, diagnose first.
+3. **Wait for the user to confirm the report looks right.** They know what to expect; Claude does not.
+4. Local preview at `http://localhost:8000`, check the as-at badge and a portfolio they recognise.
 5. Only once they approve, publish.
 
 A data refresh is never published on a general go-ahead. It changes displayed figures, so it
 always needs explicit sign-off, per the publishing protocol below.
+
+### Fallback: the workbook
+
+Still works if the API is unavailable. The source workbook lives at
+`Portfolio builder files.xlsx` in the project root under that exact name; `*.xlsx` is
+gitignored. Do not select it by "most recent file" — two workbooks have existed with the
+identical name, one holding 37 funds and one holding 32 without the Dimensional range.
+
+```
+./update_data.sh
+```
+
+`check_data.py` is shared by both routes and blocks on funds disappearing, the as-at going
+backwards, and already-published months changing value.
 
 ## Loading and failure behaviour
 
