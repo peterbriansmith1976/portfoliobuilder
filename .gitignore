@@ -49,3 +49,4 @@ work/
 fund_map.json
 reconcile.py
 refresh_daily.sh
+promote.sh
