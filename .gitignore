@@ -38,3 +38,11 @@ check_data.py
 update_data.sh
 .staged.json
 aviva_portfolio_builder_v12.html
+fundfocus.py
+month_ready.py
+fetch_month.py
+
+# Working files from the automated refresh. data/ holds only published payloads;
+# everything transient lives in work/, which never ships.
+*.bak.json
+work/
