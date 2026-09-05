@@ -1,18 +1,37 @@
-# Aviva Investors | Internal Portfolio Builder
+# Portfolio Builder | Slate Labs
 
 Static HTML dashboard for Irish financial brokers and advisers, plus a Python refresh
 script. Models fund and portfolio performance from Aviva Ireland fund pricing data.
 Built to be hosted: the app fetches its data at runtime rather than embedding it, so app
 changes and data updates ship independently. Current version: v12.
 
-Branded as **Aviva Investors | Internal Portfolio Builder** (renamed from "Aviva Ireland
-Portfolio Builder").
+Branded as **Portfolio Builder**, provided by **Slate Labs** (renamed from "Aviva Investors |
+Internal Portfolio Builder", itself renamed from "Aviva Ireland Portfolio Builder"). Slate Labs
+is not authorised or regulated by the Central Bank of Ireland, and the tool is not an Aviva
+publication. The word "Internal" was dropped deliberately: it is no longer accurate and was
+doing real regulatory work while it was there.
 
-The regulatory disclaimer is **Aviva Investors** entity text (AIGSL, Aviva Investors Luxembourg
-S.A., Aviva Investors Schweiz GmbH), replacing the earlier Aviva Life & Pensions Ireland DAC
-wording. It is supplied by the business and appears verbatim in all three surfaces — screen
-warnings panel, print document, and email copy. Treat it as fixed legal text: do not reword,
-condense or split it, and if it changes, change it in all three places together.
+The data is still overwhelmingly Aviva fund data (32 of 37 funds), so the product is
+provider-neutral in name only. Fund names keep their "Aviva" prefix because those are the funds'
+legal names; renaming them would misidentify regulated products.
+
+The regulatory disclaimer is **Slate Labs** text covering provider status, trade marks and
+attribution, intended audience, accuracy, and jurisdiction. It replaced the Aviva Investors
+entity text (AIGSL, Aviva Investors Luxembourg S.A., Aviva Investors Schweiz GmbH), which was
+Aviva's own regulatory statement and could not travel to a tool Aviva does not issue.
+
+It appears verbatim in all three surfaces — screen warnings panel, print document, and email
+copy. Treat it as fixed legal text: do not reword, condense or split it, and if it changes,
+change it in all three places together.
+
+A short lead line, "Not an Aviva publication…", sits at the top of each warnings block, above
+the four Warning bullets. That placement is deliberate, not decorative: nominative fair use of
+a third-party trade mark is judged partly on how prominent the disclaimer is, and Aviva fund
+names appear on every screen. Do not demote it into the body of the long paragraph.
+
+Never write that Slate Labs is "not affiliated with Aviva". The author is an Aviva employee, so
+that statement would be false. The correct and equally protective framing is about the tool:
+it is not issued, approved or endorsed by Aviva.
 
 ## Files
 
@@ -148,6 +167,21 @@ To undo a publish: `git revert --no-edit HEAD && git push`, live again in about 
 - **Portfolio ESMA** maps the window's annualised gross volatility to SRRI bands
   (1: <0.5%, 2: <2%, 3: <5%, 4: <10%, 5: <15%, 6: <25%, 7: above). Indicative only, since
   regulatory SRRI uses a fixed 5-year basis. Print document uses a fixed 5-year basis.
+- **Fund-level Vol and MDD differ by surface, deliberately.** On screen they follow the selected
+  window, so the building blocks table agrees with the summary cards and the growth and drawdown
+  charts. In the print document they stay on a fixed 5-year basis, taken from that portfolio's
+  own `pdStats5` range so the fund table, the cards and the methodology paragraph all describe
+  one period. Print clamps to the portfolio's common start, not each fund's own start: before
+  this, a portfolio holding a 2003 fund and a 2023 fund measured the first over 60 months and
+  the second over 38 inside a section captioned with a single basis, and the caption was false
+  for the first. Both surfaces label the period in the column header. `fundRisk(f, from, to)` therefore takes an
+  explicit range and has no default: each caller declares its own basis. Do not "unify" these.
+  Before this split the table was always a fixed trailing 60 months while the cards followed the
+  window, so at the Max window a portfolio could show a deeper drawdown than any of its holdings
+  (-40.4% against fund figures of -20.2% and -11.5%), which is arithmetically impossible over a
+  common period and was pure presentation. The screen table header names the window it covers,
+  derived from the months actually rendered rather than the button pressed, so a clamped window
+  is labelled honestly.
 - **Comparison mode** measures Portfolio A and B over the common history of all selected
   funds across both, so the two are always like for like.
 
@@ -198,6 +232,36 @@ tabs, focus rings, editable-input borders, and the logomark. Nothing else. Secti
 category headings, the ◆ simulated marker and subheads are all muted grey — they are structure,
 not actions. A mechanical find-and-replace of the old yellow will violate this, because yellow
 *was* used decoratively; check every new `var(--signal)` against this rule.
+
+**Two marks, and they are not interchangeable.** The Slate Labs mark (a rounded square with a
+notch cut from the top-right, inline SVG on a 41x33 viewBox) is the *company* mark: it sits in
+the top brand band beside the SLATE LABS wordmark, and in the print band. The three-bar glyph on
+its signal-blue tile is the *product* mark: it sits beside the "Portfolio Builder" H1 and in the
+favicon. Both are inline SVG using `currentColor`, which is what lets one copy work on light and
+dark without a second asset. Source artwork for the Slate Labs mark is a JPG the user supplied;
+the path in the file was traced from it, so there is no image dependency to keep in sync. Email
+gets neither mark, because Outlook renders through the Word engine and cannot draw SVG.
+
+**The SLATE LABS wordmark is the user's own artwork, not type and not a redraw.** It is
+monoline geometric caps with a crossbar-less A, which no Google Font reproduces; the faces that
+do (Apex, Bool, Rati) are commercial. An attempt to redraw it as SVG paths was rejected as too
+tall and too thin, and measurement confirmed it: the real wordmark is 10.35x its cap height,
+the redraw was 7.47x.
+
+It is now extracted straight from the supplied JPG (`~/Downloads/mQaBi.jpg`) and inlined as a
+base64 PNG, about 6.7KB. The background was removed by deriving alpha from luminance, so paper
+is transparent and edges stay anti-aliased. RGB carries the artwork's own charcoal, which lets
+one file serve two purposes:
+
+- **Screen** uses it as a CSS mask on `.bname` with `background-color:currentColor`, so the
+  alpha channel supplies the shape and the theme supplies the colour. One asset, both themes.
+- **Print** uses the same PNG as a plain `<img>`, relying on its charcoal directly. Deliberate:
+  print is always light, and this avoids depending on mask support in the print renderer, where
+  a failed mask would render nothing at all.
+- **Email** keeps plain text, because Outlook renders through the Word engine.
+
+`.bname` carries `role="img"` and `aria-label="Slate Labs"` since it is no longer real text. Do
+not replace this with live text in Nunito Sans, and do not add a font dependency for it.
 
 **Data colours are a separate system from the accent.** Charts and fund identity use
 `--d1`..`--d5` (steel blue, ochre, green, purple, grey). Portfolio A is `--d1`, Portfolio B is
