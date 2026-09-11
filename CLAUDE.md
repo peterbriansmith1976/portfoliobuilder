@@ -342,12 +342,33 @@ risk profile target selectors, preset portfolios, baseline comparison against a 
 portfolio, share links. The Liberation Day / April 2025 tariff shock was explicitly excluded
 as a stress episode. Do not reintroduce any of these without asking.
 
-Stress episodes are GFC (Nov 2007 to Feb 2009), Covid crash (Feb to Mar 2020) and the 2022
-bond selloff (Jan to Oct 2022).
+Stress episodes are GFC (Nov 2007 to Feb 2009), Q4 2018 selloff (Oct to Dec 2018), Covid crash
+(Feb to Mar 2020) and the 2022 bond selloff (Jan to Oct 2022). Q4 2018 was added because GFC is n/a
+for most portfolios: only 15 of 37 funds reach 2007, while 35 of 37 cover late 2018. Candidates that
+vanish at month-end resolution (Brexit, Mar 2023 bank stress, Aug 2024 yen unwind) or duplicate an
+existing episode (the 2022 gilt/LDI crisis, inside 2022) were rejected.
+
+**Worst periods** are two extra rows *inside* the stress episode table (Episode / Period / Return),
+at the user's request, with max drawdown and recovery shown as "—" because neither applies. They
+show the lowest compounded return over any 3 and 12 consecutive months across the portfolio's full
+common history, not the selected window. Each portfolio has its own worst window, so in comparison
+mode the shared Period column reads "portfolio's own" and the dates sit under each return. A 3-year window was evaluated and dropped
+at the user's request: for post-2016 portfolios the worst 3 years is usually a gain, which reads as
+an error under "worst". Being data-driven it may date the 2025 tariff months; it names no event, so
+the exclusion above still holds.
+
+**Calendar year returns** cover the last 10 full years plus YTD (January to the data month). A year
+the common history does not fully cover is n/a, never a part year shown as a calendar year.
 
 ## Conventions
 
 - European date formats, euro by default, en-IE locale.
+- `niceAxis()` sizes its step from the span **including the anchor**, not just `mx-mn`. With a
+  projection fully depleted by withdrawals every value collapses to zero, the spread is nil, the step
+  falls back to 1% of the anchor and the axis draws ~100 labels on top of each other. It also refuses
+  to return more than 14 ticks. The projection chart then floors its axis at zero, since a portfolio
+  value cannot be negative. Growth, drawdown and rolling volatility are unaffected: verified by
+  identical chart output before and after, in both the 5Y and Max windows.
 - Euro amount inputs (investment, monthly contribution, monthly withdrawal) are `type="text"` with
   `inputmode="numeric"` so they can display thousands separators ("100,000"), reformatted on change.
   Always read them through `numVal(id)` / `amtVal()`, which strip the commas. A bare

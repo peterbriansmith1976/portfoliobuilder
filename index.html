@@ -178,6 +178,12 @@ table.proj.compact td:first-child,table.proj.compact th:first-child{white-space:
 .acwrap tr[data-ac]{cursor:default}
 .acwrap tr.on td{background:var(--raised)}
 .acwrap tr.tot td{border-top:1.5px solid var(--muted);border-bottom:none;font-weight:800}
+.subdate{font-size:10.5px;color:var(--faint);font-weight:400;margin-top:1px}
+/* The ◆ hangs in the cell's padding instead of taking a slot in the row: a reserved slot pushed
+   the figures off their own column heading. Equal-width columns stop content sizing staggering them. */
+#calTable{table-layout:fixed}
+#calTable td.v{position:relative}
+#calTable td.v .dia{position:absolute;right:2px;top:6px;font-size:9px;line-height:1;color:var(--sim);font-weight:400}
 @media(max-width:560px){.acwrap{grid-template-columns:1fr;justify-items:center}}
 @media(prefers-reduced-motion:reduce){.acwrap svg path{transition:none}}
 @media(max-width:980px){main.grid{grid-template-columns:1fr}.cards{grid-template-columns:repeat(2,1fr)}}
@@ -235,8 +241,12 @@ table.proj.compact td:first-child,table.proj.compact th:first-child{white-space:
 .pd-table tr.tot td{font-weight:900;border-bottom:none;border-top:1px solid #0D1B2A}
 .pd-table td.big{font-size:12px;font-weight:900}
 .pd-fixed{table-layout:fixed}
+.pd-cal td.v,.pd-cal th{padding-right:7px}
+.pd-cal td:last-child,.pd-cal th:last-child{padding-right:7px}
 .pd-kft{margin-top:12px}
 .pd-cat{font-size:6.8px;color:#66737F;font-weight:600;margin-top:1px}
+.pd-table td.v{position:relative}
+.pd-dia{position:absolute;right:0;top:3px;font-size:6px;line-height:1;color:#66737F;font-weight:600}
 .pd-sq{display:inline-block!important;vertical-align:middle;margin:-1px 5px 0 0}
 .pd-legend{display:flex;gap:14px;font-size:7.5px;color:#66737F;margin:12px 0 -6px}
 .pd-legend span{display:flex;align-items:center}
@@ -352,6 +362,9 @@ table.proj.compact td:first-child,table.proj.compact th:first-child{white-space:
           <div class="subhead">Portfolio performance — standard periods</div>
           <div id="perfChart"></div>
           <div class="legend" id="perfLegend"></div>
+          <div class="subhead">Calendar year returns (gross of AMC)</div>
+          <table class="proj compact" id="calTable"></table>
+          <div class="note" id="calNote"></div>
           <div class="subhead">Portfolio building blocks</div>
           <div id="bblocks"></div>
           <div class="note" id="bbNote"></div>
@@ -483,12 +496,17 @@ function wCost(k){ const tot=weights(k)/100, sf=stdFee();
   return selFunds(k).reduce((a,f)=>a+((+state.P[k].alloc[f.name]||0)/100/tot)*(sf+f.costAdj),0); }
 
 function niceAxis(anchor,mn,mx){
-  const raw=Math.max((mx-mn)/5, Math.max(anchor,1)*0.01);
+  /* The span includes the anchor, because the axis always shows it. Sizing the step from
+     (mx-mn) alone broke when every projected value collapsed to zero under withdrawals: the
+     spread was 0, the step fell back to 1% of the anchor, and the axis drew ~100 labels on top
+     of each other. Where the anchor already sits inside [mn,mx] this is the old calculation. */
+  const raw=Math.max((Math.max(mx,anchor)-Math.min(mn,anchor))/5, Math.max(anchor,1)*0.01);
   const base=Math.pow(10,Math.floor(Math.log10(raw)));
   const step=[1,2,2.5,5,10].map(m=>m*base).find(v=>v>=raw);
   const lo=anchor-Math.ceil(Math.max(0,anchor-mn)/step+0.0001)*step;
   const hi=anchor+Math.ceil(Math.max(0,mx-anchor)/step+0.0001)*step;
   const ticks=[]; for(let v=lo;v<=hi+step*0.001;v+=step) ticks.push(v);
+  if(ticks.length>14) return niceAxis(anchor, mn, mx+(hi-lo));   // guard: never label a crowded axis
   return {lo,hi,step,ticks};
 }
 function mulberry32(s){return function(){s|=0;s=s+0x6D2B79F5|0;let t=Math.imul(s^s>>>15,1|s);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
@@ -812,6 +830,7 @@ const PRINT={...LIGHT,fsAxis:8,fsCat:8.5,fsVal:8.5,wVal:600,wEm:400,inside:true}
 /* ---------- stress episodes ---------- */
 const EPISODES=[
   {name:"Global Financial Crisis", a:"2007-11", b:"2009-02"},
+  {name:"Q4 2018 selloff", a:"2018-10", b:"2018-12"},
   {name:"Covid crash", a:"2020-02", b:"2020-03"},
   {name:"2022 bond selloff", a:"2022-01", b:"2022-10"},
 ];
@@ -830,6 +849,42 @@ function stressRow(k,ep){
   for(let i=troughI+1;i<=end;i++){ if(iAt(i)>=Math.max(prePeak,iAt(a-1))){rec=i-troughI;break;} }
   const anySim=full.sim.slice(a-cs,b-cs+1).some(x=>x);
   return {epRet,dd,rec,anySim};
+}
+/* Worst rolling windows over the portfolio's own full common history: the stress episodes' basis,
+   not the selected window. A 3-year window was evaluated and dropped: for post-2016 portfolios the
+   worst 3 years is usually a gain, which reads as an error under "worst". */
+function worstPeriods(k){
+  const cs=commonStart([k]), s=series(k,cs,END());
+  return [3,12].map(m=>{
+    if(!s || s.g.length<m) return {m, v:null};
+    let w=null;
+    for(let i=0;i+m<=s.g.length;i++){ const v=cum(s.g.slice(i,i+m)); if(w===null||v<w.v) w={v,i}; }
+    return {m, v:w.v, from:cs+w.i, to:cs+w.i+m-1, sim:s.sim.slice(w.i,w.i+m).some(x=>x)};
+  });
+}
+/* The last 10 full calendar years plus YTD. A year the common history does not fully cover is null:
+   a part year is never shown as if it were a calendar year's return. */
+function calendarReturns(k){
+  const cs=commonStart([k]), end=END(), yEnd=Math.floor(end/12), out=[];
+  const one=(lbl,a,b)=>{ if(a<cs) return {lbl, v:null}; const s=series(k,a,b); return {lbl, v:cum(s.g), sim:s.sim.some(x=>x)}; };
+  for(let y=yEnd-10;y<yEnd;y++) out.push(one(String(y), y*12, y*12+11));
+  out.push(one("YTD", yEnd*12, end));   // January to the data month, same as the YTD bar
+  return out;
+}
+const CAL_WORST_METHOD="Calendar year returns compound full January to December years only; a year the selected funds' combined history does not fully cover is shown as n/a rather than as a part year. The worst 3 and 12 month rows in the stress table are the lowest compounded return over any run of that length in the portfolio's full common history, independent of the selected analysis window; maximum drawdown and recovery do not apply to them.";
+function renderCalendar(keys){
+  const two=keys.length===2, rows=keys.map(k=>({k,c:calendarReturns(k)}));
+  let anySim=false, anyNa=false;
+  const n=rows[0].c.length;
+  let h=`<colgroup><col style="width:${(100-n*7.6).toFixed(1)}%">${rows[0].c.map(()=>`<col style="width:7.6%">`).join("")}</colgroup>`+
+    `<tr><th>${two?"Portfolio":""}</th>${rows[0].c.map(c=>`<th>${c.lbl}</th>`).join("")}</tr>`;
+  rows.forEach(({k,c})=>{
+    h+=`<tr><td class="${two?(k==="B"?"bcol":"acol"):""}">${two?`Portfolio ${k}`:"Portfolio"}</td>`+
+      c.map(x=>{ if(x.v===null){ anyNa=true; return `<td>n/a</td>`; } if(x.sim) anySim=true;
+        return `<td class="v ${x.v<0?"neg":""}">${fmtP(x.v)}${x.sim?`<span class="dia">◆</span>`:""}</td>`; }).join("")+`</tr>`;
+  });
+  document.getElementById("calTable").innerHTML=h;
+  document.getElementById("calNote").innerHTML=`Each year is the portfolio's compounded gross return from January to December; YTD runs from January to ${pLbl(END())}.${anyNa?" n/a where the selected funds' combined history does not cover the full year; part years are not shown.":""}${anySim?" ◆ includes simulated history.":""}`;
 }
 function renderStress(keys){
   const two=keys.length===2;
@@ -850,9 +905,23 @@ function renderStress(keys){
     });
     rows+=`</tr>`;
   });
+  /* Worst rolling windows share the episode table: same Episode / Period / Return columns, with
+     max drawdown and recovery not applicable. Each portfolio has its own worst window, so in
+     comparison mode the dates sit under each return instead of in the shared Period column. */
+  [3,12].forEach((m,mi)=>{
+    rows+=`<tr><td>Worst ${m} months</td><td>${two?"portfolio's own":(()=>{const x=worstPeriods(keys[0])[mi];return x.v===null?"n/a":`${pLbl(x.from)} – ${pLbl(x.to)}`;})()}</td>`;
+    keys.forEach(k=>{
+      const x=worstPeriods(k)[mi];
+      if(x.v===null){ rows+=`<td>n/a</td><td>—</td><td>—</td>`; anyNa=true; return; }
+      if(x.sim) anySim=true;
+      const cls=k==="B"?"bcol":(two?"acol":"");
+      rows+=`<td class="${cls}">${fmtP(x.v)}${x.sim?" ◆":""}${two?`<div class="subdate">${pLbl(x.from)} – ${pLbl(x.to)}</div>`:""}</td><td>—</td><td>—</td>`;
+    });
+    rows+=`</tr>`;
+  });
   document.getElementById("stressTable").innerHTML=head+rows;
   document.getElementById("stressNote").innerHTML=
-    `Episode return is the portfolio's cumulative gross return over the stated months; max drawdown is measured against the pre-episode peak; recovery is months from the episode trough back to that peak. Monthly pricing understates intra-month falls, so true peak-to-trough losses were deeper than month-end data shows.${anyNa?" n/a where the selected funds' combined history does not cover the episode.":""}${anySim?" ◆ includes simulated history.":""}`;
+    `Episode return is the portfolio's cumulative gross return over the stated months; max drawdown is measured against the pre-episode peak; recovery is months from the episode trough back to that peak. Monthly pricing understates intra-month falls, so true peak-to-trough losses were deeper than month-end data shows. The worst 3 and 12 month rows are the lowest compounded gross return over any run of that length since ${two?"each portfolio's":"the portfolio's"} common history began (${keys.map(k=>`${two?k+" ":""}${pLbl(commonStart([k]))}`).join(", ")}); they follow no named episode and no selected window, so max drawdown and recovery do not apply.${anyNa?" n/a where the selected funds' combined history does not cover the period.":""}${anySim?" ◆ includes simulated history.":""}`;
 }
 
 /* ---------- results ---------- */
@@ -1091,6 +1160,9 @@ function renderProjection(keys,win){
   const mxv=Math.max(grid[grid.length-1].p95, gridB?gridB[gridB.length-1].p95:0);
   const mnv=Math.min(amt,...grid.map(r=>r.p5),...(gridB?gridB.map(r=>r.p5):[amt]));
   const ax=niceAxis(amt,mnv,mxv);
+  /* A portfolio value cannot go below zero. Fully depleted under withdrawals the axis would
+     otherwise run one step below zero and waste that slice of the plot on impossible values. */
+  if(ax.lo<0 && mnv>=0){ ax.lo=0; ax.ticks=[]; for(let v=0;v<=ax.hi+ax.step*0.001;v+=ax.step) ax.ticks.push(v); }
   const x=y2=>P.l+iw*y2/yrs, y=v=>P.t+ih*(ax.hi-v)/((ax.hi-ax.lo)||1);
   const band=(lo,hi,tone)=>{ let d1=`M${x(0)},${y(amt)}`,d2="";
     grid.forEach(r=>d1+=`L${x(r.y)},${y(r[hi])}`);
@@ -1144,6 +1216,7 @@ function renderMethod(keys){
     <strong>Performance basis.</strong> Fund performance is computed from a continuous monthly return series built from MoneyMate offer prices (net of AMC), grossed up geometrically by each fund's AMC to match the fund centre's gross-of-AMC convention. All performance, growth, stress and projection figures are shown gross of AMC and any other charges: the weighted portfolio cost is displayed separately and has not been deducted, because adviser and plan-level charges vary and are not known here. Volatility, maximum drawdown and the portfolio ESMA band are computed on the actual portfolio return series (gross), so diversification between funds is fully reflected. The portfolio ESMA figure maps the window's annualised volatility to the SRRI bands and is indicative — the regulatory SRRI is measured over a fixed 5-year basis.${keys.length===2?" In comparison mode both portfolios are measured over the same window, based on the common history of all selected funds across A and B.":""}<br><br>
     ${simFunds.length?`<strong>Simulated history.</strong> ${simFunds.map(f=>`${esc(short(f.name))} uses simulated / index performance before ${pLbl(f.liveIdx)}`).join("; ")}. Simulated series are already gross of charges and are not actual fund performance. Figures marked ◆ include simulated months.<br><br>`:""}
     <strong>Asset mix.</strong> ${AC_METHOD}<br><br>
+    <strong>Calendar years and worst periods.</strong> ${CAL_WORST_METHOD}<br><br>
     <strong>Limitations.</strong> Monthly pricing understates true maximum drawdown and intra-month stress losses relative to daily data. The gross-up assumes AMC is the only fund-level charge embedded in unit prices. Published fund centre figures may differ by small amounts due to business-day price sampling.<br><br>
     Warning: Past performance is not a reliable guide to future performance. The value of your investment may go down as well as up. If you invest in these funds you may lose some or all of the money you invest. These funds may be affected by changes in currency exchange rates. Source of prices: the Aviva Ireland website provided by Longboat Analytics / MoneyMate. Portfolio Builder is provided and created by Slate Labs. It is not issued, approved or endorsed by any insurance company or investment manager. Slate Labs is not regulated by the Central Bank of Ireland and information provided is for illustrative purposes only and should not be relied upon for investment decisions.`;
 }
@@ -1250,7 +1323,21 @@ function buildPrintDoc(opt={}){
     });
     stressSec+=`</tr>`;
   });
-  stressSec+=`</tbody></table><p class="pd-note">Episode return is the portfolio's cumulative gross return over the stated months; maximum drawdown is measured against the pre-episode peak; recovery is months from the trough back to that peak.</p></div>`;
+  [3,12].forEach((m,mi)=>{
+    stressSec+=`<tr><td>Worst ${m} months</td><td>${two?"portfolio's own":(()=>{const x=worstPeriods(keys[0])[mi];return x.v===null?"n/a":`${pLbl(x.from)} – ${pLbl(x.to)}`;})()}</td>`;
+    keys.forEach(k=>{
+      const x=worstPeriods(k)[mi];
+      if(x.v===null){ stressSec+=`<td class="r">n/a</td><td class="r">—</td><td class="r">—</td>`; return; }
+      stressSec+=`<td class="r${x.v<0?" neg":""}">${fmtP(x.v)}${x.sim?" ◆":""}${two?`<div class="pd-cat">${pLbl(x.from)} – ${pLbl(x.to)}</div>`:""}</td><td class="r">—</td><td class="r">—</td>`;
+    });
+    stressSec+=`</tr>`;
+  });
+  stressSec+=`</tbody></table><p class="pd-note">Episode return is the portfolio's cumulative gross return over the stated months; maximum drawdown is measured against the pre-episode peak; recovery is months from the trough back to that peak. The worst 3 and 12 month rows are the lowest compounded return over any run of that length in the portfolio's full common history, so max drawdown and recovery do not apply.</p></div>`;
+
+  const calCols=calendarReturns(keys[0]);
+  const calSec=`<div class="pd-sec"><div class="pd-h">Calendar year returns · gross of AMC</div><table class="pd-table pd-fixed pd-cal"><colgroup><col style="width:16%">${calCols.map(()=>`<col style="width:${(84/calCols.length).toFixed(2)}%">`).join("")}</colgroup><thead><tr><th></th>${calCols.map(c=>`<th class="r">${c.lbl}</th>`).join("")}</tr></thead><tbody>`+
+    keys.map(k=>`<tr><td class="pd-pl ${cls(k)}">${two?`Portfolio ${k}`:"Portfolio"}</td>`+calendarReturns(k).map(x=>x.v===null?`<td class="r">n/a</td>`:`<td class="r v${x.v<0?" neg":""}">${fmtP(x.v)}${x.sim?`<span class="pd-dia">◆</span>`:""}</td>`).join("")+`</tr>`).join("")+
+    `</tbody></table><p class="pd-note">YTD runs from January to ${pLbl(end)}. n/a where the portfolio's history does not cover the full year; part years are not shown.</p></div>`;
 
   /* ---------- page 1 ---------- */
   let h=`<div class="pd-page1">${band}
@@ -1281,11 +1368,12 @@ function buildPrintDoc(opt={}){
   if(two && !amixP1) h+=amixAB;
   if(!two && !bbP1) h+=`<div class="pd-sec"><div class="pd-h">Portfolio building blocks</div>${bblocks(keys[0])}</div>`;
   if(two) h+=`<div class="pd-sec"><div class="pd-h">Portfolio building blocks</div>`+keys.map(k=>`<p class="pd-lbl ${cls(k)}">Portfolio ${k}</p>${bblocks(k)}`).join("")+`</div>`;
+  h+=calSec;
   if(!stressP1) h+=stressSec;
 
   const basisPhrase = two ? "the basis stated above for each portfolio" : `the ${stByKey[keys[0]].lbl} basis stated above`;
   const anySim = keys.some(k=>fsByKey[k].some(f=>f.simulated));
-  h+=`<div class="pd-sec"><div class="pd-h">Notes and methodology</div><p class="pd-meth">Portfolio figures are computed from the combined portfolio's own monthly return series (funds' spliced price histories, weighted by allocation, rebalanced monthly), so volatility, maximum drawdown and the ESMA band reflect diversification between funds. Fund and portfolio returns are gross of AMC; the total portfolio cost is shown separately and has not been deducted, and adviser or plan-level charges would further reduce outcomes. Stress episode returns use month-end pricing, which understates intra-month falls. Fund-level Vol and MDD and the key figures are measured over ${basisPhrase}. The portfolio ESMA figure maps annualised volatility to the SRRI bands and is indicative only. Where any fund has no history for a period, the figure is shown as n/a.</p>`+
+  h+=`<div class="pd-sec"><div class="pd-h">Notes and methodology</div><p class="pd-meth">Portfolio figures are computed from the combined portfolio's own monthly return series (funds' spliced price histories, weighted by allocation, rebalanced monthly), so volatility, maximum drawdown and the ESMA band reflect diversification between funds. Fund and portfolio returns are gross of AMC; the total portfolio cost is shown separately and has not been deducted, and adviser or plan-level charges would further reduce outcomes. Stress episode returns use month-end pricing, which understates intra-month falls. Fund-level Vol and MDD and the key figures are measured over ${basisPhrase}. The portfolio ESMA figure maps annualised volatility to the SRRI bands and is indicative only. Where any fund has no history for a period, the figure is shown as n/a. ${CAL_WORST_METHOD}</p>`+
     (anySim?`<p class="pd-meth">◆ Marked funds use index or simulated performance prior to their live pricing date; marked figures include simulated months and are not actual fund performance.</p>`:"")+
     `<p class="pd-meth"><b>Asset mix.</b> ${AC_METHOD}</p></div>`;
   h+=`<div class="pd-disc"><h4>Warnings &amp; important information</h4>
@@ -1455,6 +1543,7 @@ function renderAll(){
     (keys.length===2?`<span><span class="swl" style="background:${CA}"></span>Portfolio A</span><span><span class="swl" style="background:${CB}"></span>Portfolio B</span>`:
     `<span><span class="swl" style="background:${CA}"></span>Gross of AMC — portfolio cost shown separately, not deducted</span>`)+
     `<span><span class="swl" style="background:var(--sim)"></span>◆ period includes simulated history</span>`;
+  renderCalendar(keys);
   renderBuildingBlocks(keys, win);
   renderAssetMix(keys);
   const lines=keys.map(k=>({s:series(k,win[0],win[1]),color:k==="B"?CB:CA}));
