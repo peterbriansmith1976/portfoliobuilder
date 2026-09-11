@@ -342,6 +342,15 @@ risk profile target selectors, preset portfolios, baseline comparison against a 
 portfolio, share links. The Liberation Day / April 2025 tariff shock was explicitly excluded
 as a stress episode. Do not reintroduce any of these without asking.
 
+**Simulated history wording** (`SIM_METHOD`, one definition used by screen, print and email): the
+pre-live months are "derived from the index, or blend of indices, that the fund is designed to
+track over the same period". The blend clause is deliberate: of the 10 funds with simulated
+history only 3 are single-index trackers (Emerging Markets Equity Index, European Equity ESG
+Passive, Global Equity ESG Passive); the other 7 are multi-asset (Fixed ESG 20–80, Multi Asset ESG
+Passive Plus 3–5), where a single underlying index would be wrong. Claiming index derivation comes
+from the user, not from anything in the data. This is methodology text; the regulatory disclaimer's
+own simulated-performance sentence is separate fixed text and was not touched.
+
 Stress episodes are GFC (Nov 2007 to Feb 2009), Q4 2018 selloff (Oct to Dec 2018), Covid crash
 (Feb to Mar 2020) and the 2022 bond selloff (Jan to Oct 2022). Q4 2018 was added because GFC is n/a
 for most portfolios: only 15 of 37 funds reach 2007, while 35 of 37 cover late 2018. Candidates that
