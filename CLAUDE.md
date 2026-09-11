@@ -347,9 +347,11 @@ pre-live months are "derived from the index, or blend of indices, that the fund 
 track over the same period". The blend clause is deliberate: of the 10 funds with simulated
 history only 3 are single-index trackers (Emerging Markets Equity Index, European Equity ESG
 Passive, Global Equity ESG Passive); the other 7 are multi-asset (Fixed ESG 20–80, Multi Asset ESG
-Passive Plus 3–5), where a single underlying index would be wrong. Claiming index derivation comes
-from the user, not from anything in the data. This is methodology text; the regulatory disclaimer's
-own simulated-performance sentence is separate fixed text and was not touched.
+Passive Plus 3–5), where a single underlying index would be wrong. The user confirmed on
+12 Sep 2026 that the simulated series are index derived, which is what the wording rests on: it
+cannot be verified from the payload, since a simulated month is just a return like any other.
+This is methodology text; the regulatory disclaimer's own simulated-performance sentence is
+separate fixed text and was not touched.
 
 Stress episodes are GFC (Nov 2007 to Feb 2009), Q4 2018 selloff (Oct to Dec 2018), Covid crash
 (Feb to Mar 2020) and the 2022 bond selloff (Jan to Oct 2022). Q4 2018 was added because GFC is n/a
