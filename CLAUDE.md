@@ -42,6 +42,7 @@ replaces one JSON file and never touches the app.
   load. No build step and no external dependencies except the Google Fonts stylesheet.
 - `data/latest.json` — the payload the app fetches. `data/YYYY-MM.json` alongside it are dated
   archive copies.
+- `data/allocation.json` — asset mix per fund, fetched separately and optional (see Asset mix).
 - `refresh_dashboard.py` — builds the payload from the source workbook.
 - `update_data.sh`, `check_data.py` — monthly refresh with a pre-publish review report.
 - `publish.sh` — the only publishing route. Local helpers, all gitignored.
@@ -151,6 +152,80 @@ identical name, one holding 37 funds and one holding 32 without the Dimensional 
 
 `check_data.py` is shared by both routes and blocks on funds disappearing, the as-at going
 backwards, and already-published months changing value.
+
+## Asset mix
+
+The allocation-weighted asset mix of each portfolio, at **portfolio level only**: a doughnut of
+the six asset classes with a two-column table beside it (asset class, % held). Screen sits after
+building blocks, print after composition (static doughnut, A and B side by side), email is the
+table only. Hovering, tapping or focusing a segment or table row names it in the ring's centre.
+
+No per-fund breakdown is shown, by the user's decision. A richer view was explored (regions,
+bond types, countries, sectors, look-through holdings) and rejected as not intuitive: the
+underlying labels are inconsistent across providers, capped at ten lines, and for multi-asset
+funds published for the whole fund rather than per asset class. Do not reintroduce it without asking. Data lives in
+`data/allocation.json`, deliberately separate from `latest.json`: it has its own sources and
+dates, and keeping it apart leaves the price payload, `check_data.py` and reconciliation untouched.
+
+```
+python3 fetch_allocation.py      # fetch, check, stage to work/allocation.staged.json
+./promote.sh --allocation        # publish asset mix on its own, after review
+```
+
+`refresh_daily.sh` also runs the fetch when it stages a new price month, and `promote.sh`
+publishes a staged asset mix alongside the month. An asset mix failure never blocks prices.
+
+### Sources, both public and unauthenticated
+
+- **Aviva (31 funds):** `GET aviva-fundcentre.longboatanalytics.com/api/FactsheetData/GetFactsheet?fundId=N`,
+  the `Asset` block, FundIds from `fund_map.json`. Labels arrive HTML-escaped.
+- **Dimensional (5 funds):** `POST etf.dimensional.com/public/v2/fundcenter/funddetail`, header
+  `x-selected-country: FI`, body `{"portfolioNumber":N}`, lens slug
+  `charsMixedAssetClassWithEquityRegionAllocation`, weights as fractions. Portfolio numbers,
+  mapped by ISIN and checked against the rendered pages: 20/80 = 885, 40/60 = 746, 60/40 = 748,
+  80/20 = 879, World Equity = 626. The web page asks for a professional-client declaration and
+  cookie consent; the API needs neither, and neither has been accepted on the user's behalf.
+- **Aviva Physical Gold** publishes no mix. It is classified as 100% gold (user's decision), the
+  only hand-set record, shown as "Gold 100%" at fund level.
+
+### Rules
+
+- **Six classes:** Equities, Fixed Income, Cash, Property, Alternatives & Commodities, Other.
+  **Displayed as "Alternatives"** everywhere (screen, print, email) via `AC_LABEL`, because the full
+  name wrapped in print and made that row taller than the others. The data key in
+  `allocation.json` and `AC_CLASSES` stays "Alternatives & Commodities", so no refetch was needed.
+  Wherever a held fund has any, the asset mix note adds "Alternatives includes commodities and gold".
+  The roll-up stops at asset class on purpose. Aviva's equity labels cannot be split into
+  developed and emerging: "Pacific Basin Equities" is Taiwan/Korea/China in the EM index fund and
+  developed Pacific elsewhere. Do not add a developed/emerging split without solving that.
+- **Every label is mapped explicitly** in `CLASS_OF`. An unmapped label stops the run: a new
+  Aviva category must never fall quietly into Other.
+- **"Securities" is not an asset class.** Stewardship Ethical Equity publishes its whole mix as
+  "Securities 99.3%". Generic labels resolve from the factsheet's declared `AssetClass`; an
+  unrecognised one stops the run. Mapping it to Other was the original bug.
+- **Per-fund check, then scale.** Each fund's published total must be 100 ± 1%, then it is scaled
+  to exactly 100 (`scaledFrom` keeps the original). This replaced a portfolio-level 2% coverage
+  rule at the user's request. Coverage of all dashboard funds is required; a missing fund stops
+  the run. The dashboard's shape check rejects any fund not totalling 100.00.
+- **Portfolio mix is a plain weighted average.** Every fund totals 100, so the portfolio does too.
+- **Negative weights are kept, not clamped** (AIMS Target Return publishes Other -0.26%). The
+  doughnut draws positive classes only; the table shows the signed figure.
+- **Dates are labelled, never harmonised.** Providers publish on different month ends (Aviva
+  30 Jun or 31 Jul, Dimensional 31 Aug at the time of writing). One date reads "Asset mix as at";
+  several read "mixed month ends" and list them. Allocation dates are independent
+  of the price as-at. A date going backwards stops the fetch.
+- **It is a snapshot.** Say so wherever it appears: it does not describe how funds were invested
+  over the performance window.
+- **Non-fatal on the client.** `loadAlloc()` runs in parallel with the price fetch; any failure
+  leaves `ALLOC` null and the section reads "Asset mix unavailable". No other figure depends on it.
+
+### Colours
+
+`--ac1`..`--ac6` (light and dark) on screen, `AC_FIXED` literal hex for print and email. A third
+palette, separate from `--d1`..`--d5` (fund identity) and from `--signal`. `acDonutSVG()` draws
+both the screen and print doughnut; print passes literal hex. It is SVG so it prints with
+background graphics off. A single class at 100% is drawn as two half-arcs, since one arc with
+coincident ends renders nothing. Email uses a filled swatch cell per row because Outlook cannot draw SVG.
 
 ## Loading and failure behaviour
 
@@ -273,9 +348,48 @@ bond selloff (Jan to Oct 2022).
 ## Conventions
 
 - European date formats, euro by default, en-IE locale.
+- Euro amount inputs (investment, monthly contribution, monthly withdrawal) are `type="text"` with
+  `inputmode="numeric"` so they can display thousands separators ("100,000"), reformatted on change.
+  Always read them through `numVal(id)` / `amtVal()`, which strip the commas. A bare
+  `+el.value` on "100,000" is `NaN`, which silently falls back to the default amount.
 - Fund picker category order is fixed: Multi-Asset, Equity, Alternative, Fixed Income.
 - Print document is A4 portrait, sections wrapped in `.pd-sec` with `break-inside: avoid` so
   a section never splits across pages. Screen disclaimers are always visible and hidden in print.
+
+## Print document — factsheet layout
+
+Chosen by the user over a tidied flow and a cover-page report. **Page 1 is the whole story**:
+key figures, composition, asset mix, growth and drawdown charts, performance by period. **Page 2**
+is building blocks (A and B), stress episodes, notes and methodology, and the disclaimer. Normal
+selections print on 2 pages; a 5 + 5 comparison runs the disclaimer onto a third.
+
+- **`layoutPrintDoc()` measures, it does not estimate.** It renders the document off-screen at the
+  printed width (703px = A4 less 12mm margins), levels the chart column with the left column, then
+  moves optional content off page 1 in a fixed order until it fits (single: building blocks, then
+  the ESMA scale; A and B: asset mix), then spends spare room on stress episodes, then the bar
+  chart. Fund names wrap unpredictably, so every estimate-based version left gaps or overflowed.
+  That is why the `.pd-*` styles sit **outside** `@media print`: they must apply on screen to be
+  measured. Only `@page`, the canvas background and hiding the app stay inside it.
+- **Charts take `W`/`H`** (`barChartSVG`, `growthChartSVG`, `drawdownChartSVG`) so print draws them
+  at true column width and their type prints at the size written. Screen calls use the defaults.
+- **Print charts use the `PRINT` theme** (`LIGHT` plus label sizes): 8px axis labels, 8.5px
+  semi-bold value labels, no bold on the €100,000 / 0% reference labels, at the user's request, so
+  chart type sits with the 8.5px table text. With `inside:true` the growth end value is drawn inside
+  the plot, above-left of the end point, so growth and drawdown need no reserved right margin and
+  share padding, which keeps their date axes aligned. Lines are drawn before labels. When A and B end
+  close together the second label sits left of the first on the same baseline rather than dropping
+  into the lines. The dashboard's charts keep `DARK` and are unaffected.
+- **Footer is CSS page margin boxes** (`@bottom-left` / `@bottom-right`, page x of y). Defining them
+  suppresses Chrome's own header and footer (date, title, localhost URL), verified with that option on.
+- **Nothing relies on "Background graphics"**, which is off by default: swatches, the product tile
+  and the ESMA scale are SVG, and table headers are rules, not filled bars.
+- **Print forces a light canvas** (`html` background and `color-scheme`). In dark theme the page
+  margins otherwise print dark navy whenever backgrounds print, which also makes right-aligned
+  text look clipped.
+- **The print button waits** for fonts (so measuring is right) and for the wordmark image to decode.
+  Printing straight after `innerHTML` dropped the SLATE LABS wordmark from the page.
+- The disclaimer block is lifted verbatim from the previous build; methodology changed one phrase,
+  "portfolio summary cards" to "key figures".
 - Maximum 5 funds per portfolio. Single-fund portfolios are allowed.
 - Allocations are free-form and never pre-populated; "Equal split" fills them on demand.
 
