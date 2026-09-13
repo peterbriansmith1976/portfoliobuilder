@@ -155,7 +155,6 @@ svg text{font-family:'Nunito Sans',sans-serif}
 .legend{display:flex;gap:16px;font-size:12px;color:var(--muted);margin-top:6px;flex-wrap:wrap}
 .legend .swl{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:5px;vertical-align:-1px}
 .note{font-size:11.5px;color:var(--muted);line-height:1.55;margin-top:10px}
-.callout{background:var(--raised);border-left:3px solid var(--pos);border-radius:6px;padding:10px 14px;margin-top:10px;font-size:12.5px;color:var(--ink)}
 .note strong{color:var(--ink)}
 .simflag{color:var(--sim);font-weight:700}
 .empty{color:var(--muted);text-align:center;padding:50px 20px;font-size:14px}
@@ -169,6 +168,9 @@ table.proj.compact{font-size:11.5px;margin-top:2px}
 table.proj.compact th,table.proj.compact td{padding:6px 7px;white-space:nowrap}
 table.proj.compact td:first-child,table.proj.compact th:first-child{white-space:normal}
 #bblocks .rowlbl{margin-bottom:2px}
+/* swatch and name are separate flex items, so a wrapped name continues under its own first line */
+#bblocks .fn{display:flex;align-items:flex-start;gap:7px}
+#bblocks .fn .sw{flex:0 0 auto;margin:2px 0 0}
 .acwrap{display:grid;grid-template-columns:200px minmax(0,1fr);gap:28px;align-items:center;margin:8px 0 4px}
 .acwrap svg{display:block}
 .acwrap svg path{transition:opacity .15s;outline:none;cursor:default}
@@ -178,7 +180,6 @@ table.proj.compact td:first-child,table.proj.compact th:first-child{white-space:
 .acwrap tr[data-ac]{cursor:default}
 .acwrap tr.on td{background:var(--raised)}
 .acwrap tr.tot td{border-top:1.5px solid var(--muted);border-bottom:none;font-weight:800}
-.subdate{font-size:10.5px;color:var(--faint);font-weight:400;margin-top:1px}
 /* The ◆ hangs in the cell's padding instead of taking a slot in the row: a reserved slot pushed
    the figures off their own column heading. Equal-width columns stop content sizing staggering them. */
 #calTable{table-layout:fixed}
@@ -887,22 +888,35 @@ function renderCalendar(keys){
   document.getElementById("calTable").innerHTML=h;
   document.getElementById("calNote").innerHTML=`Each year is the portfolio's compounded gross return from January to December; YTD runs from January to ${pLbl(END())}.${anyNa?" n/a where the selected funds' combined history does not cover the full year; part years are not shown.":""}${anySim?" ◆ includes simulated history.":""}`;
 }
+/* Period cell for a worst 3 / 12 month row. One portfolio, or A and B sharing the same window: one
+   range, same format as the episode rows. Different windows: both, labelled A and B in their
+   portfolio colours, with a compact range ("Apr–Jun 2022") so the cell stays on one line. */
+function pRange(a,b){ const [ma,ya]=pLbl(a).split(" "), [mb,yb]=pLbl(b).split(" ");
+  return ya===yb ? `${ma}–${mb} ${ya}` : `${pLbl(a)} – ${pLbl(b)}`; }
+function worstPeriodCell(keys, mi, colA, colB){
+  const xs=keys.map(k=>({k, x:worstPeriods(k)[mi]})).filter(o=>o.x.v!==null);
+  if(!xs.length) return "n/a";
+  const same=xs.every(o=>o.x.from===xs[0].x.from && o.x.to===xs[0].x.to);
+  if(keys.length===1 || (same && xs.length===keys.length)) return `${pLbl(xs[0].x.from)} – ${pLbl(xs[0].x.to)}`;
+  return xs.map(o=>`<span style="color:${o.k==="B"?colB:colA};font-weight:700">${o.k}</span> ${pRange(o.x.from,o.x.to)}`).join(" · ");
+}
 function renderStress(keys){
   const two=keys.length===2;
   let head=`<tr><th>Episode</th><th>Period</th>`;
-  keys.forEach(k=>head+=`<th>${two?k+" ":""}Return</th><th>${two?k+" ":""}Max DD</th><th>${two?k+" ":""}Recovery</th>`);
+  // comparison mode shows return only; max drawdown and recovery stay for a single portfolio
+  keys.forEach(k=>head+=two?`<th>${k} return</th>`:`<th>Return</th><th>Max DD</th><th>Recovery</th>`);
   head+=`</tr>`;
   let rows="", anyNa=false, anySim=false;
   EPISODES.forEach(ep=>{
     rows+=`<tr><td>${ep.name}</td><td>${pLbl(pIdx(ep.a))} – ${pLbl(pIdx(ep.b))}</td>`;
     keys.forEach(k=>{
       const r=stressRow(k,ep);
-      if(!r){ rows+=`<td>n/a</td><td>n/a</td><td>n/a</td>`; anyNa=true; return; }
+      if(!r){ rows+=two?`<td>n/a</td>`:`<td>n/a</td><td>n/a</td><td>n/a</td>`; anyNa=true; return; }
       if(r.anySim) anySim=true;
       const cls=k==="B"?"bcol":(two?"acol":"");
-      rows+=`<td class="${cls}${r.epRet<0?" ":""}">${fmtP(r.epRet)}${r.anySim?" ◆":""}</td>
+      rows+=`<td class="${cls}${r.epRet<0?" ":""}">${fmtP(r.epRet)}${r.anySim?" ◆":""}</td>`+(two?"":`
              <td class="neg">${fmtP(r.dd)}</td>
-             <td>${r.rec===null?"not yet":r.rec+" mo"}</td>`;
+             <td>${r.rec===null?"not yet":r.rec+" mo"}</td>`);
     });
     rows+=`</tr>`;
   });
@@ -910,19 +924,21 @@ function renderStress(keys){
      max drawdown and recovery not applicable. Each portfolio has its own worst window, so in
      comparison mode the dates sit under each return instead of in the shared Period column. */
   [3,12].forEach((m,mi)=>{
-    rows+=`<tr><td>Worst ${m} months</td><td>${two?"portfolio's own":(()=>{const x=worstPeriods(keys[0])[mi];return x.v===null?"n/a":`${pLbl(x.from)} – ${pLbl(x.to)}`;})()}</td>`;
+    rows+=`<tr><td>Worst ${m} months</td><td>${worstPeriodCell(keys,mi,"var(--d1)","var(--portB)")}</td>`;
     keys.forEach(k=>{
       const x=worstPeriods(k)[mi];
-      if(x.v===null){ rows+=`<td>n/a</td><td>—</td><td>—</td>`; anyNa=true; return; }
+      if(x.v===null){ rows+=two?`<td>n/a</td>`:`<td>n/a</td><td>—</td><td>—</td>`; anyNa=true; return; }
       if(x.sim) anySim=true;
       const cls=k==="B"?"bcol":(two?"acol":"");
-      rows+=`<td class="${cls}">${fmtP(x.v)}${x.sim?" ◆":""}${two?`<div class="subdate">${pLbl(x.from)} – ${pLbl(x.to)}</div>`:""}</td><td>—</td><td>—</td>`;
+      rows+=`<td class="${cls}">${fmtP(x.v)}${x.sim?" ◆":""}</td>${two?"":"<td>—</td><td>—</td>"}`;
     });
     rows+=`</tr>`;
   });
   document.getElementById("stressTable").innerHTML=head+rows;
-  document.getElementById("stressNote").innerHTML=
-    `Episode return is the portfolio's cumulative gross return over the stated months; max drawdown is measured against the pre-episode peak; recovery is months from the episode trough back to that peak. Monthly pricing understates intra-month falls, so true peak-to-trough losses were deeper than month-end data shows. The worst 3 and 12 month rows are the lowest compounded gross return over any run of that length since ${two?"each portfolio's":"the portfolio's"} common history began (${keys.map(k=>`${two?k+" ":""}${pLbl(commonStart([k]))}`).join(", ")}); they follow no named episode and no selected window, so max drawdown and recovery do not apply.${anyNa?" n/a where the selected funds' combined history does not cover the period.":""}${anySim?" ◆ includes simulated history.":""}`;
+  document.getElementById("stressNote").innerHTML=(two
+    ? `Episode return is each portfolio's cumulative gross return over the stated months. Monthly pricing understates intra-month falls, so true peak-to-trough losses were deeper than month-end data shows. The worst 3 and 12 month rows are the lowest compounded gross return over any run of that length since each portfolio's common history began (${keys.map(k=>`${k} ${pLbl(commonStart([k]))}`).join(", ")}), dated in the Period column (labelled A and B where the two portfolios' worst periods differ). Maximum drawdown and recovery are shown when viewing a single portfolio.`
+    : `Episode return is the portfolio's cumulative gross return over the stated months; max drawdown is measured against the pre-episode peak; recovery is months from the episode trough back to that peak. Monthly pricing understates intra-month falls, so true peak-to-trough losses were deeper than month-end data shows. The worst 3 and 12 month rows are the lowest compounded gross return over any run of that length since ${two?"each portfolio's":"the portfolio's"} common history began (${keys.map(k=>`${two?k+" ":""}${pLbl(commonStart([k]))}`).join(", ")}); they follow no named episode and no selected window, so max drawdown and recovery do not apply.`
+    )+`${anyNa?" n/a where the selected funds' combined history does not cover the period.":""}${anySim?" ◆ includes simulated history.":""}`;
 }
 
 /* ---------- results ---------- */
@@ -933,17 +949,6 @@ function rollingVolSeries(k,to){
   for(let i=59;i<s.g.length;i++)
     pts.push({i:cs+i, v:vol(s.g.slice(i-59,i+1)), sim:s.sim.slice(i-59,i+1).some(x=>x)});
   return pts;
-}
-function diversificationBenefit(k,win){
-  const fs=selFunds(k); if(fs.length<2) return null;
-  const tot=weights(k)/100;
-  let wAvgVol=0;
-  for(const f of fs){
-    const w=(+state.P[k].alloc[f.name]||0)/100/tot;
-    const rets=[]; for(let i=win[0]; i<=win[1]; i++){ const r=fundRet(f,i); if(r===null) return null; rets.push(r); }
-    wAvgVol+=w*vol(rets);
-  }
-  return wAvgVol;
 }
 function riskContributions(k,win){
   const fs=selFunds(k); if(fs.length<2) return null;
@@ -1005,11 +1010,6 @@ function renderCards(keys,win){
       ["Portfolio ESMA",String(srri(gv)),"SRRI band, selected window"]];
     html+=`<div class="cards">`+cards.map(c=>
       `<div class="scard"><div class="lbl">${c[0]}</div><div class="val">${c[1]}</div><div class="sub">${c[2]}</div></div>`).join("")+`</div>`;
-    const wAvg=diversificationBenefit(k,win);
-    if(wAvg!==null){
-      const benefit=wAvg-gv;
-      html+=`<div class="callout">Diversification reduced volatility by <b>${fmtP(benefit)}</b> — ${fmtP(gv)} actual vs ${fmtP(wAvg)} if the funds moved independently (weighted average of their own volatility).</div>`;
-    }
     const rc=riskContributions(k,win);
     if(rc){
       html+=`<table class="proj compact" style="margin-top:10px"><thead><tr><th>Fund</th><th>Weight</th><th>Risk contribution</th></tr></thead><tbody>`+
@@ -1019,6 +1019,18 @@ function renderCards(keys,win){
   });
   document.getElementById("cardsWrap").innerHTML=html;
 }
+/* Every fund row in both building-blocks tables takes the height of the tallest, so a wrapped name
+   doesn't make its row jump. Cleared first so a wider window can shrink rows again, and re-run on
+   resize because wrapping depends on width. A table row's height is a minimum, so nothing clips. */
+function equaliseBBRows(){
+  const rows=[...document.querySelectorAll("#bblocks tbody tr")];
+  rows.forEach(r=>r.style.height="");
+  if(!rows.length) return;
+  const h=Math.max(...rows.map(r=>r.getBoundingClientRect().height));
+  if(h>0) rows.forEach(r=>r.style.height=h+"px");
+}
+let bbResizeTimer=null;
+window.addEventListener("resize",()=>{ clearTimeout(bbResizeTimer); bbResizeTimer=setTimeout(equaliseBBRows,150); });
 function renderBuildingBlocks(keys, win){
   const end=END(), sf=stdFee();
   const ytdLen = end - (Math.floor(end/12)*12 - 1);
@@ -1028,7 +1040,7 @@ function renderBuildingBlocks(keys, win){
     if(keys.length===2) html+=`<div class="rowlbl ${k==="B"?"b":"a"}">Portfolio ${k}</div>`;
     let rows="";
     selFunds(k).forEach((f,i)=>{
-      rows+=`<tr><td><span class="sw" style="background:${SEG[i]}"></span>${esc(short(f.name))}${f.simulated?' <span class="simmark">◆</span>':''}</td>
+      rows+=`<tr><td><span class="fn"><span class="sw" style="background:${SEG[i]}"></span><span>${esc(short(f.name))}${f.simulated?' <span class="simmark">◆</span>':''}</span></span></td>
         <td><b>${+state.P[k].alloc[f.name]||0}%</b></td><td>${fmtP(sf+f.costAdj,2)}</td>`;
       pDefs.forEach(([,m,pa])=>{
         const r=fundPeriod(f,m,pa);
@@ -1040,6 +1052,7 @@ function renderBuildingBlocks(keys, win){
     html+=`<table class="proj compact"><thead><tr><th>Fund</th><th>Weight</th><th>Cost</th>${pDefs.map(d=>`<th>${d[0]}</th>`).join("")}<th>Vol · ${winShort(win)}</th><th>MDD · ${winShort(win)}</th></tr></thead><tbody>${rows}</tbody></table>`;
   });
   document.getElementById("bblocks").innerHTML=html;
+  equaliseBBRows();
   document.getElementById("bbNote").innerHTML=`Vol and MDD are measured over the selected window (<strong>${pLbl(win[0])} – ${pLbl(win[1])}</strong>), the same basis as the summary cards above and the charts below. All other columns are standard trailing periods to ${pLbl(win[1])}.`;
 }
 
@@ -1158,8 +1171,12 @@ function renderProjection(keys,win){
   const yrs=20;
   const grid=[]; for(let y2=1;y2<=yrs;y2++) grid.push({y:y2, ...A.at(y2*12)});
   const gridB = keys.length===2 ? Array.from({length:yrs},(_,i)=>({y:i+1,...sims["B"].at((i+1)*12)})) : null;
-  const mxv=Math.max(grid[grid.length-1].p95, gridB?gridB[gridB.length-1].p95:0);
-  const mnv=Math.min(amt,...grid.map(r=>r.p5),...(gridB?gridB.map(r=>r.p5):[amt]));
+  /* The axis covers only what is drawn: A's 5th–95th band and, in comparison mode, B's median line.
+     It used to include B's 95th percentile, which is never plotted, so a volatile B stretched the
+     axis far above anything on the chart. Highest point over all years, not just year 20, because
+     under withdrawals a line can peak early. */
+  const mxv=Math.max(...grid.map(r=>r.p95), ...(gridB?gridB.map(r=>r.p50):[0]));
+  const mnv=Math.min(amt,...grid.map(r=>r.p5),...(gridB?gridB.map(r=>r.p50):[amt]));
   const ax=niceAxis(amt,mnv,mxv);
   /* A portfolio value cannot go below zero. Fully depleted under withdrawals the axis would
      otherwise run one step below zero and waste that slice of the plot on impossible values. */
@@ -1314,26 +1331,26 @@ function buildPrintDoc(opt={}){
   const amixAB = two ? `<div class="pd-sec"><div class="pd-h">Asset mix</div><div class="pd-ab">`+keys.map(k=>`<div><p class="pd-lbl ${cls(k)}">Portfolio ${k}</p>${amix(k,84)}</div>`).join("")+`</div></div>` : "";
 
   let stressSec=`<div class="pd-sec"><div class="pd-h">Historical stress episodes</div>
-  <table class="pd-table"><thead><tr><th>Episode</th><th>Period</th>${keys.map(k=>`<th class="r">${two?k+" ":""}Return</th><th class="r">${two?k+" ":""}Max DD</th><th class="r">${two?k+" ":""}Recovery</th>`).join("")}</tr></thead><tbody>`;
+  <table class="pd-table"><thead><tr><th>Episode</th><th>Period</th>${keys.map(k=>two?`<th class="r">${k} return</th>`:`<th class="r">Return</th><th class="r">Max DD</th><th class="r">Recovery</th>`).join("")}</tr></thead><tbody>`;
   EPISODES.forEach(ep=>{
     stressSec+=`<tr><td>${ep.name}</td><td>${pLbl(pIdx(ep.a))} – ${pLbl(pIdx(ep.b))}</td>`;
     keys.forEach(k=>{
       const r=stressRow(k,ep);
-      if(!r) stressSec+=`<td class="r">n/a</td><td class="r">n/a</td><td class="r">n/a</td>`;
-      else stressSec+=`<td class="r${r.epRet<0?" neg":""}">${fmtP(r.epRet)}${r.anySim?" ◆":""}</td><td class="r neg">${fmtP(r.dd)}</td><td class="r">${r.rec===null?"not yet":r.rec+" mo"}</td>`;
+      if(!r) stressSec+=two?`<td class="r">n/a</td>`:`<td class="r">n/a</td><td class="r">n/a</td><td class="r">n/a</td>`;
+      else stressSec+=`<td class="r${r.epRet<0?" neg":""}">${fmtP(r.epRet)}${r.anySim?" ◆":""}</td>`+(two?"":`<td class="r neg">${fmtP(r.dd)}</td><td class="r">${r.rec===null?"not yet":r.rec+" mo"}</td>`);
     });
     stressSec+=`</tr>`;
   });
   [3,12].forEach((m,mi)=>{
-    stressSec+=`<tr><td>Worst ${m} months</td><td>${two?"portfolio's own":(()=>{const x=worstPeriods(keys[0])[mi];return x.v===null?"n/a":`${pLbl(x.from)} – ${pLbl(x.to)}`;})()}</td>`;
+    stressSec+=`<tr><td>Worst ${m} months</td><td>${worstPeriodCell(keys,mi,CA_FIXED,CB_FIXED)}</td>`;
     keys.forEach(k=>{
       const x=worstPeriods(k)[mi];
-      if(x.v===null){ stressSec+=`<td class="r">n/a</td><td class="r">—</td><td class="r">—</td>`; return; }
-      stressSec+=`<td class="r${x.v<0?" neg":""}">${fmtP(x.v)}${x.sim?" ◆":""}${two?`<div class="pd-cat">${pLbl(x.from)} – ${pLbl(x.to)}</div>`:""}</td><td class="r">—</td><td class="r">—</td>`;
+      if(x.v===null){ stressSec+=two?`<td class="r">n/a</td>`:`<td class="r">n/a</td><td class="r">—</td><td class="r">—</td>`; return; }
+      stressSec+=`<td class="r${x.v<0?" neg":""}">${fmtP(x.v)}${x.sim?" ◆":""}</td>${two?"":`<td class="r">—</td><td class="r">—</td>`}`;
     });
     stressSec+=`</tr>`;
   });
-  stressSec+=`</tbody></table><p class="pd-note">Episode return is the portfolio's cumulative gross return over the stated months; maximum drawdown is measured against the pre-episode peak; recovery is months from the trough back to that peak. The worst 3 and 12 month rows are the lowest compounded return over any run of that length in the portfolio's full common history, so max drawdown and recovery do not apply.</p></div>`;
+  stressSec+=`</tbody></table><p class="pd-note">${two?"Episode return is each portfolio's cumulative gross return over the stated months. The worst 3 and 12 month rows are the lowest compounded return over any run of that length in each portfolio's full common history, dated in the Period column (labelled A and B where the two portfolios' worst periods differ). Maximum drawdown and recovery are shown when printing a single portfolio.":"Episode return is the portfolio's cumulative gross return over the stated months; maximum drawdown is measured against the pre-episode peak; recovery is months from the trough back to that peak. The worst 3 and 12 month rows are the lowest compounded return over any run of that length in the portfolio's full common history, so max drawdown and recovery do not apply."}</p></div>`;
 
   const calCols=calendarReturns(keys[0]);
   const calSec=`<div class="pd-sec"><div class="pd-h">Calendar year returns · gross of AMC</div><table class="pd-table pd-fixed pd-cal"><colgroup><col style="width:16%">${calCols.map(()=>`<col style="width:${(84/calCols.length).toFixed(2)}%">`).join("")}</colgroup><thead><tr><th></th>${calCols.map(c=>`<th class="r">${c.lbl}</th>`).join("")}</tr></thead><tbody>`+

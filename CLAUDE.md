@@ -294,6 +294,13 @@ To undo a publish: `git revert --no-edit HEAD && git push`, live again in about 
   band are computed on the actual portfolio return series (allocation-weighted, monthly
   rebalanced), never as weighted averages of fund-level figures. This captures diversification
   and was a deliberate upgrade from earlier versions.
+  A "Diversification reduced volatility by…" banner under the summary cards was removed at the
+  user's request. It compared actual volatility with the weighted average of the funds' own
+  volatilities and called that "if the funds moved independently", which is wrong: a weighted
+  average of volatilities is the perfectly correlated, lockstep case. Independent funds would sit
+  *below* the actual figure. It was also small for typical portfolios (about 0.5pp) and cluttered
+  comparison mode. The risk contribution table shows the effect better. Do not reintroduce it with
+  that wording.
 - **Gross display only.** All performance, growth and projection figures are gross of AMC.
   The weighted portfolio cost is shown separately and never deducted, because adviser and
   plan-level charges vary and are not known to the tool.
@@ -362,8 +369,15 @@ existing episode (the 2022 gilt/LDI crisis, inside 2022) were rejected.
 **Worst periods** are two extra rows *inside* the stress episode table (Episode / Period / Return),
 at the user's request, with max drawdown and recovery shown as "—" because neither applies. They
 show the lowest compounded return over any 3 and 12 consecutive months across the portfolio's full
-common history, not the selected window. Each portfolio has its own worst window, so in comparison
-mode the shared Period column reads "portfolio's own" and the dates sit under each return. A 3-year window was evaluated and dropped
+common history, not the selected window. Their dates always sit in the Period column, so every row
+is one line tall (dates under each return made those rows double height). In comparison mode
+`worstPeriodCell()` shows one range when A and B share the same worst window, and otherwise both,
+labelled A and B in their portfolio colours with a compact range ("A Apr–Jun 2022 · B Jan–Mar 2020").
+
+**In comparison mode the stress table shows return only** (Episode / Period / A return / B return),
+at the user's request: with Max DD and Recovery for both portfolios it ran to eight columns and
+wrapped the episode names. Max drawdown and recovery are kept for a single portfolio, and the
+comparison note says so. Same rule on screen and in print. A 3-year window was evaluated and dropped
 at the user's request: for post-2016 portfolios the worst 3 years is usually a gain, which reads as
 an error under "worst". Being data-driven it may date the 2025 tariff months; it names no event, so
 the exclusion above still holds.
@@ -378,7 +392,11 @@ the common history does not fully cover is n/a, never a part year shown as a cal
   projection fully depleted by withdrawals every value collapses to zero, the spread is nil, the step
   falls back to 1% of the anchor and the axis draws ~100 labels on top of each other. It also refuses
   to return more than 14 ticks. The projection chart then floors its axis at zero, since a portfolio
-  value cannot be negative. Growth, drawdown and rolling volatility are unaffected: verified by
+  value cannot be negative. **The projection axis covers only what is drawn**: Portfolio A's
+  5th–95th band and, in comparison mode, B's median line, each at its highest point across all 20
+  years. It previously included B's 95th percentile, which is never plotted, so a volatile B pushed
+  the axis to €2m while nothing on the chart passed €750k. Using the peak over all years rather
+  than year 20 matters under withdrawals, where the band peaks early. Growth, drawdown and rolling volatility are unaffected: verified by
   identical chart output before and after, in both the 5Y and Max windows.
 - Euro amount inputs (investment, monthly contribution, monthly withdrawal) are `type="text"` with
   `inputmode="numeric"` so they can display thousands separators ("100,000"), reformatted on change.
