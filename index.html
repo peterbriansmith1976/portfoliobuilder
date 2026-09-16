@@ -180,8 +180,11 @@ table.proj.compact td:first-child,table.proj.compact th:first-child{white-space:
 .acwrap tr[data-ac]{cursor:default}
 .acwrap tr.on td{background:var(--raised)}
 .acwrap tr.tot td{border-top:1.5px solid var(--muted);border-bottom:none;font-weight:800}
-/* The ◆ hangs in the cell's padding instead of taking a slot in the row: a reserved slot pushed
-   the figures off their own column heading. Equal-width columns stop content sizing staggering them. */
+/* A ◆ that takes no horizontal space: it is drawn after the figure but occupies zero width, so it
+   hangs in the cell's right padding and every figure stays on its own column. An inline " ◆" is as
+   wide as a digit and knocked the marked figures out of line with the unmarked ones above them. */
+.simd{display:inline-block;width:0;overflow:visible;font-size:9px;line-height:1;vertical-align:super;color:var(--sim);font-weight:400}
+/* The calendar tables pin theirs to the cell's right edge instead, which suits their fixed layout. */
 #calTable{table-layout:fixed}
 #calTable td.v{position:relative}
 #calTable td.v .dia{position:absolute;right:2px;top:6px;font-size:9px;line-height:1;color:var(--sim);font-weight:400}
@@ -198,6 +201,52 @@ table.proj.compact td:first-child,table.proj.compact th:first-child{white-space:
 .disc p{font-size:12px;color:var(--muted);line-height:1.65;margin-bottom:9px}
 .disc p:last-child{margin-bottom:0}
 @media print{.disc-wrap{display:none!important}}
+
+/* ---------- app tabs and fund explorer ---------- */
+.apptabs{display:flex;gap:2px;border-bottom:1px solid var(--hair);margin:0 0 20px}
+.apptab{background:none;border:0;border-bottom:2px solid transparent;margin-bottom:-1px;padding:10px 14px;font-family:inherit;font-size:14px;font-weight:800;color:var(--muted);cursor:pointer}
+.apptab:hover{color:var(--ink)}
+.apptab.on{color:var(--ink);border-bottom-color:var(--signal)}
+.apptab:focus-visible{outline:2px solid var(--signal);outline-offset:-2px;border-radius:4px}
+#explorer{max-width:1240px;margin:0 auto;padding:0 20px 30px}
+#xDD{position:relative}
+.ddmk{cursor:pointer}
+.ddmk:focus{outline:none}
+.ddmk:focus-visible circle:first-of-type,.ddmk.on circle:first-of-type{r:7}
+.ddtip{position:absolute;transform:translate(-50%,-100%);pointer-events:none;background:var(--raised);border:1px solid var(--hair);border-radius:7px;padding:5px 9px;font-size:11.5px;line-height:1.45;color:var(--ink);white-space:nowrap;box-shadow:0 4px 14px rgba(0,0,0,.28);z-index:3}
+.ddtip b{font-variant-numeric:tabular-nums}
+.ddtip .w{color:var(--muted)}
+.xcontrols{display:flex;flex-wrap:wrap;gap:14px 22px;align-items:flex-end;margin-bottom:14px}
+.xchips{display:flex;flex-wrap:wrap;gap:6px}
+#xtable td.fee{font-variant-numeric:tabular-nums;font-weight:700}
+#xtable td.fee.up{color:var(--neg)}
+#xtable td.fee.down{color:var(--pos)}
+.xport{display:inline-block;margin-left:6px;padding:1px 6px;border:1px solid var(--hair);border-radius:4px;font-size:9.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);vertical-align:1px}
+.xchip{display:inline-flex;align-items:center;gap:5px;background:transparent;border:1px solid var(--hair);color:var(--muted);border-radius:20px;padding:5px 11px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit}
+.xchip.on{background:var(--signal);color:var(--signal-ink);border-color:var(--signal)}
+.xchip:focus-visible{outline:2px solid var(--signal);outline-offset:2px}
+#xfilter{width:220px}
+.ctrl select{background:var(--raised);border:1px solid var(--hair);color:var(--ink);border-radius:6px;padding:7px 9px;font-family:inherit;font-size:13px}
+.xscroll{overflow-x:auto}
+#xtable{margin-top:0}
+#xtable th{cursor:pointer;user-select:none;white-space:normal;vertical-align:bottom;line-height:1.25}
+#xtable th:hover,#xtable th.sorted{color:var(--ink)}
+#xtable th:focus-visible{outline:2px solid var(--signal);outline-offset:-2px}
+/* fund name stays in view while the wide table scrolls sideways */
+#xtable th:first-child,#xtable td:first-child{position:sticky;left:0;z-index:1;background:var(--surface);min-width:210px}
+#xtable td:first-child{white-space:nowrap}
+#xtable th:nth-child(2),#xtable td:nth-child(2){text-align:left}
+/* compare screen: own class names, because the builder binds handlers to .wbtn and .tab globally */
+.xwbtn{background:var(--raised);border:1px solid var(--hair);color:var(--muted);border-radius:6px;padding:7px 11px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit}
+.xwbtn.on{background:var(--signal);color:var(--signal-ink);border-color:var(--signal)}
+.xwbtn:focus-visible{outline:2px solid var(--signal);outline-offset:2px}
+.xpick{display:flex;align-items:center;gap:8px;cursor:pointer}
+.xpick input{accent-color:var(--signal);margin:0;flex:0 0 auto;cursor:pointer}
+.xpick input:disabled{cursor:not-allowed}
+#xFig td:first-child,#xFig th:first-child,#xCal td:first-child,#xCal th:first-child{white-space:nowrap;text-align:left}
+#xCal{table-layout:fixed}
+#xCal td.v{position:relative}
+#xCal td.v .dia{position:absolute;right:2px;top:6px;font-size:9px;line-height:1;color:var(--sim);font-weight:400}
 /* ---------- print ---------- */
 #printdoc{display:none}
 @media print{
@@ -210,7 +259,7 @@ table.proj.compact td:first-child,table.proj.compact th:first-child{white-space:
   /* html too: in dark theme its background otherwise fills the page margins when backgrounds print */
   html,body{background:#fff!important}
   :root,[data-theme="dark"]{color-scheme:light!important}
-  .topstrip,.brandband,header.top,main.grid{display:none!important}
+  .topstrip,.brandband,header.top,main.grid,.apptabs,#explorer{display:none!important}
   #printdoc{display:block!important;font-family:'Nunito Sans',sans-serif;color:#0D1B2A;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 }
 /* Print document styles live outside @media print so layoutPrintDoc() can measure them on screen;
@@ -246,7 +295,7 @@ table.proj.compact td:first-child,table.proj.compact th:first-child{white-space:
 .pd-cal td:last-child,.pd-cal th:last-child{padding-right:7px}
 .pd-kft{margin-top:12px}
 .pd-cat{font-size:6.8px;color:#66737F;font-weight:600;margin-top:1px}
-.pd-table td.v{position:relative}
+.pd-table td{position:relative}
 .pd-dia{position:absolute;right:0;top:3px;font-size:6px;line-height:1;color:#66737F;font-weight:600}
 .pd-sq{display:inline-block!important;vertical-align:middle;margin:-1px 5px 0 0}
 .pd-legend{display:flex;gap:14px;font-size:7.5px;color:#66737F;margin:12px 0 -6px}
@@ -293,6 +342,11 @@ table.proj.compact td:first-child,table.proj.compact th:first-child{white-space:
   </div>
   <div class="trust"><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" aria-hidden="true"><path d="M8 1.5 13.5 3.5v4c0 4-2.5 6.3-5.5 7-3-.7-5.5-3-5.5-7v-4Z"/><path d="M5.7 8.2 7.3 9.8l3-3.6" stroke-linecap="round"/></svg>This tool models and illustrates portfolios — <b>it does not recommend one.</b></div>
 </div></header>
+
+<nav class="wrap" aria-label="Views"><div class="apptabs" role="tablist">
+  <button class="apptab on" role="tab" data-tab="builder" aria-selected="true">Portfolio builder</button>
+  <button class="apptab" role="tab" data-tab="explorer" aria-selected="false">Fund explorer</button>
+</div></nav>
 
 <main class="grid">
   <section>
@@ -420,6 +474,44 @@ table.proj.compact td:first-child,table.proj.compact th:first-child{white-space:
   </section>
 </main>
 
+<main id="explorer" style="display:none">
+  <div class="card" id="xTableCard">
+    <div class="card-head"><h2><span class="sec-icon"><svg width="19" height="19" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="3.5" width="14" height="13" rx="2"/><line x1="3" y1="8" x2="17" y2="8"/><line x1="3" y1="12.2" x2="17" y2="12.2"/><line x1="8.5" y1="8" x2="8.5" y2="16.5"/></svg></span>Fund explorer</h2><div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><span class="count" id="xCount"></span><button class="btn btn-quiet" id="xClear" type="button">Clear ticks</button><button class="btn btn-primary" id="xCompareBtn" type="button" disabled>Compare</button></div></div>
+    <div class="card-body">
+      <div class="xcontrols">
+        <div class="ctrl"><label>Asset class</label><div class="xchips" id="xCats"></div></div>
+        <div class="ctrl"><label for="xfilter">Find a fund</label><input id="xfilter" type="search" placeholder="Search by name" autocomplete="off"></div>
+        <div class="ctrl"><label for="xEnd">Performance to</label><select id="xEnd"></select></div>
+        <div class="ctrl"><label for="xFrom">Custom period</label><select id="xFrom" aria-label="Custom period from"></select> <select id="xTo" aria-label="Custom period to"></select></div>
+      </div>
+      <div class="xscroll"><table class="proj compact" id="xtable"></table></div>
+      <div class="note" id="xNote"></div>
+    </div>
+  </div>
+  <div class="card" id="xCompare" style="display:none">
+    <div class="card-head"><h2><span class="sec-icon"><svg width="19" height="19" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3,14 7.5,9.5 11,12 17,5"/><line x1="3" y1="17" x2="17" y2="17"/></svg></span>Compare funds</h2><button class="btn btn-quiet" id="xBack" type="button">Back to all funds</button></div>
+    <div class="card-body">
+      <div class="xcontrols">
+        <div class="ctrl"><label>Period</label><div class="wbtns" id="xWins"></div></div>
+        <div class="ctrl" id="xCustomWrap" style="display:none"><label for="xcFrom">From / To</label><select id="xcFrom" aria-label="Compare from"></select> <select id="xcTo" aria-label="Compare to"></select></div>
+        <div class="ctrl"><label for="xAmt">Amount €</label><input type="text" id="xAmt" class="edit" value="10,000" inputmode="numeric" autocomplete="off" aria-label="Growth chart amount"></div>
+      </div>
+      <div class="hint" id="xWinNote"></div>
+      <div class="legend" id="xLegend"></div>
+      <div class="subhead" id="xGrowthHead">Growth of €10,000 (gross of AMC)</div>
+      <div id="xGrowth"></div>
+      <div class="subhead">Drawdown (gross of AMC)</div>
+      <div id="xDD"></div>
+      <div class="subhead" id="xFigHead">Performance</div>
+      <table class="proj compact" id="xFig"></table>
+      <div class="subhead">Calendar year returns (gross of AMC)</div>
+      <table class="proj compact" id="xCal"></table>
+      <div class="note" id="xCmpNote"></div>
+    </div>
+  </div>
+  <div id="xDisc"></div>
+</main>
+
 <div id="printdoc"></div>
 <div id="emailCopySrc" style="position:fixed;left:-99999px;top:0;width:640px;background:#ffffff"></div>
 
@@ -454,6 +546,7 @@ const stdFee=()=> (+document.getElementById("stdFee").value||0)/100;
 // Euro amount fields are text so they can show "100,000"; read them through here, never via .value directly.
 const numVal=(id,dflt=0)=> +document.getElementById(id).value.replace(/[^\d.]/g,"")||dflt;
 const amtVal=()=> numVal("amt",100000);
+const xAmtVal=()=> Math.min(Math.max(numVal("xAmt",10000),1),1e9);   // the compare chart's own amount
 
 function fundRet(f, i){ const k = i - f.startIdx; return (k>=0 && k<f.returns.length) ? f.returns[k] : null; }
 function selFunds(k){ return state.P[k].sel.map(n => DATA.funds.find(f=>f.name===n)); }
@@ -672,13 +765,13 @@ function barChartSVG(sets,th,W=760,H=230){ // sets: [{bars,color,negColor}]; W/H
   return g;
 }
 function growthChartSVG(lines,th,W=760,H=240){ // lines: [{s,color,label}]
-  const amt=amtVal();
+  const amt=th.amt ?? amtVal();   // the fund explorer passes amt:10000; the builder uses its investment box
   const built=lines.map(L=>{
     let idx=amt; const pts=[[L.s.from-1,amt]];
     L.s.g.forEach((r,i)=>{idx*=(1+r);pts.push([L.s.from+i,idx]);});
     return {...L,pts};
   });
-  const P=th.inside?{t:14,b:22,l:50,r:10}:{t:16,b:28,l:70,r:84},ih=H-P.t-P.b,iw=W-P.l-P.r;
+  const P=th.inside?{t:14,b:22,l:50,r:10}:{t:16,b:28,l:70,r:th.padR??84},ih=H-P.t-P.b,iw=W-P.l-P.r;
   const vs=built.flatMap(L=>L.pts.map(p=>p[1])),mxv=Math.max(...vs),mnv=Math.min(...vs);
   const ax=niceAxis(amt,mnv,mxv);
   const x0=built[0].pts[0][0], x1=built[0].pts[built[0].pts.length-1][0];
@@ -686,7 +779,7 @@ function growthChartSVG(lines,th,W=760,H=240){ // lines: [{s,color,label}]
   const y=v=>P.t+ih*(ax.hi-v)/((ax.hi-ax.lo)||1);
   let g=svgOpen(W,H);
   for(const v of ax.ticks){
-    const yy=y(v), isStart=Math.abs(v-amt)<ax.step*0.001;
+    const yy=y(v), isStart=!th.plainStart && Math.abs(v-amt)<ax.step*0.001;
     g+=`<line x1="${P.l}" x2="${W-P.r}" y1="${yy}" y2="${yy}" stroke="${isStart?th.gridEm:th.grid}" ${isStart?'stroke-dasharray="4 3"':''}/>
         <text x="${P.l-6}" y="${yy+4}" font-size="${th.fsAxis||10}" fill="${isStart?th.text:th.label}" font-weight="${isStart?(th.wEm||700):400}" text-anchor="end">${fmtE(v)}</text>`;}
   if(lines.length===1){
@@ -703,7 +796,7 @@ function growthChartSVG(lines,th,W=760,H=240){ // lines: [{s,color,label}]
     built.forEach((L,li)=>{
       const d=L.pts.map((p,i)=>`${i?"L":"M"}${x(p[0]).toFixed(1)},${y(p[1]).toFixed(1)}`).join("");
       if(li===0) g+=`<path d="${d} L${x(x1)},${y(ax.lo)} L${x(x0)},${y(ax.lo)} Z" fill="${th.area}"/>`;
-      g+=`<path d="${d}" fill="none" stroke="${L.color}" stroke-width="2"/>`;
+      g+=`<path d="${d}" fill="none" stroke="${L.color}" stroke-width="${th.lw||2}"/>`;
     });
     // Two portfolios ending close together would collide; the second label then sits to the left of
     // the first on the same baseline, still above both lines, identified by its colour.
@@ -724,7 +817,8 @@ function growthChartSVG(lines,th,W=760,H=240){ // lines: [{s,color,label}]
   built.forEach((L,li)=>{
     const d=L.pts.map((p,i)=>`${i?"L":"M"}${x(p[0]).toFixed(1)},${y(p[1]).toFixed(1)}`).join("");
     if(li===0) g+=`<path d="${d} L${x(x1)},${y(ax.lo)} L${x(x0)},${y(ax.lo)} Z" fill="${th.area}"/>`;
-    g+=`<path d="${d}" fill="none" stroke="${L.color}" stroke-width="2"/>`;
+    g+=`<path d="${d}" fill="none" stroke="${L.color}" stroke-width="${th.lw||2}"/>`;
+    if(th.endStack) return;
     const lyv=L.pts[L.pts.length-1][1];
     let ly=Math.max(P.t+10,Math.min(H-P.b-4,y(lyv)+4));
     while(labelYs.some(v=>Math.abs(v-ly)<13)) ly+=13;
@@ -732,8 +826,27 @@ function growthChartSVG(lines,th,W=760,H=240){ // lines: [{s,color,label}]
     if(ly>H-P.b-4) ly=Math.min(...labelYs)-13;
     labelYs.push(ly);
     g+=`<circle cx="${x(x1)}" cy="${y(lyv)}" r="3.5" fill="${L.color}"/>
-        <text x="${x(x1)+7}" y="${ly}" font-size="11" font-weight="800" fill="${L.color}">${fmtE(lyv)}</text>`;
+        <text x="${x(x1)+7}" y="${ly}" font-size="${th.fsVal||11}" font-weight="${th.wVal||800}" fill="${L.color}">${fmtE(lyv)}</text>`;
   });
+  if(th.endStack){
+    /* End labels in value order, so their vertical order always matches the lines' and no label can be
+       pushed past another's dot. Each starts level with its own end point and is moved only as far as it
+       must be to clear its neighbour; a short connector is drawn only for a label that had to move. */
+    const lh=12, top=P.t+4, bot=H-P.b-2, lx=x(x1);
+    const ends=built.map(L=>{ const v=L.pts[L.pts.length-1][1], m=L.s.g.length;
+      // annualising under a year is misleading, so a short window labels the amount alone
+      return {c:L.color, v, pa: m>=12 ? Math.pow(v/amt,12/m)-1 : null, py:y(v), ly:y(v)}; })
+      .sort((a,b)=>a.py-b.py);
+    ends.forEach((o,i)=>{ o.ly=Math.max(o.py, i?ends[i-1].ly+lh:top); });
+    for(let i=ends.length-1;i>=0;i--){ const cap=i===ends.length-1?bot:ends[i+1].ly-lh; ends[i].ly=Math.max(top,Math.min(ends[i].ly,cap)); }
+    ends.forEach(o=>{
+      const moved=Math.abs(o.ly-o.py)>1.5;
+      if(moved) g+=`<line x1="${(lx+3.5).toFixed(1)}" y1="${o.py.toFixed(1)}" x2="${(lx+7.5).toFixed(1)}" y2="${o.ly.toFixed(1)}" stroke="${o.c}" stroke-width="0.9" stroke-opacity="0.75"/>`;
+      g+=`<circle cx="${lx}" cy="${o.py.toFixed(1)}" r="3.5" fill="${o.c}"/>
+        <text x="${(lx+9).toFixed(1)}" y="${(o.ly+3.5).toFixed(1)}" font-size="${th.fsVal||11}" font-weight="${th.wVal||800}" fill="${o.c}" data-end="${o.v}" data-pa="${o.pa===null?"":o.pa}">${fmtE(o.v)}${o.pa===null?"":`<tspan font-size="${th.fsAxis||9}" font-weight="400" fill="${th.label}"> | </tspan><tspan font-size="${th.fsAxis||9}" font-weight="400" fill-opacity="0.85">${fmtP(o.pa)} p.a.</tspan>`}</text>`;
+    });
+  }
+  if(th.axisLine) g+=`<line x1="${P.l}" x2="${W-P.r}" y1="${y(ax.lo)}" y2="${y(ax.lo)}" stroke="${th.label}" stroke-width="1"/>`;
   const pts=built[0].pts, n=pts.length, ticks=[0,Math.floor(n/3),Math.floor(2*n/3),n-1];
   ticks.forEach((i,k)=>g+=`<text x="${x(pts[i][0])}" y="${H-(th.inside?6:8)}" font-size="${th.fsAxis||10}" fill="${th.label}" text-anchor="${k===0?'start':(th.inside&&k===3?'end':'middle')}">${pLbl(pts[i][0])}</text>`);
   return g+"</svg>";
@@ -748,6 +861,8 @@ function drawdownChartSVG(lines,th,W=760,H=240){ // lines: [{s,color}] — 0 at 
   const P=th.inside?{t:14,b:22,l:50,r:10}:{t:16,b:28,l:70,r:84},ih=H-P.t-P.b,iw=W-P.l-P.r;
   const vs=built.flatMap(L=>L.pts.map(p=>p[1])),mnv=Math.min(...vs);
   const ax=niceAxis(0,mnv,0);
+  // nothing is ever plotted above zero on a drawdown chart, so a positive tick is wasted height
+  if(th.noPosAxis && ax.hi>0){ ax.hi=0; ax.ticks=ax.ticks.filter(v=>v<=1e-9); }
   const x0=built[0].pts[0][0], x1=built[0].pts[built[0].pts.length-1][0];
   const x=i=>P.l+iw*(i-x0)/(x1-x0);
   const y=v=>P.t+ih*(ax.hi-v)/((ax.hi-ax.lo)||1);
@@ -766,12 +881,24 @@ function drawdownChartSVG(lines,th,W=760,H=240){ // lines: [{s,color}] — 0 at 
   built.forEach((L,li)=>{
     const d=L.pts.map((p,i)=>`${i?"L":"M"}${x(p[0]).toFixed(1)},${y(p[1]).toFixed(1)}`).join("");
     if(li===0) g+=`<path d="${d} L${x(x1)},${y(ax.hi)} L${x(x0)},${y(ax.hi)} Z" fill="${th.area}"/>`;
-    g+=`<path d="${d}" fill="none" stroke="${L.color}" stroke-width="2"/>`;
+    g+=`<path d="${d}" fill="none" stroke="${L.color}" stroke-width="${th.lw||2}"/>`;
   });
   // Pass 2: trough markers + labels, drawn last so they sit on top of every line, with a dark
   // halo behind the text for legibility even where a label overlaps its own line or a gridline.
+  if(th.troughDots){
+    /* A marker on each fund's lowest point, with the value on hover instead of on the chart: the worst
+       points cluster in the same months, so any printed label overlaps its neighbours. The marker is
+       ringed in the chart's own ground so it stays findable where several lines cross it, and an
+       invisible disc gives it a hover target bigger than the dot. */
+    built.forEach(L=>{ let t=0; for(let i=1;i<L.pts.length;i++) if(L.pts[i][1]<L.pts[t][1]) t=i;
+      const p=L.pts[t], cx=x(p[0]).toFixed(1), cy=y(p[1]).toFixed(1);
+      g+=`<g class="ddmk" tabindex="0" data-dd="${p[1]}" data-fund="${esc(L.label||"")}" data-when="${pLbl(p[0])}" data-cx="${cx}" data-cy="${cy}">
+        <title>${esc(L.label||"")} worst fall ${fmtP(p[1])}, ${pLbl(p[0])}</title>
+        <circle cx="${cx}" cy="${cy}" r="5.5" fill="${L.color}" stroke="${th.halo}" stroke-width="2"/>
+        <circle cx="${cx}" cy="${cy}" r="11" fill="transparent" stroke="none"/></g>`; });
+  }
   const labelYs=[];
-  built.forEach(L=>{
+  if(!th.troughDots) built.forEach(L=>{
     let troughI=0; for(let i=1;i<L.pts.length;i++) if(L.pts[i][1]<L.pts[troughI][1]) troughI=i;
     const tp=L.pts[troughI];
     const lh=th.inside?11:13;
@@ -784,6 +911,7 @@ function drawdownChartSVG(lines,th,W=760,H=240){ // lines: [{s,color}] — 0 at 
     g+=`<circle cx="${x(tp[0])}" cy="${y(tp[1])}" r="${th.inside?3:3.5}" fill="${L.color}"/>
         <text x="${lx}" y="${ly}" font-size="${th.fsVal||11}" font-weight="${th.wVal||800}" fill="${L.color}" stroke="${th.halo}" stroke-width="3" stroke-linejoin="round" paint-order="stroke">${fmtP(tp[1])}</text>`;
   });
+  if(th.axisLine) g+=`<line x1="${P.l}" x2="${W-P.r}" y1="${y(ax.lo)}" y2="${y(ax.lo)}" stroke="${th.label}" stroke-width="1"/>`;
   const pts2=built[0].pts, n2=pts2.length, ticks2=[0,Math.floor(n2/3),Math.floor(2*n2/3),n2-1];
   ticks2.forEach((i,k)=>g+=`<text x="${x(pts2[i][0])}" y="${H-(th.inside?6:8)}" font-size="${th.fsAxis||10}" fill="${th.label}" text-anchor="${k===0?'start':(th.inside&&k===3?'end':'middle')}">${pLbl(pts2[i][0])}</text>`);
   return g+"</svg>";
@@ -914,7 +1042,7 @@ function renderStress(keys){
       if(!r){ rows+=two?`<td>n/a</td>`:`<td>n/a</td><td>n/a</td><td>n/a</td>`; anyNa=true; return; }
       if(r.anySim) anySim=true;
       const cls=k==="B"?"bcol":(two?"acol":"");
-      rows+=`<td class="${cls}${r.epRet<0?" ":""}">${fmtP(r.epRet)}${r.anySim?" ◆":""}</td>`+(two?"":`
+      rows+=`<td class="${cls}${r.epRet<0?" ":""}">${fmtP(r.epRet)}${r.anySim?`<span class="simd">◆</span>`:""}</td>`+(two?"":`
              <td class="neg">${fmtP(r.dd)}</td>
              <td>${r.rec===null?"not yet":r.rec+" mo"}</td>`);
     });
@@ -930,7 +1058,7 @@ function renderStress(keys){
       if(x.v===null){ rows+=two?`<td>n/a</td>`:`<td>n/a</td><td>—</td><td>—</td>`; anyNa=true; return; }
       if(x.sim) anySim=true;
       const cls=k==="B"?"bcol":(two?"acol":"");
-      rows+=`<td class="${cls}">${fmtP(x.v)}${x.sim?" ◆":""}</td>${two?"":"<td>—</td><td>—</td>"}`;
+      rows+=`<td class="${cls}">${fmtP(x.v)}${x.sim?`<span class="simd">◆</span>`:""}</td>${two?"":"<td>—</td><td>—</td>"}`;
     });
     rows+=`</tr>`;
   });
@@ -1044,7 +1172,7 @@ function renderBuildingBlocks(keys, win){
         <td><b>${+state.P[k].alloc[f.name]||0}%</b></td><td>${fmtP(sf+f.costAdj,2)}</td>`;
       pDefs.forEach(([,m,pa])=>{
         const r=fundPeriod(f,m,pa);
-        rows+=`<td class="${r.v!==null&&r.v<0?"neg":""}">${r.v===null?"—":fmtP(r.v)+(r.sim?" ◆":"")}</td>`;
+        rows+=`<td class="${r.v!==null&&r.v<0?"neg":""}">${r.v===null?"—":fmtP(r.v)+(r.sim?`<span class="simd">◆</span>`:"")}</td>`;
       });
       const rk=fundRisk(f, win[0], win[1]);
       rows+=`<td>${fmtP(rk.vol)}</td><td class="neg">${fmtP(rk.mdd)}</td></tr>`;
@@ -1316,7 +1444,7 @@ function buildPrintDoc(opt={}){
   const bblocks = k => { const fs=fsByKey[k], st=stByKey[k];
     return `<table class="pd-table pd-fixed"><colgroup><col style="width:25%"><col style="width:7%"><col style="width:7%"><col style="width:6.5%"><col style="width:6.5%"><col style="width:6.5%"><col style="width:7.5%"><col style="width:7.5%"><col style="width:7.5%"><col style="width:9%"><col style="width:9.5%"></colgroup><thead><tr><th>Fund</th><th class="r">Weight</th><th class="r">Cost</th><th class="r">1M</th><th class="r">YTD</th><th class="r">1Y</th><th class="r">3Y p.a.</th><th class="r">5Y p.a.</th><th class="r">10Y p.a.</th><th class="r">Vol · ${st.lbl}</th><th class="r">MDD · ${st.lbl}</th></tr></thead><tbody>`+
       fs.map(f=>{ let r=`<tr><td>${esc(short(f.name))}${f.simulated?" ◆":""}</td><td class="r"><b>${+state.P[k].alloc[f.name]||0}%</b></td><td class="r">${fmtP(sf+f.costAdj,2)}</td>`;
-        pDefs.forEach(([m,pa])=>{ const v=fundPeriod(f,m,pa); r+=`<td class="r${v.v!==null&&v.v<0?" neg":""}">${v.v===null?"—":fmtP(v.v)+(v.sim?" ◆":"")}</td>`; });
+        pDefs.forEach(([m,pa])=>{ const v=fundPeriod(f,m,pa); r+=`<td class="r${v.v!==null&&v.v<0?" neg":""}">${v.v===null?"—":fmtP(v.v)+(v.sim?`<span class="pd-dia">◆</span>`:"")}</td>`; });
         const rk=fundRisk(f, st.from, st.to);  // print keeps a fixed basis, shared with this portfolio's key figures
         return r+`<td class="r">${fmtP(rk.vol)}</td><td class="r neg">${fmtP(rk.mdd)}</td></tr>`; }).join("")+`</tbody></table>`; };
 
@@ -1337,7 +1465,7 @@ function buildPrintDoc(opt={}){
     keys.forEach(k=>{
       const r=stressRow(k,ep);
       if(!r) stressSec+=two?`<td class="r">n/a</td>`:`<td class="r">n/a</td><td class="r">n/a</td><td class="r">n/a</td>`;
-      else stressSec+=`<td class="r${r.epRet<0?" neg":""}">${fmtP(r.epRet)}${r.anySim?" ◆":""}</td>`+(two?"":`<td class="r neg">${fmtP(r.dd)}</td><td class="r">${r.rec===null?"not yet":r.rec+" mo"}</td>`);
+      else stressSec+=`<td class="r${r.epRet<0?" neg":""}">${fmtP(r.epRet)}${r.anySim?`<span class="pd-dia">◆</span>`:""}</td>`+(two?"":`<td class="r neg">${fmtP(r.dd)}</td><td class="r">${r.rec===null?"not yet":r.rec+" mo"}</td>`);
     });
     stressSec+=`</tr>`;
   });
@@ -1346,7 +1474,7 @@ function buildPrintDoc(opt={}){
     keys.forEach(k=>{
       const x=worstPeriods(k)[mi];
       if(x.v===null){ stressSec+=two?`<td class="r">n/a</td>`:`<td class="r">n/a</td><td class="r">—</td><td class="r">—</td>`; return; }
-      stressSec+=`<td class="r${x.v<0?" neg":""}">${fmtP(x.v)}${x.sim?" ◆":""}</td>${two?"":`<td class="r">—</td><td class="r">—</td>`}`;
+      stressSec+=`<td class="r${x.v<0?" neg":""}">${fmtP(x.v)}${x.sim?`<span class="pd-dia">◆</span>`:""}</td>${two?"":`<td class="r">—</td><td class="r">—</td>`}`;
     });
     stressSec+=`</tr>`;
   });
@@ -1582,6 +1710,7 @@ function applyTheme(t){
   try{ localStorage.setItem("apb-theme", t); }catch(e){}
   // charts read colours from CSS custom properties, so they must be redrawn on a theme change
   if(validKeys().length) renderAll();
+  if(document.getElementById("explorer").style.display!=="none") renderExplorer();
 }
 (function initTheme(){
   let t="dark";
@@ -1632,6 +1761,279 @@ document.getElementById("copyEmailBtn").onclick=()=>{
   setTimeout(()=>{btn.textContent=orig;},1500);
 };
 
+/* ---------- fund explorer ----------
+   A research view over the same DATA the builder loads: every fund's returns to a chosen end month,
+   filterable and sortable. Screen only, by decision; the builder, its print and email are untouched. */
+const X_CATS=["All","Multi-Asset","Equity","Alternative","Fixed Income"];
+const X_COLS=[
+  {k:"name",l:"Fund",first:1},{k:"cat",l:"Asset class",first:1},{k:"launch",l:"Launched",first:1},
+  {k:"esma",l:"ESMA",first:1},{k:"fee",l:"Fee vs standard",first:1},
+  {k:"m1",l:"1M",first:-1},{k:"m3",l:"3M",first:-1},{k:"ytd",l:"YTD",first:-1},{k:"y1",l:"1Y",first:-1},
+  {k:"y2",l:"2Y p.a.",first:-1},{k:"y3",l:"3Y p.a.",first:-1},{k:"y5",l:"5Y p.a.",first:-1},{k:"y10",l:"10Y p.a.",first:-1},
+  {k:"sl",l:"Since launch p.a.",first:-1},{k:"vol",l:"Vol 5Y",first:1},{k:"mdd",l:"Max DD since launch",first:-1}];
+/* A portfolio is, to the explorer, exactly what a fund is: a monthly return series with a start
+   month. series() already builds the allocation-weighted, monthly-rebalanced series the builder
+   charts, so nothing is recomputed here and the two tabs cannot disagree. Only a portfolio whose
+   allocations add to 100 has a series, so only a valid one appears. */
+function portfolioFund(k){
+  if(!DATA.funds.length || !valid(k)) return null;
+  const fs=selFunds(k); if(fs.some(f=>!f)) return null;
+  const cs=Math.max(...fs.map(f=>f.startIdx)), E=END();
+  const s=series(k,cs,E); if(!s) return null;
+  const tot=weights(k)/100, w=f=>(+state.P[k].alloc[f.name]||0)/100/tot;
+  const f0={name:"Portfolio "+k, category:"Multi-Asset", port:k, startIdx:cs,
+    // a month is simulated when any holding still is, which is every month before the latest live start
+    liveIdx:Math.max(...fs.map(f=>f.liveIdx)), returns:s.g, simulated:s.sim.some(Boolean),
+    amc: fs.some(f=>f.amc==null) ? null : fs.reduce((a,f)=>a+w(f)*f.amc,0),
+    costAdj: fs.reduce((a,f)=>a+w(f)*(f.costAdj||0),0), esma:null};
+  /* ESMA from the portfolio's own volatility over the same 5 years as its Vol 5Y cell, so the row is
+     self-consistent. Path-based like the builder's, and indicative: regulatory SRRI is a fixed basis. */
+  const vr=xRets(f0,(X.end??E)-59,(X.end??E));
+  if(vr) f0.esma=srri(vol(vr));
+  return f0;
+}
+const xFunds=()=>[...["A","B"].map(portfolioFund).filter(Boolean), ...DATA.funds];
+const X={cat:"All", q:"", end:null, from:null, to:null, sortKey:null, sortDir:1, sel:[], view:"table", cwin:"60", cFrom:null, cTo:null};
+const X_MAX=5;   // compare limit, matching the builder's five fund colours
+// the monthly returns over [from,to], or null when the fund's history doesn't cover the whole span
+function xRets(f, from, to){
+  if(from>to || from<f.startIdx || to>f.startIdx+f.returns.length-1) return null;
+  const r=[]; for(let i=from;i<=to;i++) r.push(fundRet(f,i)); return r;
+}
+function xRow(f, end){
+  const row={f};
+  const per=(key,months,pa)=>{ const from=end-months+1, r=xRets(f,from,end);
+    row[key]= r ? {v: pa?Math.pow(1+cum(r),12/months)-1:cum(r), sim: from<f.liveIdx} : {v:null}; };
+  per("m1",1,false); per("m3",3,false); per("ytd",end-(Math.floor(end/12)*12-1),false); per("y1",12,false);
+  per("y2",24,true); per("y3",36,true); per("y5",60,true); per("y10",120,true);
+  /* Since launch starts at the first month built entirely from live prices (liveIdx+1), so it holds no
+     simulated history. It needs a year of those months; an annualised part year would mislead. */
+  const lr=xRets(f, f.liveIdx+1, end);
+  row.sl  = lr && lr.length>=12 ? {v:Math.pow(1+cum(lr),12/lr.length)-1} : {v:null};
+  row.mdd = lr && lr.length>=12 ? {v:maxDD(lr)} : {v:null};
+  const vr=xRets(f, end-59, end);
+  row.vol = vr ? {v:vol(vr), sim:end-59<f.liveIdx} : {v:null};
+  if(X.from!==null && X.to!==null){ const cr=xRets(f, X.from, X.to); row.cp = cr ? {v:cum(cr), sim:X.from<f.liveIdx} : {v:null}; }
+  return row;
+}
+const xName=n=>short(n).replace(/\s+Fund EUR Acc$/,"").replace(/\s+EUR Acc$/,"");
+function xSortVal(row,k){
+  const f=row.f;
+  if(k==="name") return xName(f.name).toLowerCase();
+  if(k==="cat") return X_CATS.indexOf(f.category);
+  if(k==="launch") return f.liveIdx;
+  if(k==="esma") return f.esma ?? null;
+  if(k==="fee") return f.costAdj ?? null;
+  return row[k] ? row[k].v : null;
+}
+function renderExplorer(){
+  if(!DATA.funds.length) return;
+  const all=xFunds(), names=new Set(all.map(f=>f.name));
+  X.sel=X.sel.filter(n=>names.has(n));   // a portfolio emptied in the builder takes its tick with it
+  if(X.view==="compare" && !X.sel.length) X.view="table";
+  document.getElementById("xTableCard").style.display=X.view==="table"?"":"none";
+  document.getElementById("xCompare").style.display=X.view==="compare"?"":"none";
+  const E=END(), endSel=document.getElementById("xEnd");
+  if(X.end===null || X.end>E) X.end=E;
+  if(endSel.dataset.asof!==DATA.asOf){
+    const first=Math.min(...DATA.funds.map(f=>f.startIdx)), opts=[];
+    for(let i=E;i>=first;i--) opts.push(`<option value="${i}">${pLbl(i)}</option>`);
+    endSel.innerHTML=opts.join("");
+    ["xFrom","xTo"].forEach(id=>document.getElementById(id).innerHTML=`<option value="">${id==="xFrom"?"From":"To"}</option>`+opts.join(""));
+    endSel.dataset.asof=DATA.asOf;
+  }
+  endSel.value=String(X.end);
+  document.getElementById("xFrom").value=X.from===null?"":String(X.from);
+  document.getElementById("xTo").value=X.to===null?"":String(X.to);
+  document.getElementById("xCats").innerHTML=X_CATS.map(c=>`<button type="button" class="xchip${X.cat===c?" on":""}" data-cat="${c}" aria-pressed="${X.cat===c}">${c}</button>`).join("");
+
+  if(X.view==="compare"){ renderCompare(); return; }
+  const full=X.sel.length>=X_MAX;
+  const cmpBtn=document.getElementById("xCompareBtn");
+  cmpBtn.disabled=!X.sel.length; cmpBtn.textContent=X.sel.length?`Compare ${X.sel.length}`:"Compare";
+  document.getElementById("xClear").style.display=X.sel.length?"":"none";
+  const q=X.q.trim().toLowerCase();
+  const rows=all.filter(f=>(X.cat==="All"||f.category===X.cat) && (!q||f.name.toLowerCase().includes(q))).map(f=>xRow(f,X.end));
+  if(X.sortKey){
+    rows.sort((a,b)=>{ const va=xSortVal(a,X.sortKey), vb=xSortVal(b,X.sortKey);
+      if(va===null && vb===null) return 0; if(va===null) return 1; if(vb===null) return -1;   // no figure always sorts last
+      return (va<vb?-1:va>vb?1:0)*X.sortDir; });
+  } else {
+    // portfolios head the default view; an explicit column sort ranks them among the funds instead
+    rows.sort((a,b)=>(b.f.port?1:0)-(a.f.port?1:0) || X_CATS.indexOf(a.f.category)-X_CATS.indexOf(b.f.category) || xName(a.f.name).localeCompare(xName(b.f.name)));
+  }
+  const showCp=X.from!==null && X.to!==null;
+  const cols=showCp ? [...X_COLS,{k:"cp",l:`${pLbl(X.from)} – ${pLbl(X.to)}`,first:-1}] : X_COLS;
+  /* Fee reads as the difference from the standard fee, as in the builder's fund picker: nothing at all
+     on the standard fee, so only the funds that cost more or less than it draw the eye. */
+  const feeCell=f=>{ const a=f.costAdj||0;
+    return Math.abs(a)<0.00005 ? `<td></td>`
+      : `<td class="fee ${a>0?"up":"down"}">${a>0?"+":"−"}${Math.abs(a*100).toFixed(2)}%</td>`; };
+  const cell=o=>{ const v=o.v===null?null:(Math.abs(o.v)<0.0005?0:o.v);
+    return `<td class="${v!==null&&v<0?"neg":""}">${v===null?"—":fmtP(v)+(o.sim?`<span class="simd">◆</span>`:"")}</td>`; };
+  let h=`<thead><tr>`+cols.map(c=>{ const on=X.sortKey===c.k;
+    return `<th data-k="${c.k}" tabindex="0" class="${on?"sorted":""}" aria-sort="${on?(X.sortDir===1?"ascending":"descending"):"none"}">${c.l}${on?(X.sortDir===1?" ▲":" ▼"):""}</th>`; }).join("")+`</tr></thead><tbody>`;
+  h+=rows.map(r=>{ const f=r.f;
+    const on=X.sel.includes(f.name);
+    return `<tr><td title="${esc(f.name)}"><label class="xpick"><input type="checkbox" data-name="${esc(f.name)}"${on?" checked":""}${!on&&full?" disabled":""} aria-label="Compare ${esc(xName(f.name))}"><span>${esc(xName(f.name))}${f.port?' <span class="xport">Portfolio</span>':""}${f.simulated?' <span class="simmark">◆</span>':""}</span></label></td><td>${f.category}</td><td>${pLbl(f.liveIdx)}</td><td>${f.esma??"—"}</td>${feeCell(f)}`+
+      ["m1","m3","ytd","y1","y2","y3","y5","y10","sl","vol"].map(k=>cell(r[k])).join("")+cell(r.mdd)+(showCp?cell(r.cp):"")+`</tr>`; }).join("");
+  h+=`</tbody>`;
+  document.getElementById("xtable").innerHTML=h;
+  const nP=all.length-DATA.funds.length;
+  document.getElementById("xCount").textContent=`${rows.length} of ${all.length} ${nP?"rows":"funds"}`+
+    (nP?` · ${nP} portfolio${nP>1?"s":""} from the builder`:"")+(X.sel.length?` · ${X.sel.length} of ${X_MAX} ticked`:"");
+  document.getElementById("xNote").innerHTML=`Returns are gross of AMC to <strong>${pLbl(X.end)}</strong>. 1M to 1Y are cumulative; 2Y and longer are per year. Since launch starts at each fund's first month of live prices, excludes any simulated history, and is shown once a fund has 12 of those months; max drawdown since launch uses the same months. Vol 5Y is annualised volatility over the 5 years to the end date.${showCp?` The ${pLbl(X.from)} – ${pLbl(X.to)} column is cumulative.`:""} ◆ includes simulated history. — where the history does not cover the period.${nP?` Portfolio ${["A","B"].filter(k=>valid(k)).join(" and ")} come from the Portfolio builder tab, priced from the common start of ${nP>1?"their":"its"} holdings and rebalanced monthly; ESMA is the band for the portfolio's own volatility over the 5 years to the end date, and the fee difference is its allocation-weighted one.`:""} Fee vs standard is a fund's annual charge above or below the standard fee, blank where it is the standard fee. Click a column heading to sort. Tick up to ${X_MAX} rows and press Compare to chart them side by side.`;
+}
+/* ---------- fund explorer: compare screen ----------
+   Every selected fund is measured over the same months: the window ends at the table's
+   "Performance to" month and starts no earlier than the latest first month among the selected funds. */
+const X_WINS=[["12","1Y"],["36","3Y"],["60","5Y"],["120","10Y"],["max","Max"],["custom","Custom"]];
+function xWindow(fs){
+  const E=X.end, cs=Math.max(...fs.map(f=>f.startIdx));
+  let a, b=E, clamped=false;
+  if(X.cwin==="max") a=cs;
+  else if(X.cwin==="custom"){ a=X.cFrom??cs; b=X.cTo??E; if(a>b){ const t=a; a=b; b=t; } a=Math.max(a,cs); b=Math.min(Math.max(b,a),E); }
+  else { a=E-(+X.cwin)+1; if(a<cs){ a=cs; clamped=true; } }
+  return {a, b, cs, clamped};
+}
+function xCalendar(f,E){
+  const yEnd=Math.floor(E/12), out=[];
+  for(let y=yEnd-10;y<yEnd;y++){ const r=xRets(f,y*12,y*12+11); out.push({lbl:String(y), v:r?cum(r):null, sim:!!r && y*12<f.liveIdx}); }
+  const r=xRets(f,yEnd*12,E); out.push({lbl:"YTD", v:r?cum(r):null, sim:!!r && yEnd*12<f.liveIdx});
+  return out;
+}
+function bindDDMarkers(){
+  // hover or focus a trough marker to read that fund's worst fall; the tooltip is a positioned div so
+  // it can carry two lines of text and is never clipped by the SVG's own box
+  const box=document.getElementById("xDD");
+  const tip=document.createElement("div"); tip.className="ddtip"; tip.hidden=true; box.appendChild(tip);
+  const svg=box.querySelector("svg"), vb=svg.viewBox.baseVal;
+  const show=el=>{
+    // positioned from measured rects, not offsetLeft: SVG elements have no offsetLeft/offsetTop,
+    // and the resulting NaN left the tooltip pinned to the corner
+    const r=svg.getBoundingClientRect(), br=box.getBoundingClientRect();
+    const sx=r.width/vb.width, sy=r.height/vb.height;
+    tip.innerHTML=`<b>${esc(el.dataset.fund)}</b><br>Worst fall <b class="neg">${fmtP(+el.dataset.dd)}</b> <span class="w">${esc(el.dataset.when)}</span>`;
+    tip.hidden=false;
+    const w=tip.offsetWidth, h=tip.offsetHeight;
+    const cx=(r.left-br.left)+(+el.dataset.cx)*sx, cy=(r.top-br.top)+(+el.dataset.cy)*sy;
+    tip.style.left=Math.max(w/2+2, Math.min(cx, br.width-w/2-2))+"px";
+    // a marker near the top has no room above it, so the tooltip drops below the dot instead
+    tip.style.top=(cy-12>=h ? cy-12 : cy+16+h)+"px";
+    box.querySelectorAll(".ddmk.on").forEach(m=>m.classList.remove("on")); el.classList.add("on");
+  };
+  const hide=el=>{ tip.hidden=true; el.classList.remove("on"); };
+  box.querySelectorAll(".ddmk").forEach(el=>{
+    el.addEventListener("pointerenter",()=>show(el));
+    el.addEventListener("pointerleave",()=>hide(el));
+    el.addEventListener("focus",()=>show(el));
+    el.addEventListener("blur",()=>hide(el));
+  });
+}
+function renderCompare(){
+  const fs=X.sel.map(n=>xFunds().find(f=>f.name===n));
+  const {a,b,cs,clamped}=xWindow(fs), n=b-a+1;
+  document.getElementById("xWins").innerHTML=X_WINS.map(([k,l])=>`<button type="button" class="xwbtn${X.cwin===k?" on":""}" data-w="${k}" aria-pressed="${X.cwin===k}">${l}</button>`).join("");
+  const cw=document.getElementById("xCustomWrap"); cw.style.display=X.cwin==="custom"?"":"none";
+  if(X.cwin==="custom"){
+    const opts=[]; for(let i=X.end;i>=cs;i--) opts.push(`<option value="${i}">${pLbl(i)}</option>`);
+    ["xcFrom","xcTo"].forEach(id=>{ const el=document.getElementById(id); el.innerHTML=opts.join(""); });
+    document.getElementById("xcFrom").value=String(a); document.getElementById("xcTo").value=String(b);
+  }
+  const lbl=(X_WINS.find(w=>w[0]===X.cwin)||[])[1];
+  document.getElementById("xWinNote").innerHTML=`Measured over <strong>${pLbl(a)} – ${pLbl(b)}</strong> (${n} month${n===1?"":"s"}), the same months for every selection.`+
+    (clamped?` <span class="simflag">${lbl} requested: the selected funds' shared history starts ${pLbl(cs)}.</span>`:"");
+  document.getElementById("xLegend").innerHTML=fs.map((f,i)=>`<span><span class="swl" style="background:${SEG[i]}"></span>${esc(xName(f.name))}</span>`).join("");
+
+  const series=fs.map(f=>{ const g=xRets(f,a,b)||[]; return {g, sim:g.map((_,j)=>a+j<f.liveIdx), from:a, to:b}; });
+  const lines=series.map((s2,i)=>({s:s2, color:SEG[i], label:xName(fs[i].name)}));
+  // compare charts: no fill, smaller lighter labels (the print styling), an x axis line, drawdown leader lines
+  const XCHART={...DARK, area:"none", fsAxis:8, fsVal:8.5, wVal:600, wEm:400, axisLine:true, lw:1.3};
+  const xa=xAmtVal();
+  document.getElementById("xGrowthHead").textContent=`Growth of ${fmtE(xa)} (gross of AMC)`;
+  // the end labels carry the amount and its per-year rate, so they need more room than the default
+  document.getElementById("xGrowth").innerHTML=growthChartSVG(lines,{...XCHART, amt:xa, plainStart:true, endStack:true, padR:134});
+  document.getElementById("xDD").innerHTML=drawdownChartSVG(lines,{...XCHART, troughDots:true, noPosAxis:true});
+  bindDDMarkers();
+
+  const P=v=>v===null?"—":fmtP(Math.abs(v)<0.0005?0:v);
+  const neg=v=>v!==null&&v<=-0.0005?"neg":"";
+  /* Standard periods to the "Performance to" month, each fund over its own history: the same xRow the
+     main table uses, so a fund's figures read identically on both screens. */
+  const FIG_COLS=[["m1","1M"],["m3","3M"],["ytd","YTD"],["y1","1Y"],["y2","2Y p.a."],["y3","3Y p.a."],["y5","5Y p.a."],["y10","10Y p.a."]];
+  /* Volatility and max drawdown are 5 years by default, and 10 only when 10Y is the selected period and
+     the funds' shared history actually reaches back that far. One basis for the whole column, named in
+     its heading; a fund whose own history is shorter reads "—" rather than a different period. */
+  const useTen=X.cwin==="120" && !clamped, rm=useTen?120:60, rl=useTen?"10Y":"5Y";
+  const risk=f=>{ const r=xRets(f, X.end-rm+1, X.end), sim=X.end-rm+1<f.liveIdx;
+    return r ? [{v:vol(r),sim},{v:maxDD(r),sim}] : [{v:null},{v:null}]; };
+  const nCol=FIG_COLS.length+2;
+  let fig=`<colgroup><col style="width:${(100-nCol*7.2).toFixed(1)}%">`+
+    Array.from({length:nCol},()=>`<col style="width:7.2%">`).join("")+`</colgroup>`+
+    `<tr><th>Fund</th>${FIG_COLS.map(c=>`<th>${c[1]}</th>`).join("")}<th>Vol ${rl}</th><th>Max DD ${rl}</th></tr>`;
+  let anySim=false;
+  fs.forEach((f,i)=>{ const r=xRow(f,X.end);
+    const cells=[...FIG_COLS.map(([k])=>r[k]), ...risk(f)];
+    fig+=`<tr><td><span class="sw" style="background:${SEG[i]}"></span>${esc(xName(f.name))}</td>`+
+      cells.map(o=>{ const v=o.v===null?null:(Math.abs(o.v)<0.0005?0:o.v); if(o.sim) anySim=true;
+        return `<td class="${v!==null&&v<0?"neg":""}">${v===null?"—":fmtP(v)+(o.sim?`<span class="simd">◆</span>`:"")}</td>`; }).join("")+`</tr>`; });
+  document.getElementById("xFig").innerHTML=fig;
+  document.getElementById("xFigHead").textContent=`Performance to ${pLbl(X.end)} (gross of AMC)`;
+
+  const cal=fs.map(f=>xCalendar(f,X.end)), cols=cal[0];
+  let ct=`<colgroup><col style="width:22%">${cols.map(()=>`<col style="width:${(78/cols.length).toFixed(2)}%">`).join("")}</colgroup>`+
+    `<tr><th>Fund</th>${cols.map(c=>`<th>${c.lbl}</th>`).join("")}</tr>`;
+  let calSim=false;
+  fs.forEach((f,i)=>{ ct+=`<tr><td><span class="sw" style="background:${SEG[i]}"></span>${esc(xName(f.name))}</td>`+
+    cal[i].map(x=>{ if(x.v===null) return `<td>—</td>`; if(x.sim) calSim=true;
+      return `<td class="v ${neg(x.v)}">${P(x.v)}${x.sim?`<span class="dia">◆</span>`:""}</td>`; }).join("")+`</tr>`; });
+  document.getElementById("xCal").innerHTML=ct;
+
+  document.getElementById("xCmpNote").innerHTML=`The growth chart compounds ${fmtE(xa)} through each selection's monthly returns; its labels give the end value and the rate per year, and a period under a year is labelled with the end value alone, since annualising it would mislead. The charts measure everything selected over the same months, and hovering a marker on the drawdown chart gives its worst fall over that period. The performance table uses standard periods to ${pLbl(X.end)}, each over its own history: 1M to 1Y cumulative, 2Y and longer per year, matching the main table. Volatility and max drawdown cover the ${useTen?"10 years":"5 years"} to ${pLbl(X.end)}. All figures are gross of AMC. Calendar years are full January to December years; YTD runs from January to ${pLbl(X.end)}.${anySim||calSim?" ◆ includes simulated history.":""} — where the history does not cover the period.`;
+}
+document.getElementById("xtable").addEventListener("change",e=>{
+  const cb=e.target.closest('input[type="checkbox"][data-name]'); if(!cb) return;
+  const nm=cb.dataset.name;
+  if(cb.checked){ if(X.sel.length<X_MAX && !X.sel.includes(nm)) X.sel.push(nm); }
+  else X.sel=X.sel.filter(x=>x!==nm);
+  renderExplorer(); });
+document.getElementById("xClear").addEventListener("click",()=>{ X.sel=[]; renderExplorer(); });
+const xTop=()=>{ const t=document.querySelector(".apptabs"); window.scrollTo(0, Math.max(0,t.getBoundingClientRect().top+scrollY-10)); };
+document.getElementById("xCompareBtn").addEventListener("click",()=>{ if(!X.sel.length) return; X.view="compare"; renderExplorer(); xTop(); });
+document.getElementById("xBack").addEventListener("click",()=>{ X.view="table"; renderExplorer(); xTop(); });
+document.getElementById("xWins").addEventListener("click",e=>{ const bt=e.target.closest(".xwbtn"); if(!bt) return;
+  X.cwin=bt.dataset.w;
+  if(X.cwin==="custom" && (X.cFrom===null || X.cTo===null)){ const w=xWindow(X.sel.map(nm=>xFunds().find(f=>f.name===nm))); X.cFrom=w.cs; X.cTo=X.end; }
+  renderExplorer(); });
+["xcFrom","xcTo"].forEach(id=>document.getElementById(id).addEventListener("change",e=>{ if(id==="xcFrom") X.cFrom=+e.target.value; else X.cTo=+e.target.value; renderExplorer(); }));
+const DISC_WRAP=document.querySelector(".disc-wrap"), DISC_HOME=DISC_WRAP.parentElement;
+function showTab(t){
+  const x=t==="explorer";
+  document.querySelector("main.grid").style.display=x?"none":"";
+  document.getElementById("explorer").style.display=x?"":"none";
+  (x?document.getElementById("xDisc"):DISC_HOME).appendChild(DISC_WRAP);   // one disclaimer, shown on whichever tab is open
+  document.querySelectorAll(".apptab").forEach(b=>{ const on=b.dataset.tab===t; b.classList.toggle("on",on); b.setAttribute("aria-selected",String(on)); });
+  try{ localStorage.setItem("apb-tab",t); }catch(e){}
+  if(x) renderExplorer();
+  else equaliseBBRows();   // rows rendered while this tab was hidden measured 0 tall and got no equal height
+}
+document.querySelectorAll(".apptab").forEach(b=>b.onclick=()=>showTab(b.dataset.tab));
+document.getElementById("xCats").addEventListener("click",e=>{ const b=e.target.closest(".xchip"); if(!b) return; X.cat=b.dataset.cat; renderExplorer(); });
+document.getElementById("xfilter").addEventListener("input",e=>{ X.q=e.target.value; renderExplorer(); });
+document.getElementById("xEnd").addEventListener("change",e=>{ X.end=+e.target.value; renderExplorer(); });
+document.getElementById("xAmt").addEventListener("change",e=>{ e.target.value=Math.round(xAmtVal()).toLocaleString("en-IE"); renderExplorer(); });
+["xFrom","xTo"].forEach(id=>document.getElementById(id).addEventListener("change",e=>{
+  const v=e.target.value===""?null:+e.target.value;
+  if(id==="xFrom") X.from=v; else X.to=v;
+  if(X.from!==null && X.to!==null && X.from>X.to){ const t=X.from; X.from=X.to; X.to=t; }
+  renderExplorer(); }));
+const xSortBy=k=>{ const col=X_COLS.find(c=>c.k===k)||{first:-1};
+  if(X.sortKey===k) X.sortDir=-X.sortDir; else { X.sortKey=k; X.sortDir=col.first; }
+  renderExplorer(); };
+document.getElementById("xtable").addEventListener("click",e=>{ const th=e.target.closest("th[data-k]"); if(th) xSortBy(th.dataset.k); });
+document.getElementById("xtable").addEventListener("keydown",e=>{ const th=e.target.closest("th[data-k]"); if(th && (e.key==="Enter"||e.key===" ")){ e.preventDefault(); xSortBy(th.dataset.k); } });
+(function(){ let t="builder"; try{ t=localStorage.getItem("apb-tab")||"builder"; }catch(e){} showTab(t==="explorer"?"explorer":"builder"); })();
+
 function applyData(nd){
   DATA.asOf=nd.asOf; DATA.funds=nd.funds;
   DATA.funds.forEach(f=>{f.startIdx=pIdx(f.start);f.liveIdx=pIdx(f.liveStart);});
@@ -1640,6 +2042,7 @@ function applyData(nd){
     Object.keys(state.P[k].alloc).forEach(n=>{ if(!names.has(n)) delete state.P[k].alloc[n]; }); });
   document.getElementById("asOf").textContent=pLbl(END());
   renderAll();
+  if(document.getElementById("explorer").style.display!=="none") renderExplorer();
 }
 
 /* ---------- data loading ----------

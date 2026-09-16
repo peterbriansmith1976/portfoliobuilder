@@ -227,6 +227,117 @@ both the screen and print doughnut; print passes literal hex. It is SVG so it pr
 background graphics off. A single class at 100% is drawn as two half-arcs, since one arc with
 coincident ends renders nothing. Email uses a filled swatch cell per row because Outlook cannot draw SVG.
 
+## Fund explorer tab
+
+A second view beside the builder: tabs **Portfolio builder | Fund explorer** under the header
+(`.apptabs`, last tab remembered in `localStorage` as `apb-tab`). It researches the 37 funds rather
+than building a portfolio, and reads the same `DATA`, so the monthly refresh needs nothing extra.
+Agreed with the user in three stages: 1 the fund table (built), 2 a compare screen with line and
+drawdown charts for up to 5 ticked funds, 3 optional extras they choose from (per-fund asset mix,
+stress episodes, correlation table, rank in asset class, add to portfolio).
+
+- **Table columns:** fund, asset class, launched, ESMA, fee vs standard, 1M, 3M, YTD, 1Y, 2Y/3Y/5Y/10Y p.a.,
+  since launch p.a., Vol 5Y, max DD since launch, plus an optional cumulative custom period column.
+  Asset class filter, name search, sort by any heading (blanks always last), and an end month that
+  recalculates every figure.
+- **Fee vs standard replaced the AMC column** at the user's request: the fund's charge above or below
+  the standard fee (`costAdj`), rendered exactly as the builder's fund picker renders its `.costtag`
+  (`+0.25%` in `--neg`, `−0.10%` in `--pos`), and **blank on the standard fee** so only the funds that
+  differ draw the eye. 17 of 37 funds are standard. A portfolio row shows its allocation-weighted
+  difference. Verified cell by cell against the picker's own tags.
+- **Since launch starts at `liveIdx + 1`**, the first month built entirely from live prices, so it
+  never includes simulated history. For every non-simulated fund that equals `startIdx` (verified).
+  It needs 12 such months, otherwise "—": an annualised part year would mislead. Max DD since launch
+  uses the same months. Period columns 1M to 10Y follow the builder's `fundPeriod` convention exactly,
+  including its ◆ rule (`from < liveIdx`), so a fund's figures agree between the two tabs.
+- **Portfolio A and B appear as rows**, because to this table a portfolio is exactly what a fund is: a
+  monthly return series with a start month. `portfolioFund(k)` wraps `series(k, cs, END())` from the
+  common start of its holdings in a fund-shaped object, and `xFunds()` is the combined list every
+  explorer read goes through, so rows, tick pruning, the count and the compare screen all agree.
+  Nothing is recomputed: the explorer's figures for a portfolio match the builder's own cards to full
+  precision (verified), because both read the same `series()`.
+  - Category Multi-Asset, badged "Portfolio", pinned to the top of the default sort but ranked among
+    the funds as soon as a column heading is clicked, which is the point of having them there.
+  - `liveIdx` is the **latest** live start among the holdings, so a month counts as simulated while any
+    holding still is, which is what `series()` already flags. Since launch and max DD since launch then
+    exclude simulated months exactly as they do for a fund.
+  - **ESMA is the band for the portfolio's own volatility over the same 5 years as its Vol 5Y cell**, so
+    the row is self-consistent; it is path-based like the builder's and indicative, since regulatory
+    SRRI uses a fixed basis. **Fee vs standard is the allocation-weighted `costAdj`** of its holdings,
+    which is what that column means, not `wCost()`.
+  - Only a portfolio whose allocations total 100 has a series, so only a valid one appears. Emptying or
+    unbalancing it in the builder removes the row and its tick on the next render, and compare falls
+    back to the table when the last tick goes. A single-fund portfolio reproduces that fund's row
+    exactly (verified).
+- **Screen only**, by decision: no print or email version, and both are hidden in print.
+- **One disclaimer:** the `.disc-wrap` node is moved into whichever tab is open, never duplicated,
+  so the fixed legal text still has a single source.
+- **Display names** strip Dimensional's "Fund EUR Acc" tail (`xName`) so every name fits one line
+  and rows stay equal height; the full name is the cell's `title`. The builder's `short()` is unchanged.
+- **Verified:** all 444 cells at Aug 2026 (with a custom period) and 407 at Dec 2025 match an
+  independent Python calculation; the builder, its print and email are byte-identical to before.
+
+**Stage 2, compare screen (built).** Tick up to `X_MAX` = 5 funds in the table, then Compare.
+- **Every selected fund is measured over the same months.** The window ends at the table's
+  "Performance to" month and starts no earlier than the latest first month among the selected funds.
+  1Y/3Y/5Y/10Y clamp to that shared start and say so; Max is the shared start; Custom picks From/To.
+- **Shows:** growth of €10,000 and drawdown charts (the builder's `growthChartSVG` / `drawdownChartSVG`,
+  fund colours `SEG` in tick order), a performance table, and calendar years (10 full years plus
+  YTD to the end month, ◆ hanging in the cell padding as in the builder).
+- **Compare charts use their own style** (`XCHART`): no area fill, 8px axis and 8.5px semi-bold value
+  labels (the print styling, at the user's request, since the full-width SVG scaled 10px text to about
+  15px), 1.3px lines (`th.lw`, default 2) and an x axis line (`th.axisLine`). The drawdown axis also
+  stops at zero (`th.noPosAxis`): nothing is ever plotted above it, so a positive tick wasted height.
+  The builder's charts set none of these flags and are verified byte-identical.
+- **Worst falls are on hover, never printed on the chart.** Each fund's lowest point carries a marker
+  (`th.troughDots`): a 5.5px disc ringed 2px in `th.halo`, the chart's own ground, so it stays findable
+  where several lines cross it, plus an invisible 11px disc as the hover target. `bindDDMarkers()`
+  shows a positioned tooltip (fund, worst fall, month) on hover or keyboard focus, and grows the disc
+  to 7px. Three earlier attempts were rejected by the user in turn: labels beside the troughs, then
+  right-margin labels joined by leader lines, then a "Worst fall" legend line under the chart. The
+  worst points cluster in the same months, so anything drawn on the chart overlaps. Do not reintroduce
+  any of them. Position the tooltip from `getBoundingClientRect`: SVG elements have no `offsetLeft`,
+  and the resulting `NaN` pins the tooltip to the corner. Each marker also has an SVG `<title>`.
+- **The growth chart's €10,000 line is a plain grid line** on this screen (`th.plainStart`), not
+  dashed and emphasised, at the user's request. The builder's growth chart and the projection chart
+  keep their dashed reference lines.
+- **The growth chart's amount is editable** (`#xAmt`, `xAmtVal()`, default €10,000, clamped to €1 to
+  €1bn), following the euro-input rule: text input, commas on change, read through `numVal`. The
+  subhead follows it. It is the compare screen's own amount and does not touch the builder's
+  investment box.
+- **Each end label carries the rate per year** beside the amount, separated by a dimmed `|` and set in
+  a lighter `tspan`, with the right margin widened for it (`th.padR`, default 84, compare passes 134). A window under 12 months shows
+  the amount alone, since annualising a part year misleads. The rate is `(end/amount)^(12/months)-1`,
+  which reproduces the performance table's own p.a. figures exactly (verified at 1Y, 3Y, 5Y, 10Y).
+- **End labels are stacked in value order** (`th.endStack`): each starts level with its own end point,
+  is moved only far enough to clear its neighbour by 12px, and gets a short connector in its own colour
+  only if it moved. The old rule stacked in tick order and pushed a label 13px down per collision, so
+  two funds ending €5 apart (€15,276 and €15,271) sent the second label below a third fund's label,
+  nowhere near its line. Sorting by value is what guarantees labels and lines share an order and cannot
+  cross. The builder's chart does not set the flag and is verified byte-identical.
+- **The performance table uses the main table's standard periods** (1M to 10Y), built with the same
+  `xRow`, so a fund reads identically on both screens. It replaced a chart-period
+  return/volatility/best/worst month table at the user's request. Since launch p.a. is deliberately
+  absent here though the main table carries it: the user found it confusing beside the charts' fixed
+  period. Columns are equal width from a `colgroup`, as in the calendar table; before that the long
+  "Max DD since launch" heading widened its column and pushed it out of line.
+- **Volatility and max drawdown on the compare screen are 5 years by default, 10 when 10Y is the
+  selected period and the shared history reaches back that far** (the heading names the basis, e.g.
+  "Vol 10Y" / "Max DD 10Y"), at the user's request. A clamped 10Y falls back to 5Y, and a fund whose
+  own history is shorter reads "—" rather than a different period inside the same column. This is a
+  third basis alongside the two in Locked methodology: the main explorer table keeps Vol 5Y and max DD
+  since launch, and the builder keeps its own. Do not unify them.
+- `growthChartSVG` takes an optional `th.amt`; the explorer passes 10000, and the builder still reads
+  its investment box, verified byte-identical.
+- **Class names are the explorer's own** (`.xwbtn`, `.xchip`, `.xpick`): the builder binds click
+  handlers to `.wbtn` and `.tab` globally at load, so reusing those classes would wire explorer
+  buttons to the builder's state.
+- **Back** returns to the table with filters, sort and ticks intact.
+- **Showing the builder tab re-runs `equaliseBBRows()`.** If the builder renders while the explorer
+  is open (e.g. when data arrives), its hidden rows measure 0 tall and get no equal height.
+- **Verified** against independent Python: every compare figure, the ◆ flags and the €10,000 end values
+  at 5Y and at a clamped 10Y, plus all 44 calendar cells.
+
 ## Loading and failure behaviour
 
 `applyData()` is the single entry point for data arriving: it assigns `DATA`, derives
@@ -387,6 +498,15 @@ the common history does not fully cover is n/a, never a part year shown as a cal
 
 ## Conventions
 
+- **The ◆ never takes horizontal space in a figure cell.** An inline `" ◆"` is about as wide as a
+  digit, so a marked figure sat up to 11px left of the unmarked ones in its own column (measured in
+  building blocks). Every numeric cell now appends a zero-width superscript span instead: `.simd` on
+  screen, `.pd-dia` in print, which the print calendar already used. The two calendar tables keep
+  their own rule pinning it to the cell's right edge, which suits their fixed layout. Alignment is
+  verified by measuring the right edge of the digits alone, excluding the marker, across the calendar,
+  stress, building blocks, explorer, compare and print tables. **Name cells keep the full-size
+  `.simmark` ◆** (they are left-aligned, so nothing is knocked out of line), and email keeps the
+  inline ◆ because Outlook's Word engine cannot position a span.
 - European date formats, euro by default, en-IE locale.
 - `niceAxis()` sizes its step from the span **including the anchor**, not just `mx-mn`. With a
   projection fully depleted by withdrawals every value collapses to zero, the spread is nil, the step
