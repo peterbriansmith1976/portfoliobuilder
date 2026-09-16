@@ -43,6 +43,8 @@ replaces one JSON file and never touches the app.
 - `data/latest.json` — the payload the app fetches. `data/YYYY-MM.json` alongside it are dated
   archive copies.
 - `data/allocation.json` — asset mix per fund, fetched separately and optional (see Asset mix).
+- `data/inside.json` — per-fund breakdowns for the Fund explorer's "What's inside" cards, fetched
+  separately by `fetch_inside.py` and optional (see Fund explorer).
 - `refresh_dashboard.py` — builds the payload from the source workbook.
 - `update_data.sh`, `check_data.py` — monthly refresh with a pre-publish review report.
 - `publish.sh` — the only publishing route. Local helpers, all gitignored.
@@ -84,6 +86,9 @@ Keychain access from launchd works fine; only the folder was the problem.
 - `reconcile.py` — method check against Longboat's own published figures.
 - `fetch_month.py` — fetch, overlap check, method check, append, stage to `work/staged.json`.
 - `fund_map.json` — the fund mapping, self-verifying.
+- `fetch_inside.py` — "What's inside" breakdowns, staged to `work/inside.staged.json`. Runs after the
+  asset mix in `refresh_daily.sh` and can never block prices; `promote.sh` shows a summary and copies it
+  to `data/inside.json` with the month, or with `./promote.sh --allocation`.
 
 All are gitignored. `data/` holds only published payloads; anything transient goes in `work/`,
 because `publish.sh` globs `data/*.json` and would otherwise ship working files.
@@ -295,6 +300,42 @@ stress episodes, correlation table, rank in asset class, add to portfolio).
     buttons at all.
   - **Ticks and holdings are separate**: the tick box means compare, and adding never ticks, nor the
     reverse. Verified, along with the builder, its picker, print and email staying byte-identical.
+- **What's inside** closes the compare screen: one card per selection, built at the user's request after
+  a coverage review of all 37 factsheets (country coverage was measured by how much each list *names*,
+  since every list totals 100% only because of its "Other" row).
+  - **The breakdown follows the asset class**, set by hand per fund in `KIND` in `fetch_inside.py` (a
+    fund with no kind stops the run): equity = country, sector, top 10 (Aviva names 88% to 98% by
+    country, Dimensional World Equity all of it); government bonds = issuer country, top 10, duration,
+    yield; corporate bonds = bond type, issuer country, top 10, duration, yield; cash = duration and
+    yield only; property = type, location, top 10 properties, properties, yield, lease, vacancy;
+    multi-asset (including Concept K and the Dimensional allocation funds) = the existing asset mix from
+    `allocation.json`, or `aggregateAssetMix` for a portfolio row; AIMS Target Return = no breakdown,
+    with the reason (its split is 82% cash while its returns come from derivative positions); Physical
+    Gold = 100%.
+  - **Rejected, do not reintroduce without asking:** Aviva's region labels ("Pacific Basin" is 70% of both
+    emerging markets funds and means Taiwan, Korea and China); country for multi-asset funds (Aviva names
+    only 30% to 91%, the rest "European Union", "North America", "EUR", "Other"); holdings counts
+    (Global Emerging Market Equity shows 2, being a fund of funds).
+  - **Every card has the same frame**, at the user's request: header 38px, figures strip 50px, tabs 26px,
+    ten row slots 200px, reconciliation line 16px, so a row of mixed funds lines up. A fund with several
+    breakdowns switches between them with tabs (`.xin-t`, choice kept in `X_INTAB`) instead of stacking
+    them. Verified: all 37 funds and both portfolios, in every tab, render at 392px with identical zones
+    and nothing overflowing.
+  - **Figures are never changed.** Rows are ordered largest first with Other/Cash/Unclassified last and
+    grey; past ten rows the smallest are grouped as "Other (N more)" (only Dimensional World Equity,
+    46 countries). The grey line under each list reconciles it ("8 countries 97.6% + Cash 0.7% + Other
+    1.7% = 100.0%"). Only labels are tidied: sector names made consistent (explicit `SECTOR` map; an
+    unknown label stops the run), Global Smaller Companies' ISO country codes shown as names (an
+    unknown code stops the run), all-capitals holding names shown in normal case. In an asset-mix card
+    "Other" is a real class and keeps its colour.
+  - **Checks in the fetch:** each list totals 100% +/- 1% as published, top holdings are 1 to 10 valid
+    weights, required figures (duration, yield, property facts) are present and numeric, and as-at dates
+    never go backwards. All proven to stop the run. The dashboard re-checks shape and totals
+    (`validInside`) and, on any failure, each card says "Breakdown unavailable" at the same size while
+    multi-asset cards still draw from the asset mix.
+  - **Verified** against the raw factsheets fetched independently: all 35 lists and every figure match
+    exactly; every rendered row matches the file; portfolio cards match `aggregateAssetMix`. The builder,
+    print, email, the explorer table and the rest of the compare screen are byte-identical.
 - **Screen only**, by decision: no print or email version, and both are hidden in print.
 - **One disclaimer:** the `.disc-wrap` node is moved into whichever tab is open, never duplicated,
   so the fixed legal text still has a single source.
@@ -358,6 +399,16 @@ stress episodes, correlation table, rank in asset class, add to portfolio).
     character-count estimate misjudged "%". An upright label is only as wide as the type is tall, so it
     stays inside its own bar's slot. Verified across 69 fund combinations of two to five: no label
     overlaps another, sits on another fund's bar, crosses a category label or leaves the chart.
+  - **The chart is sized to the selection** (`xBarSize`), at the user's request: one or two funds had
+    looked like blocks stretched across the page, and a width cap (slim bars adrift in the full width)
+    was previewed and rejected. The canvas is 360 to 760 units wide, chosen so each bar lands near 34
+    units, and its container gets the matching share of the page, so type and bars render at exactly
+    the size of the full chart (verified: period labels 17px on one fund and on five). Roughly: one fund
+    47% of the width, two 64%, three 94%, four and five the full width and byte-identical to before.
+    Fewer periods (no 10Y) narrow it further. The container never drops below 440px, or 100% of a
+    smaller screen. One fund is also drawn 190 units tall rather than 250, at the user's request, and
+    its bars take 60% of each period rather than 42%. Verified across 73 one-to-three-fund charts: no
+    label overlaps, sits on another bar or leaves the chart.
   - Labels are 7.5 units (about 11.5px on screen), in the fund's colour, above positive bars and below
     negative ones. The axis starts at zero when nothing is negative; niceAxis otherwise adds an empty
     band below zero.

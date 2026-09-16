@@ -244,6 +244,39 @@ table.proj.compact td:first-child,table.proj.compact th:first-child{white-space:
 #xtable td.fee{font-variant-numeric:tabular-nums;font-weight:700}
 #xtable td.fee.up{color:var(--neg)}
 #xtable td.fee.down{color:var(--pos)}
+/* What's inside. Every card has the same frame (header, figures strip, tabs, ten row slots, a
+   reconciliation line), so a row of mixed funds lines up however little or much each publishes. A
+   fund with several breakdowns switches between them in place rather than growing taller. */
+.xin-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;margin-top:4px}
+.xin{background:var(--surface-dim);border:1px solid var(--hair);border-radius:10px;padding:12px 14px;display:grid;grid-template-rows:38px 50px 26px 200px 16px;row-gap:9px;min-width:0}
+.xin-h{display:flex;gap:9px;align-items:flex-start;min-width:0}
+.xin-sq{width:11px;height:11px;border-radius:3px;flex:0 0 auto;margin-top:3px}
+.xin-hn{min-width:0;flex:1}
+.xin-fn{font-weight:800;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.xin-meta{display:flex;gap:7px;align-items:center;margin-top:4px;font-size:10.5px;color:var(--muted);white-space:nowrap;overflow:hidden}
+.xin-kind{border:1px solid var(--hair);border-radius:4px;padding:0 5px;font-size:9px;font-weight:800;letter-spacing:.06em;text-transform:uppercase}
+.xin-facts{display:grid;gap:6px;min-width:0}
+.xin-fact{background:var(--raised);border-radius:7px;padding:6px 8px;min-width:0}
+.xin-fv{font-size:14px;font-weight:900;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.xin-fl{font-size:9.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
+.xin-none{display:flex;align-items:center;font-size:11.5px;color:var(--faint);background:var(--raised);border-radius:7px;padding:0 10px}
+.xin-tabs{display:flex;gap:4px;align-items:center;min-width:0}
+.xin-t{background:transparent;border:1px solid var(--hair);color:var(--muted);border-radius:6px;padding:3px 9px;font-family:inherit;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap}
+.xin-t:hover{color:var(--ink)}
+.xin-t.on{background:var(--signal);border-color:var(--signal);color:var(--signal-ink)}
+.xin-t:focus-visible{outline:2px solid var(--signal);outline-offset:1px}
+.xin-lbl{font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.xin-list{min-width:0}
+.xin-r{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr) 46px;gap:8px;align-items:center;height:20px;font-size:11.5px}
+.xin-r.h{grid-template-columns:minmax(0,1fr) 46px}
+.xin-r .n{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.xin-r .t{height:7px;background:var(--raised);border-radius:3px;overflow:hidden}
+.xin-r .f{display:block;height:100%;border-radius:3px}
+.xin-r .v{text-align:right;font-variant-numeric:tabular-nums;font-weight:700}
+.xin-r.mu .n,.xin-r.mu .v{color:var(--muted);font-weight:400}
+.xin-msg{height:100%;display:flex;align-items:center;font-size:12px;line-height:1.55;color:var(--muted);background:var(--raised);border-radius:8px;padding:10px 12px}
+.xin-msg b{color:var(--ink)}
+.xin-rc{font-size:10.5px;color:var(--faint);font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .xport{display:inline-block;margin-left:6px;padding:1px 6px;border:1px solid var(--hair);border-radius:4px;font-size:9.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);vertical-align:1px}
 .xchip{display:inline-flex;align-items:center;gap:5px;background:transparent;border:1px solid var(--hair);color:var(--muted);border-radius:20px;padding:5px 11px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit}
 .xchip.on{background:var(--signal);color:var(--signal-ink);border-color:var(--signal)}
@@ -532,6 +565,9 @@ table.proj.compact td:first-child,table.proj.compact th:first-child{white-space:
       <div class="subhead">Calendar year returns (gross of AMC)</div>
       <table class="proj compact" id="xCal"></table>
       <div class="note" id="xCmpNote"></div>
+      <div class="subhead">What's inside</div>
+      <div class="hint" id="xInNote"></div>
+      <div class="xin-grid" id="xInside"></div>
     </div>
   </div>
   <div id="xDisc"></div>
@@ -1951,7 +1987,7 @@ function xBarChartSVG(rows,periods,th,W=760,H=250){   // rows: [{color, vals:[{v
   // niceAxis always adds a step below its anchor; with no negative figure that is an empty band under zero
   if(!vs.some(v=>v<0) && ax.lo<0){ ax.lo=0; ax.ticks=ax.ticks.filter(v=>v>=-1e-9); }
   const L={l:44,r:8}, iw=W-L.l-L.r, bw=iw/nB, gap=nS>3?2:3;
-  const grpW=bw*(nS===1?0.42:0.82), barW=(grpW-(nS-1)*gap)/nS;
+  const grpW=bw*(nS===1?0.6:0.82), barW=(grpW-(nS-1)*gap)/nS;
   const txt=o=>o.v===null?"n/a":fmtP(Math.abs(o.v)<0.0005?0:o.v);
   /* Measure the real label width (font size in viewBox units measures in viewBox units), with 12% spare
      for the web font still loading; a character-count estimate misjudged "%" and let near-misses through. */
@@ -1985,6 +2021,157 @@ function xBarChartSVG(rows,periods,th,W=760,H=250){   // rows: [{color, vals:[{v
   }
   g+=`<line x1="${P.l}" x2="${W-P.r}" y1="${y(0).toFixed(1)}" y2="${y(0).toFixed(1)}" stroke="${th.label}"/></svg>`;
   return g;
+}
+/* ---------- fund explorer: what's inside ----------
+   data/inside.json, staged by fetch_inside.py from the same public factsheets as the asset mix. Loaded
+   alongside the prices and never allowed to block them: a failure leaves INSIDE null, the section says
+   so, and multi-asset cards still draw from the asset mix. */
+let INSIDE=null, INSIDE_ERR=null, xInFs=[];
+const X_INTAB={};   // the breakdown each card is showing, kept across redraws
+const INS_KIND={equity:"Equity",govbond:"Government bonds",corpbond:"Corporate bonds",cash:"Cash",property:"Property",multi:"Multi-asset",absolute:"Absolute return",gold:"Commodity"};
+const INS_TABS={equity:[["country","Country"],["sector","Sector"],["holdings","Top 10"]],
+  govbond:[["country","Issuer country"],["holdings","Top 10"]],
+  corpbond:[["type","Bond type"],["country","Issuer country"],["holdings","Top 10"]],
+  property:[["type","Property type"],["location","Location"],["holdings","Top 10"]]};
+const INS_NOUN={country:["country","countries"],sector:["sector","sectors"],type:["type","types"],location:["location","locations"]};
+const INS_MUTED=/^(other|cash|unclassified)\b/i;
+function validInside(d){
+  if(!d || !d.funds || typeof d.funds!=="object") return "no funds in the breakdown file";
+  for(const [n,r] of Object.entries(d.funds)){
+    if(!r || !INS_KIND[r.kind]) return `unknown card type for ${n}`;
+    for(const [k,rows] of Object.entries(r.lists||{})){
+      if(!Array.isArray(rows) || rows.some(x=>!Array.isArray(x) || typeof x[0]!=="string" || !isFinite(x[1]))) return `malformed ${k} for ${n}`;
+      const t=rows.reduce((a,x)=>a+x[1],0);
+      if(k!=="holdings" && Math.abs(t-100)>1.05) return `${n} ${k} totals ${t.toFixed(2)}%`;
+    }
+    if(Object.values(r.facts||{}).some(v=>!isFinite(v))) return `malformed figures for ${n}`;
+  }
+  return null;
+}
+async function loadInside(){
+  try{
+    const res=await fetch("data/inside.json?v="+Date.now(), {cache:"no-store"});
+    if(!res.ok) throw new Error("HTTP "+res.status);
+    const d=await res.json(), bad=validInside(d);
+    if(bad) throw new Error(bad);
+    INSIDE=d;
+  }catch(err){ INSIDE_ERR=err.message; }
+  if(xInFs.length) renderInside(xInFs);
+}
+const insCase=n=>(n===n.toUpperCase() && /[A-Z]{3}/.test(n)) ? n.toLowerCase().replace(/\b[a-z]/g,c=>c.toUpperCase()) : n;
+// named rows largest first, then Other/Cash/Unclassified as published; past ten rows the smallest are grouped
+function insOrder(rows){
+  rows=rows.filter(r=>Math.abs(r[1])>=0.005);
+  const named=rows.filter(r=>!INS_MUTED.test(r[0])).sort((a,b)=>b[1]-a[1]), muted=rows.filter(r=>INS_MUTED.test(r[0]));
+  if(named.length+muted.length<=10) return named.concat(muted);
+  const keep=named.slice(0,9), rest=rows.reduce((a,r)=>a+r[1],0)-keep.reduce((a,r)=>a+r[1],0);
+  return keep.concat([[`Other (${rows.length-9} more)`, rest]]);
+}
+function insBars(rows,colorOf,classes=false){   // classes: asset mix rows, where "Other" is a real class with its own colour
+  const mx=Math.max(...rows.map(r=>Math.abs(r[1])),1e-9);
+  let h=rows.map((r,i)=>{ const mu=!classes && INS_MUTED.test(r[0]);
+    return `<div class="xin-r${mu?" mu":""}"><span class="n" title="${esc(r[0])}">${esc(r[0])}</span><span class="t"><span class="f" style="width:${Math.max(Math.abs(r[1])/mx*100,0.8).toFixed(1)}%;background:${mu?"var(--faint)":colorOf(r,i)}"></span></span><span class="v">${fmtAc(r[1])}</span></div>`; }).join("");
+  for(let i=rows.length;i<10;i++) h+=`<div class="xin-r"></div>`;   // ten slots on every card
+  return h;
+}
+function insRecon(rows,key){
+  const named=rows.filter(r=>!INS_MUTED.test(r[0])), total=rows.reduce((a,r)=>a+r[1],0);
+  const w=INS_NOUN[key]||["row","rows"];
+  return [`${named.length} ${named.length===1?w[0]:w[1]} ${fmtAc(named.reduce((a,r)=>a+r[1],0))}`]
+    .concat(rows.filter(r=>INS_MUTED.test(r[0])).map(r=>`${r[0].replace(/ \(.*\)$/,"")} ${fmtAc(r[1])}`)).join(" + ")+` = ${fmtAc(total)}`;
+}
+function insFacts(cells){
+  if(!cells.length) return `<div class="xin-none">No figures published for this fund</div>`;
+  return `<div class="xin-facts" style="grid-template-columns:repeat(${cells.length},minmax(0,1fr))">`+
+    cells.map(([v,l])=>`<div class="xin-fact"><div class="xin-fv" title="${esc(v)}">${esc(v)}</div><div class="xin-fl" title="${esc(l)}">${esc(l)}</div></div>`).join("")+`</div>`;
+}
+function insCard(f,color){
+  const rec=f.port?{kind:"multi"}:((INSIDE&&INSIDE.funds[f.name])||null);
+  const kind=rec?rec.kind:((f.category==="Multi-Asset")?"multi":null);
+  const al=f.port?aggregateAssetMix(f.port):(ALLOC&&ALLOC.funds[f.name]?{mix:ALLOC.funds[f.name].classes, dates:[ALLOC.funds[f.name].asOf].filter(Boolean), source:ALLOC.funds[f.name].source}:null);
+  const srcName=s=>({aviva:"Aviva",dimensional:"Dimensional",override:"Aviva"})[s]||"";
+  let meta, facts=[], tabs="", panel, recon="";
+  const date=iso=>iso?acDate(iso):"";
+  if(kind==="multi"){
+    const ok=al&&al.mix;
+    meta=f.port?`Portfolio builder${ok&&al.dates.length===1?" · as at "+date(al.dates[0]):ok&&al.dates.length>1?" · mixed month ends":""}`
+               :`${srcName(al&&al.source)}${ok&&al.dates[0]?" · as at "+date(al.dates[0]):""}`;
+    if(ok){
+      const rows=AC_CLASSES.map((c,i)=>[AC_LABEL[i], al.mix[c]||0, i]).filter(r=>Math.abs(r[1])>=0.005);
+      facts=[[fmtAc(al.mix["Equities"]||0),"Equities"],[fmtAc(al.mix["Fixed Income"]||0),"Fixed income"]];
+      tabs=`<div class="xin-tabs"><span class="xin-lbl">Asset mix</span></div>`;
+      panel=insBars(rows,r=>AC[r[2]],true);
+      recon=`Adds to ${fmtAc(rows.reduce((a,r)=>a+r[1],0))}`;
+    } else {
+      tabs=`<div class="xin-tabs"><span class="xin-lbl">Asset mix</span></div>`;
+      panel=`<div class="xin-msg">Asset mix unavailable${ALLOC_ERR?": "+esc(ALLOC_ERR):""}.</div>`;
+    }
+  } else if(!rec){
+    meta=""; tabs=`<div class="xin-tabs"><span class="xin-lbl">Breakdown</span></div>`;
+    panel=`<div class="xin-msg">Breakdown unavailable${INSIDE_ERR?": "+esc(INSIDE_ERR):INSIDE?"":" (still loading)"}.</div>`;
+  } else {
+    meta=`${srcName(rec.source)}${rec.asOf?" · as at "+date(rec.asOf):" · no factsheet date"}`;   // gold has no dated breakdown
+    const F=rec.facts||{}, L=rec.lists||{};
+    if(kind==="equity"){
+      const top=insOrder(L.country||[]).find(r=>!INS_MUTED.test(r[0]));
+      facts=[[top?fmtAc(top[1]):"—", top?"In "+top[0]:"Largest country"],[fmtAc((L.holdings||[]).reduce((a,r)=>a+r[1],0)),"Top 10 holdings"]];
+    } else if(kind==="govbond"||kind==="corpbond"||kind==="cash"){
+      facts=[[F.duration.toFixed(2)+" yrs","Duration"],[F.yield.toFixed(2)+"%","Yield"]];
+    } else if(kind==="property"){
+      facts=[[String(F.properties),"Properties"],[F.yield.toFixed(2)+"%","Yield"],[F.lease.toFixed(2)+" yrs","Avg lease"],[F.vacancy.toFixed(1)+"%","Vacancy"]];
+    } else if(kind==="gold"){
+      facts=[["100.0%","Physical gold"]];
+    }
+    const T=INS_TABS[kind];
+    if(T){
+      const cur=(T.find(t=>t[0]===X_INTAB[f.name])||T[0])[0];
+      tabs=`<div class="xin-tabs" role="tablist">`+T.map(([k,l])=>`<button type="button" class="xin-t${k===cur?" on":""}" role="tab" aria-selected="${k===cur}" data-f="${esc(f.name)}" data-t="${k}">${l}</button>`).join("")+`</div>`;
+      if(cur==="holdings"){
+        const h=L.holdings||[];
+        panel=h.map(r=>`<div class="xin-r h"><span class="n" title="${esc(insCase(r[0]))}">${esc(insCase(r[0]))}</span><span class="v">${fmtAc(r[1])}</span></div>`).join("")+`<div class="xin-r"></div>`.repeat(Math.max(0,10-h.length));
+        recon=`${kind==="property"?"Top 10 properties":"Top 10 holdings"} = ${fmtAc(h.reduce((a,r)=>a+r[1],0))} of the fund`;
+      } else {
+        const rows=insOrder(L[cur]||[]);
+        panel=insBars(rows,()=>color); recon=insRecon(rows,cur);
+      }
+    } else if(kind==="gold"){
+      tabs=`<div class="xin-tabs"><span class="xin-lbl">Holding</span></div>`;
+      panel=insBars([["Physical gold",100]],()=>color); recon="Aviva publishes no breakdown; the fund holds physical gold only";
+    } else if(kind==="cash"){
+      tabs=`<div class="xin-tabs"><span class="xin-lbl">Breakdown</span></div>`;
+      panel=`<div class="xin-msg">A cash fund holds short-term deposits, so there is no breakdown to show.</div>`;
+    } else {
+      tabs=`<div class="xin-tabs"><span class="xin-lbl">Breakdown</span></div>`;
+      panel=`<div class="xin-msg"><span><b>No breakdown shown.</b> The fund holds mostly cash while its returns come from derivative strategy positions, so an asset or country split would describe the wrong thing.</span></div>`;
+    }
+  }
+  return `<article class="xin"><div class="xin-h"><span class="xin-sq" style="background:${color}"></span><div class="xin-hn"><div class="xin-fn" title="${esc(f.name)}">${esc(xName(f.name))}</div>`+
+    `<div class="xin-meta">${kind?`<span class="xin-kind">${INS_KIND[kind]}</span>`:""}<span>${meta}</span></div></div></div>`+
+    insFacts(facts)+tabs+`<div class="xin-list">${panel}</div><div class="xin-rc" title="${esc(recon)}">${esc(recon)}</div></article>`;
+}
+function renderInside(fs){
+  xInFs=fs;
+  const srcs=new Set(fs.map(f=>f.port?"aviva":((INSIDE&&INSIDE.funds[f.name])||{}).source||(ALLOC&&ALLOC.funds[f.name]||{}).source));
+  const s=[]; if(srcs.has("aviva")||srcs.has("override")) s.push("Aviva fund centre factsheets (Longboat Analytics)"); if(srcs.has("dimensional")) s.push("Dimensional fund centre");
+  document.getElementById("xInNote").innerHTML=`Each fund's latest published breakdown, dated on its card: a snapshot, not how the fund was invested over the periods above. Grey rows (Other, Cash, Unclassified) are shown as published, and the line under each list reconciles it to 100%.${s.length?" Source: "+s.join("; ")+".":""}`+
+    (INSIDE_ERR?` <span class="simflag">Breakdowns unavailable (${esc(INSIDE_ERR)}); multi-asset funds still show their asset mix.</span>`:"");
+  document.getElementById("xInside").innerHTML=fs.map((f,i)=>insCard(f,SEG[i])).join("");
+}
+document.getElementById("xInside").addEventListener("click",e=>{
+  const b=e.target.closest("button.xin-t"); if(!b) return;
+  X_INTAB[b.dataset.f]=b.dataset.t; renderInside(xInFs);
+  const again=[...document.querySelectorAll("#xInside button.xin-t")].find(x=>x.dataset.f===b.dataset.f && x.dataset.t===b.dataset.t);
+  if(again) again.focus();   // keep keyboard focus on the tab just chosen
+});
+/* The bar chart's canvas is sized to the selection, so one or two funds get a compact chart rather than
+   blocks stretched across the page (or slim bars adrift in it). Each bar lands near 34 units; the canvas
+   is 360 to 760 units wide, and its container gets the matching share of the page, so type and bars
+   render at exactly the same size as the full chart. Four and five funds need the full 760 and are
+   unchanged. One fund is also drawn shorter, as a 360-wide chart at full height looked stretched. */
+function xBarSize(nS,nB){
+  const gap=nS>3?2:3, frac=nS===1?0.6:0.82;
+  const W=Math.round(Math.min(760, Math.max(360, 52+nB*(nS*34+(nS-1)*gap)/frac)));
+  return {W, H: nS===1?190:250};
 }
 function bindDDMarkers(){
   // hover or focus a trough marker to read that fund's worst fall; the tooltip is a positioned div so
@@ -2066,7 +2253,10 @@ function renderCompare(){
   const BAR_P=[["ytd","YTD"],["y1","1Y"],["y3","3Y p.a."],["y5","5Y p.a."],["y10","10Y p.a."]];
   const bRows=fs.map((f,i)=>({color:SEG[i], row:xRow(f,X.end)}));
   const bUse=BAR_P.filter(([k])=>bRows.some(r=>r.row[k].v!==null));   // a period no selection reaches is left out
-  document.getElementById("xBars").innerHTML=xBarChartSVG(bRows.map(r=>({color:r.color, vals:bUse.map(([k])=>r.row[k])})), bUse.map(p=>p[1]), {...XCHART, fsBar:7.5, fsCat:8});
+  const bSz=xBarSize(bRows.length, bUse.length), bBox=document.getElementById("xBars");
+  // below ~440px of container a narrowed chart would be cramped, so it never drops under that (or 100%)
+  bBox.style.width=bSz.W<760?`min(100%, max(${(bSz.W/760*100).toFixed(2)}%, 440px))`:"";
+  bBox.innerHTML=xBarChartSVG(bRows.map(r=>({color:r.color, vals:bUse.map(([k])=>r.row[k])})), bUse.map(p=>p[1]), {...XCHART, fsBar:7.5, fsCat:8}, bSz.W, bSz.H);
 
   const cal=fs.map(f=>xCalendar(f,X.end)), cols=cal[0];
   let ct=`<colgroup><col style="width:22%">${cols.map(()=>`<col style="width:${(78/cols.length).toFixed(2)}%">`).join("")}</colgroup>`+
@@ -2078,6 +2268,7 @@ function renderCompare(){
   document.getElementById("xCal").innerHTML=ct;
 
   document.getElementById("xCmpNote").innerHTML=`The growth chart compounds ${fmtE(xa)} through each selection's monthly returns; its labels give the end value and the rate per year, and a period under a year is labelled with the end value alone, since annualising it would mislead. The charts measure everything selected over the same months, and hovering a marker on the drawdown chart gives its worst fall over that period. The bar chart and the performance table use standard periods to ${pLbl(X.end)}, each over its own history, and show the same figures (a 10Y bar reads n/a for a selection without ten years, and the 10Y group is left out when none has them): 1M to 1Y cumulative, 2Y and longer per year, matching the main table. Volatility and max drawdown cover the ${useTen?"10 years":"5 years"} to ${pLbl(X.end)}. All figures are gross of AMC. Calendar years are full January to December years; YTD runs from January to ${pLbl(X.end)}.${anySim||calSim?" ◆ includes simulated history.":""} — where the history does not cover the period.`;
+  renderInside(fs);
 }
 document.getElementById("xtable").addEventListener("change",e=>{
   const cb=e.target.closest('input[type="checkbox"][data-name]'); if(!cb) return;
@@ -2213,6 +2404,7 @@ async function loadAlloc(){
 }
 async function loadData(){
   const alloc = loadAlloc();
+  loadInside();   // What's inside: optional, never awaited, never blocks the prices
   try{
     const res = await fetch("data/latest.json?v=" + Date.now(), {cache:"no-store"});
     if(!res.ok) throw new Error("HTTP " + res.status);
