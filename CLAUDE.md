@@ -240,6 +240,10 @@ stress episodes, correlation table, rank in asset class, add to portfolio).
   since launch p.a., Vol 5Y, max DD since launch, plus an optional cumulative custom period column.
   Asset class filter, name search, sort by any heading (blanks always last), and an end month that
   recalculates every figure.
+- **ESMA filter** is a dropdown straight after the asset class chips (user's placement). It lists only
+  the ratings some row actually has, each with its row count ("4 (13)"), so no choice produces an empty
+  table, and it combines with asset class and search. It filters on the figure shown in the ESMA
+  column: a fund's published rating, or a portfolio row's own 5-year band.
 - **Fee vs standard replaced the AMC column** at the user's request: the fund's charge above or below
   the standard fee (`costAdj`), rendered exactly as the builder's fund picker renders its `.costtag`
   (`+0.25%` in `--neg`, `−0.10%` in `--pos`), and **blank on the standard fee** so only the funds that
@@ -269,6 +273,28 @@ stress episodes, correlation table, rank in asset class, add to portfolio).
     unbalancing it in the builder removes the row and its tick on the next render, and compare falls
     back to the table when the last tick goes. A single-fund portfolio reproduces that fund's row
     exactly (verified).
+- **Add to portfolio** is a non-sortable "Add to" column holding an **A** and a **B** button, placed
+  immediately after the fund name (Stage 3, first extra; placement chosen by the user from a mockup).
+  It never guesses a destination: both portfolios are always offered, since a fund landing in the wrong
+  one is a silent, expensive mistake, and adding to B is also how B is started.
+  - **The fund lands unweighted, at 0%**, by the user's decision: the code pushes the name and sets no
+    allocation, exactly what the builder's own `toggleFund` does, so weights already set are never
+    overwritten and no figure moves. Re-splitting equally was rejected: it discards the weights the
+    user chose. A valid portfolio therefore stays valid and its explorer row does not change.
+  - **It does not switch tabs**, at the user's request, since several funds are often added in one
+    visit. An `.xtoast` confirms each add, names the portfolio, says the weight is 0%, and says when
+    that portfolio has just become full.
+  - **The same button takes the fund back out**, at the user's request, so a mistake is undone where it
+    was made. Held reads ✓A and flips to ✕A on hover or focus, in the negative colour, so a removal is
+    never a mystery click. Removing does what `toggleFund` does (drop the name, delete the allocation)
+    and the toast offers **Undo**, which restores the fund at its original position with its original
+    weight: removing a weighted fund loses that weight and drops the portfolio below 100%, and the
+    toast says so, naming the new total. Adding offers Undo too.
+  - Only "full at five" disables a button, and it carries the reason in `title`. A held button stays
+    live even when its portfolio is full, since removing is how you make room. Portfolio rows carry no
+    buttons at all.
+  - **Ticks and holdings are separate**: the tick box means compare, and adding never ticks, nor the
+    reverse. Verified, along with the builder, its picker, print and email staying byte-identical.
 - **Screen only**, by decision: no print or email version, and both are hidden in print.
 - **One disclaimer:** the `.disc-wrap` node is moved into whichever tab is open, never duplicated,
   so the fixed legal text still has a single source.
@@ -315,6 +341,26 @@ stress episodes, correlation table, rank in asset class, add to portfolio).
   two funds ending €5 apart (€15,276 and €15,271) sent the second label below a third fund's label,
   nowhere near its line. Sorting by value is what guarantees labels and lines share an order and cannot
   cross. The builder's chart does not set the flag and is verified byte-identical.
+- **Screen order, top to bottom** (user's order): period and amount controls, fund legend, then
+  **Performance** (bar chart and table), then growth, drawdown, calendar years. The period buttons stay
+  at the top because they drive both the charts and the table's Vol/Max DD basis. The "Measured over
+  <months>" note sits under the growth heading, not above the performance section: it describes the
+  charts' shared window, while the performance section uses standard periods, and above it the note
+  would have read as describing the wrong figures.
+- **A performance bar chart sits above the performance table**, under the same heading, at the user's
+  request: YTD, 1Y, 3Y p.a., 5Y p.a., 10Y p.a., one bar per selection in tick order (`xBarChartSVG`, the
+  compare screen's own function; the builder's `barChartSVG` is untouched). Its figures are the table's
+  own `xRow` values, verified label by label. A selection without a period reads "n/a"; a period no
+  selection reaches is left out.
+  - **Labels never overlap, including at five selections.** With five, each bar is about 21 units wide,
+    narrower than a flat "-12.3%", so labels turn upright whenever a flat one would spill into the next
+    bar. The width is measured with canvas `measureText`, plus 12% for the web font still loading: a
+    character-count estimate misjudged "%". An upright label is only as wide as the type is tall, so it
+    stays inside its own bar's slot. Verified across 69 fund combinations of two to five: no label
+    overlaps another, sits on another fund's bar, crosses a category label or leaves the chart.
+  - Labels are 7.5 units (about 11.5px on screen), in the fund's colour, above positive bars and below
+    negative ones. The axis starts at zero when nothing is negative; niceAxis otherwise adds an empty
+    band below zero.
 - **The performance table uses the main table's standard periods** (1M to 10Y), built with the same
   `xRow`, so a fund reads identically on both screens. It replaced a chart-period
   return/volatility/best/worst month table at the user's request. Since launch p.a. is deliberately

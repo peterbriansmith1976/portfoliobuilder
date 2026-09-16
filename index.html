@@ -218,6 +218,29 @@ table.proj.compact td:first-child,table.proj.compact th:first-child{white-space:
 .ddtip .w{color:var(--muted)}
 .xcontrols{display:flex;flex-wrap:wrap;gap:14px 22px;align-items:flex-end;margin-bottom:14px}
 .xchips{display:flex;flex-wrap:wrap;gap:6px}
+/* Add to portfolio: its own column beside the name, never out at the right edge where reaching it
+   would need a sideways scroll. A and B are always both offered, so a fund can never land in a
+   portfolio the user did not name. */
+#xtable th.xaddh{cursor:default;text-align:center;white-space:nowrap}
+#xtable td.xaddc{text-align:center;padding-left:2px;padding-right:2px}
+.xadd{display:inline-flex;gap:3px}
+.xadd button{width:22px;height:20px;border-radius:5px;border:1px solid var(--hair);background:transparent;color:var(--muted);font-family:inherit;font-size:10.5px;font-weight:800;cursor:pointer;padding:0;line-height:1}
+.xadd button:hover:not(:disabled){border-color:var(--signal);color:var(--signal);background:var(--signal-wash)}
+.xadd button:focus-visible{outline:2px solid var(--signal);outline-offset:1px}
+.xadd button:disabled{cursor:not-allowed;opacity:.42}
+.xadd button.held{color:var(--pos);opacity:1;border-color:var(--hair)}
+/* Held reads ✓A, and ✕A the moment it is hovered or focused, so removing is never a mystery click. */
+.xadd button.held .off{display:none}
+.xadd button.held:hover .on,.xadd button.held:focus-visible .on{display:none}
+.xadd button.held:hover .off,.xadd button.held:focus-visible .off{display:inline}
+.xadd button.held:hover,.xadd button.held:focus-visible{color:var(--neg);border-color:var(--neg);background:transparent}
+.xtoast .undo{background:transparent;border:1px solid var(--hair);color:var(--ink);border-radius:6px;padding:4px 9px;font-family:inherit;font-size:11px;font-weight:800;cursor:pointer}
+.xtoast .undo:hover{border-color:var(--signal);color:var(--signal)}
+.xtoast{position:fixed;right:18px;bottom:18px;z-index:40;display:flex;align-items:center;gap:10px;background:var(--raised);border:1px solid var(--hair);border-left:3px solid var(--signal);border-radius:8px;padding:10px 14px;font-size:12.5px;color:var(--ink);box-shadow:0 6px 20px rgba(0,0,0,.28);max-width:min(92vw,420px)}
+.xtoast b{font-weight:800}
+.xtoast .x{background:none;border:none;color:var(--muted);font-size:15px;line-height:1;cursor:pointer;font-family:inherit;padding:0 2px}
+@media(prefers-reduced-motion:no-preference){.xtoast{animation:xtin .18s ease-out}}
+@keyframes xtin{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 #xtable td.fee{font-variant-numeric:tabular-nums;font-weight:700}
 #xtable td.fee.up{color:var(--neg)}
 #xtable td.fee.down{color:var(--pos)}
@@ -235,7 +258,7 @@ table.proj.compact td:first-child,table.proj.compact th:first-child{white-space:
 /* fund name stays in view while the wide table scrolls sideways */
 #xtable th:first-child,#xtable td:first-child{position:sticky;left:0;z-index:1;background:var(--surface);min-width:210px}
 #xtable td:first-child{white-space:nowrap}
-#xtable th:nth-child(2),#xtable td:nth-child(2){text-align:left}
+#xtable th:nth-child(3),#xtable td:nth-child(3){text-align:left}
 /* compare screen: own class names, because the builder binds handlers to .wbtn and .tab globally */
 .xwbtn{background:var(--raised);border:1px solid var(--hair);color:var(--muted);border-radius:6px;padding:7px 11px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit}
 .xwbtn.on{background:var(--signal);color:var(--signal-ink);border-color:var(--signal)}
@@ -480,6 +503,7 @@ table.proj.compact td:first-child,table.proj.compact th:first-child{white-space:
     <div class="card-body">
       <div class="xcontrols">
         <div class="ctrl"><label>Asset class</label><div class="xchips" id="xCats"></div></div>
+        <div class="ctrl"><label for="xEsma">ESMA</label><select id="xEsma"><option value="">All</option></select></div>
         <div class="ctrl"><label for="xfilter">Find a fund</label><input id="xfilter" type="search" placeholder="Search by name" autocomplete="off"></div>
         <div class="ctrl"><label for="xEnd">Performance to</label><select id="xEnd"></select></div>
         <div class="ctrl"><label for="xFrom">Custom period</label><select id="xFrom" aria-label="Custom period from"></select> <select id="xTo" aria-label="Custom period to"></select></div>
@@ -496,14 +520,15 @@ table.proj.compact td:first-child,table.proj.compact th:first-child{white-space:
         <div class="ctrl" id="xCustomWrap" style="display:none"><label for="xcFrom">From / To</label><select id="xcFrom" aria-label="Compare from"></select> <select id="xcTo" aria-label="Compare to"></select></div>
         <div class="ctrl"><label for="xAmt">Amount €</label><input type="text" id="xAmt" class="edit" value="10,000" inputmode="numeric" autocomplete="off" aria-label="Growth chart amount"></div>
       </div>
-      <div class="hint" id="xWinNote"></div>
       <div class="legend" id="xLegend"></div>
+      <div class="subhead" id="xFigHead">Performance</div>
+      <div id="xBars"></div>
+      <table class="proj compact" id="xFig"></table>
       <div class="subhead" id="xGrowthHead">Growth of €10,000 (gross of AMC)</div>
+      <div class="hint" id="xWinNote"></div>
       <div id="xGrowth"></div>
       <div class="subhead">Drawdown (gross of AMC)</div>
       <div id="xDD"></div>
-      <div class="subhead" id="xFigHead">Performance</div>
-      <table class="proj compact" id="xFig"></table>
       <div class="subhead">Calendar year returns (gross of AMC)</div>
       <table class="proj compact" id="xCal"></table>
       <div class="note" id="xCmpNote"></div>
@@ -1793,7 +1818,7 @@ function portfolioFund(k){
   return f0;
 }
 const xFunds=()=>[...["A","B"].map(portfolioFund).filter(Boolean), ...DATA.funds];
-const X={cat:"All", q:"", end:null, from:null, to:null, sortKey:null, sortDir:1, sel:[], view:"table", cwin:"60", cFrom:null, cTo:null};
+const X={cat:"All", esma:"", q:"", end:null, from:null, to:null, sortKey:null, sortDir:1, sel:[], view:"table", cwin:"60", cFrom:null, cTo:null};
 const X_MAX=5;   // compare limit, matching the builder's five fund colours
 // the monthly returns over [from,to], or null when the fund's history doesn't cover the whole span
 function xRets(f, from, to){
@@ -1845,6 +1870,11 @@ function renderExplorer(){
   endSel.value=String(X.end);
   document.getElementById("xFrom").value=X.from===null?"":String(X.from);
   document.getElementById("xTo").value=X.to===null?"":String(X.to);
+  // only ratings some row actually has, with how many, so no choice leads to an empty table
+  const bands=[...new Set(all.map(f=>f.esma).filter(v=>v!=null))].sort((a,b)=>a-b);
+  if(X.esma && !bands.includes(+X.esma)) X.esma="";
+  document.getElementById("xEsma").innerHTML=`<option value="">All</option>`+bands.map(b=>`<option value="${b}">${b} (${all.filter(f=>f.esma===b).length})</option>`).join("");
+  document.getElementById("xEsma").value=X.esma;
   document.getElementById("xCats").innerHTML=X_CATS.map(c=>`<button type="button" class="xchip${X.cat===c?" on":""}" data-cat="${c}" aria-pressed="${X.cat===c}">${c}</button>`).join("");
 
   if(X.view==="compare"){ renderCompare(); return; }
@@ -1853,7 +1883,8 @@ function renderExplorer(){
   cmpBtn.disabled=!X.sel.length; cmpBtn.textContent=X.sel.length?`Compare ${X.sel.length}`:"Compare";
   document.getElementById("xClear").style.display=X.sel.length?"":"none";
   const q=X.q.trim().toLowerCase();
-  const rows=all.filter(f=>(X.cat==="All"||f.category===X.cat) && (!q||f.name.toLowerCase().includes(q))).map(f=>xRow(f,X.end));
+  // ESMA filters on the figure shown in the column: a fund's published rating, a portfolio's own 5-year band
+  const rows=all.filter(f=>(X.cat==="All"||f.category===X.cat) && (!X.esma||String(f.esma)===X.esma) && (!q||f.name.toLowerCase().includes(q))).map(f=>xRow(f,X.end));
   if(X.sortKey){
     rows.sort((a,b)=>{ const va=xSortVal(a,X.sortKey), vb=xSortVal(b,X.sortKey);
       if(va===null && vb===null) return 0; if(va===null) return 1; if(vb===null) return -1;   // no figure always sorts last
@@ -1871,18 +1902,24 @@ function renderExplorer(){
       : `<td class="fee ${a>0?"up":"down"}">${a>0?"+":"−"}${Math.abs(a*100).toFixed(2)}%</td>`; };
   const cell=o=>{ const v=o.v===null?null:(Math.abs(o.v)<0.0005?0:o.v);
     return `<td class="${v!==null&&v<0?"neg":""}">${v===null?"—":fmtP(v)+(o.sim?`<span class="simd">◆</span>`:"")}</td>`; };
-  let h=`<thead><tr>`+cols.map(c=>{ const on=X.sortKey===c.k;
-    return `<th data-k="${c.k}" tabindex="0" class="${on?"sorted":""}" aria-sort="${on?(X.sortDir===1?"ascending":"descending"):"none"}">${c.l}${on?(X.sortDir===1?" ▲":" ▼"):""}</th>`; }).join("")+`</tr></thead><tbody>`;
+  const th=c=>{ const on=X.sortKey===c.k;
+    return `<th data-k="${c.k}" tabindex="0" class="${on?"sorted":""}" aria-sort="${on?(X.sortDir===1?"ascending":"descending"):"none"}">${c.l}${on?(X.sortDir===1?" ▲":" ▼"):""}</th>`; };
+  let h=`<thead><tr>`+th(cols[0])+`<th class="xaddh">Add to</th>`+cols.slice(1).map(th).join("")+`</tr></thead><tbody>`;
   h+=rows.map(r=>{ const f=r.f;
     const on=X.sel.includes(f.name);
-    return `<tr><td title="${esc(f.name)}"><label class="xpick"><input type="checkbox" data-name="${esc(f.name)}"${on?" checked":""}${!on&&full?" disabled":""} aria-label="Compare ${esc(xName(f.name))}"><span>${esc(xName(f.name))}${f.port?' <span class="xport">Portfolio</span>':""}${f.simulated?' <span class="simmark">◆</span>':""}</span></label></td><td>${f.category}</td><td>${pLbl(f.liveIdx)}</td><td>${f.esma??"—"}</td>${feeCell(f)}`+
+    const addBtn=k=>{ const P=state.P[k], held=P.sel.includes(f.name), full=P.sel.length>=5;
+      const lbl=held?`Remove ${esc(xName(f.name))} from Portfolio ${k}`:full?`Portfolio ${k} already holds 5 funds`:`Add ${esc(xName(f.name))} to Portfolio ${k}`;
+      return `<button type="button" class="${held?"held":""}" data-add="${k}" data-fund="${esc(f.name)}" ${!held&&full?"disabled":""} title="${lbl}" aria-label="${lbl}">${held?`<span class="on">✓${k}</span><span class="off">✕${k}</span>`:k}</button>`; };
+    // a portfolio row has no control: it cannot be added to itself or to the other portfolio
+    const addCell=f.port?`<td class="xaddc"></td>`:`<td class="xaddc"><span class="xadd">${addBtn("A")}${addBtn("B")}</span></td>`;
+    return `<tr><td title="${esc(f.name)}"><label class="xpick"><input type="checkbox" data-name="${esc(f.name)}"${on?" checked":""}${!on&&full?" disabled":""} aria-label="Compare ${esc(xName(f.name))}"><span>${esc(xName(f.name))}${f.port?' <span class="xport">Portfolio</span>':""}${f.simulated?' <span class="simmark">◆</span>':""}</span></label></td>${addCell}<td>${f.category}</td><td>${pLbl(f.liveIdx)}</td><td>${f.esma??"—"}</td>${feeCell(f)}`+
       ["m1","m3","ytd","y1","y2","y3","y5","y10","sl","vol"].map(k=>cell(r[k])).join("")+cell(r.mdd)+(showCp?cell(r.cp):"")+`</tr>`; }).join("");
   h+=`</tbody>`;
   document.getElementById("xtable").innerHTML=h;
   const nP=all.length-DATA.funds.length;
   document.getElementById("xCount").textContent=`${rows.length} of ${all.length} ${nP?"rows":"funds"}`+
     (nP?` · ${nP} portfolio${nP>1?"s":""} from the builder`:"")+(X.sel.length?` · ${X.sel.length} of ${X_MAX} ticked`:"");
-  document.getElementById("xNote").innerHTML=`Returns are gross of AMC to <strong>${pLbl(X.end)}</strong>. 1M to 1Y are cumulative; 2Y and longer are per year. Since launch starts at each fund's first month of live prices, excludes any simulated history, and is shown once a fund has 12 of those months; max drawdown since launch uses the same months. Vol 5Y is annualised volatility over the 5 years to the end date.${showCp?` The ${pLbl(X.from)} – ${pLbl(X.to)} column is cumulative.`:""} ◆ includes simulated history. — where the history does not cover the period.${nP?` Portfolio ${["A","B"].filter(k=>valid(k)).join(" and ")} come from the Portfolio builder tab, priced from the common start of ${nP>1?"their":"its"} holdings and rebalanced monthly; ESMA is the band for the portfolio's own volatility over the 5 years to the end date, and the fee difference is its allocation-weighted one.`:""} Fee vs standard is a fund's annual charge above or below the standard fee, blank where it is the standard fee. Click a column heading to sort. Tick up to ${X_MAX} rows and press Compare to chart them side by side.`;
+  document.getElementById("xNote").innerHTML=`Returns are gross of AMC to <strong>${pLbl(X.end)}</strong>. 1M to 1Y are cumulative; 2Y and longer are per year. Since launch starts at each fund's first month of live prices, excludes any simulated history, and is shown once a fund has 12 of those months; max drawdown since launch uses the same months. Vol 5Y is annualised volatility over the 5 years to the end date.${showCp?` The ${pLbl(X.from)} – ${pLbl(X.to)} column is cumulative.`:""} ◆ includes simulated history. — where the history does not cover the period.${nP?` Portfolio ${["A","B"].filter(k=>valid(k)).join(" and ")} come from the Portfolio builder tab, priced from the common start of ${nP>1?"their":"its"} holdings and rebalanced monthly; ESMA is the band for the portfolio's own volatility over the 5 years to the end date, and the fee difference is its allocation-weighted one.`:""} Fee vs standard is a fund's annual charge above or below the standard fee, blank where it is the standard fee. <strong>A</strong> and <strong>B</strong> add a fund to that portfolio in the Portfolio builder at 0%, leaving the weights already set there untouched; press the same button again to take the fund back out, with Undo offered if it was carrying a weight; a greyed button means that portfolio is full at five. Click a column heading to sort. Tick up to ${X_MAX} rows and press Compare to chart them side by side.`;
 }
 /* ---------- fund explorer: compare screen ----------
    Every selected fund is measured over the same months: the window ends at the table's
@@ -1901,6 +1938,53 @@ function xCalendar(f,E){
   for(let y=yEnd-10;y<yEnd;y++){ const r=xRets(f,y*12,y*12+11); out.push({lbl:String(y), v:r?cum(r):null, sim:!!r && y*12<f.liveIdx}); }
   const r=xRets(f,yEnd*12,E); out.push({lbl:"YTD", v:r?cum(r):null, sim:!!r && yEnd*12<f.liveIdx});
   return out;
+}
+/* Compare screen: returns by standard period as grouped bars, one bar per selection in tick order. The
+   figures are the performance table's own (xRow), so chart and table always agree. Five selections make
+   each bar about 15 units wide, narrower than a flat "-12.3%", so labels turn upright whenever a flat one
+   would spill into the next bar. An upright label is only as wide as the type is tall, so it always fits
+   its own bar's slot and neighbouring labels cannot touch, however close the values. */
+function xBarChartSVG(rows,periods,th,W=760,H=250){   // rows: [{color, vals:[{v,sim}]}], vals parallel to periods
+  const nS=rows.length, nB=periods.length, fs=th.fsBar||7.5;
+  const vs=rows.flatMap(r=>r.vals.filter(o=>o.v!==null).map(o=>o.v));
+  const ax=niceAxis(0, Math.min(0,...vs), Math.max(0.01,...vs));
+  // niceAxis always adds a step below its anchor; with no negative figure that is an empty band under zero
+  if(!vs.some(v=>v<0) && ax.lo<0){ ax.lo=0; ax.ticks=ax.ticks.filter(v=>v>=-1e-9); }
+  const L={l:44,r:8}, iw=W-L.l-L.r, bw=iw/nB, gap=nS>3?2:3;
+  const grpW=bw*(nS===1?0.42:0.82), barW=(grpW-(nS-1)*gap)/nS;
+  const txt=o=>o.v===null?"n/a":fmtP(Math.abs(o.v)<0.0005?0:o.v);
+  /* Measure the real label width (font size in viewBox units measures in viewBox units), with 12% spare
+     for the web font still loading; a character-count estimate misjudged "%" and let near-misses through. */
+  const ctx=(xBarChartSVG.cv||(xBarChartSVG.cv=document.createElement("canvas"))).getContext("2d");
+  ctx.font=`${th.wVal||600} ${fs}px "Nunito Sans", system-ui, sans-serif`;
+  const estW=o=>(ctx.measureText(txt(o)).width+(o.sim?fs*0.6:0))*1.12;
+  const longest=Math.max(...rows.flatMap(r=>r.vals.map(estW)));
+  const upright=longest>barW+gap-1;
+  const room=(upright?longest:fs)+6, hasNeg=vs.some(v=>v<0);
+  const P={t:6+room, b:16+(hasNeg?room:0), l:L.l, r:L.r}, ih=H-P.t-P.b;
+  const y=v=>P.t+ih*(ax.hi-v)/((ax.hi-ax.lo)||1);
+  let g=svgOpen(W,H);
+  for(const v of ax.ticks){ const yy=y(v);
+    g+=`<line x1="${P.l}" x2="${W-P.r}" y1="${yy.toFixed(1)}" y2="${yy.toFixed(1)}" stroke="${th.grid}"/>
+      <text x="${P.l-6}" y="${(yy+3).toFixed(1)}" font-size="${th.fsAxis||9}" fill="${th.label}" text-anchor="end">${fmtP(Math.abs(v)<1e-9?0:v,0)}</text>`; }
+  const label=(x,yy,up,o,fill)=>{
+    const d=o.sim?`<tspan font-size="${(fs*0.72).toFixed(1)}">◆</tspan>`:"";
+    return upright
+      ? `<text transform="rotate(-90 ${x.toFixed(1)} ${yy.toFixed(1)})" x="${x.toFixed(1)}" y="${yy.toFixed(1)}" dominant-baseline="central" text-anchor="${up?"start":"end"}" font-size="${fs}" font-weight="${th.wVal||600}" fill="${fill}" data-bar="${o.v===null?"":o.v}">${txt(o)}${d}</text>`
+      : `<text x="${x.toFixed(1)}" y="${(up?yy:yy+fs).toFixed(1)}" text-anchor="middle" font-size="${fs}" font-weight="${th.wVal||600}" fill="${fill}" data-bar="${o.v===null?"":o.v}">${txt(o)}${d}</text>`; };
+  for(let i=0;i<nB;i++){
+    const gx=P.l+i*bw+(bw-grpW)/2;
+    rows.forEach((r,j)=>{
+      const o=r.vals[i], x0=gx+j*(barW+gap), cx=x0+barW/2, z=y(0);
+      if(o.v===null){ g+=label(cx, z-3, true, o, th.label); return; }   // this selection has no such period
+      const top=y(Math.max(0,o.v)), h=Math.max(Math.abs(y(o.v)-z),1);
+      g+=`<rect x="${x0.toFixed(1)}" y="${top.toFixed(1)}" width="${barW.toFixed(1)}" height="${h.toFixed(1)}" rx="1.5" fill="${r.color}"/>`;
+      g+= o.v>=0 ? label(cx, top-3, true, o, r.color) : label(cx, y(o.v)+3, false, o, r.color);
+    });
+    g+=`<text x="${(P.l+i*bw+bw/2).toFixed(1)}" y="${H-4}" font-size="${th.fsCat||th.fsAxis||9}" fill="${th.label}" text-anchor="middle">${periods[i]}</text>`;
+  }
+  g+=`<line x1="${P.l}" x2="${W-P.r}" y1="${y(0).toFixed(1)}" y2="${y(0).toFixed(1)}" stroke="${th.label}"/></svg>`;
+  return g;
 }
 function bindDDMarkers(){
   // hover or focus a trough marker to read that fund's worst fall; the tooltip is a positioned div so
@@ -1979,6 +2063,10 @@ function renderCompare(){
         return `<td class="${v!==null&&v<0?"neg":""}">${v===null?"—":fmtP(v)+(o.sim?`<span class="simd">◆</span>`:"")}</td>`; }).join("")+`</tr>`; });
   document.getElementById("xFig").innerHTML=fig;
   document.getElementById("xFigHead").textContent=`Performance to ${pLbl(X.end)} (gross of AMC)`;
+  const BAR_P=[["ytd","YTD"],["y1","1Y"],["y3","3Y p.a."],["y5","5Y p.a."],["y10","10Y p.a."]];
+  const bRows=fs.map((f,i)=>({color:SEG[i], row:xRow(f,X.end)}));
+  const bUse=BAR_P.filter(([k])=>bRows.some(r=>r.row[k].v!==null));   // a period no selection reaches is left out
+  document.getElementById("xBars").innerHTML=xBarChartSVG(bRows.map(r=>({color:r.color, vals:bUse.map(([k])=>r.row[k])})), bUse.map(p=>p[1]), {...XCHART, fsBar:7.5, fsCat:8});
 
   const cal=fs.map(f=>xCalendar(f,X.end)), cols=cal[0];
   let ct=`<colgroup><col style="width:22%">${cols.map(()=>`<col style="width:${(78/cols.length).toFixed(2)}%">`).join("")}</colgroup>`+
@@ -1989,7 +2077,7 @@ function renderCompare(){
       return `<td class="v ${neg(x.v)}">${P(x.v)}${x.sim?`<span class="dia">◆</span>`:""}</td>`; }).join("")+`</tr>`; });
   document.getElementById("xCal").innerHTML=ct;
 
-  document.getElementById("xCmpNote").innerHTML=`The growth chart compounds ${fmtE(xa)} through each selection's monthly returns; its labels give the end value and the rate per year, and a period under a year is labelled with the end value alone, since annualising it would mislead. The charts measure everything selected over the same months, and hovering a marker on the drawdown chart gives its worst fall over that period. The performance table uses standard periods to ${pLbl(X.end)}, each over its own history: 1M to 1Y cumulative, 2Y and longer per year, matching the main table. Volatility and max drawdown cover the ${useTen?"10 years":"5 years"} to ${pLbl(X.end)}. All figures are gross of AMC. Calendar years are full January to December years; YTD runs from January to ${pLbl(X.end)}.${anySim||calSim?" ◆ includes simulated history.":""} — where the history does not cover the period.`;
+  document.getElementById("xCmpNote").innerHTML=`The growth chart compounds ${fmtE(xa)} through each selection's monthly returns; its labels give the end value and the rate per year, and a period under a year is labelled with the end value alone, since annualising it would mislead. The charts measure everything selected over the same months, and hovering a marker on the drawdown chart gives its worst fall over that period. The bar chart and the performance table use standard periods to ${pLbl(X.end)}, each over its own history, and show the same figures (a 10Y bar reads n/a for a selection without ten years, and the 10Y group is left out when none has them): 1M to 1Y cumulative, 2Y and longer per year, matching the main table. Volatility and max drawdown cover the ${useTen?"10 years":"5 years"} to ${pLbl(X.end)}. All figures are gross of AMC. Calendar years are full January to December years; YTD runs from January to ${pLbl(X.end)}.${anySim||calSim?" ◆ includes simulated history.":""} — where the history does not cover the period.`;
 }
 document.getElementById("xtable").addEventListener("change",e=>{
   const cb=e.target.closest('input[type="checkbox"][data-name]'); if(!cb) return;
@@ -2020,6 +2108,7 @@ function showTab(t){
 document.querySelectorAll(".apptab").forEach(b=>b.onclick=()=>showTab(b.dataset.tab));
 document.getElementById("xCats").addEventListener("click",e=>{ const b=e.target.closest(".xchip"); if(!b) return; X.cat=b.dataset.cat; renderExplorer(); });
 document.getElementById("xfilter").addEventListener("input",e=>{ X.q=e.target.value; renderExplorer(); });
+document.getElementById("xEsma").addEventListener("change",e=>{ X.esma=e.target.value; renderExplorer(); });
 document.getElementById("xEnd").addEventListener("change",e=>{ X.end=+e.target.value; renderExplorer(); });
 document.getElementById("xAmt").addEventListener("change",e=>{ e.target.value=Math.round(xAmtVal()).toLocaleString("en-IE"); renderExplorer(); });
 ["xFrom","xTo"].forEach(id=>document.getElementById(id).addEventListener("change",e=>{
@@ -2031,6 +2120,37 @@ const xSortBy=k=>{ const col=X_COLS.find(c=>c.k===k)||{first:-1};
   if(X.sortKey===k) X.sortDir=-X.sortDir; else { X.sortKey=k; X.sortDir=col.first; }
   renderExplorer(); };
 document.getElementById("xtable").addEventListener("click",e=>{ const th=e.target.closest("th[data-k]"); if(th) xSortBy(th.dataset.k); });
+document.getElementById("xtable").addEventListener("click",e=>{
+  const b=e.target.closest("button[data-add]"); if(!b || b.disabled) return;
+  const k=b.dataset.add, nm=b.dataset.fund, P=state.P[k], i=P.sel.indexOf(nm);
+  const after=()=>{ renderAll(); renderExplorer(); };   // keep the builder in step behind the tab, then redraw
+  if(i>=0){
+    /* Take it back out again: what toggleFund does, plus Undo, because removing a fund that carries a
+       weight loses that weight and drops the portfolio below 100%. */
+    const w=P.alloc[nm]; P.sel.splice(i,1); delete P.alloc[nm]; after();
+    const tot=P.sel.reduce((t,n)=>t+(+P.alloc[n]||0),0);
+    xToast(`Removed <b>${esc(xName(nm))}</b> from Portfolio ${k}.`+
+      (w ? ` Its ${fmtN(w)}% went with it, so Portfolio ${k} now totals ${fmtN(tot)}%.` : ""),
+      ()=>{ P.sel.splice(i,0,nm); if(w!==undefined) P.alloc[nm]=w; after(); xToast(`<b>${esc(xName(nm))}</b> is back in Portfolio ${k}.`); });
+    return;
+  }
+  if(P.sel.length>=5) return;
+  P.sel.push(nm);                        // no allocation, exactly as toggleFund does: the fund lands at 0%
+  after();
+  const full=state.P[k].sel.length>=5;
+  xToast(`Added <b>${esc(xName(nm))}</b> to Portfolio ${k} at 0% — set its weight in the Portfolio builder.${full?` Portfolio ${k} is now full.`:""}`,
+    ()=>{ const j=P.sel.indexOf(nm); if(j>=0){ P.sel.splice(j,1); delete P.alloc[nm]; after(); xToast(`<b>${esc(xName(nm))}</b> removed from Portfolio ${k} again.`); } });
+});
+const fmtN=v=>String(Math.round(v*100)/100);
+let xToastT=null;
+function xToast(html,undo){
+  document.querySelectorAll(".xtoast").forEach(n=>n.remove()); clearTimeout(xToastT);
+  const d=document.createElement("div"); d.className="xtoast"; d.setAttribute("role","status");
+  d.innerHTML=`<span>${html}</span>${undo?`<button type="button" class="undo">Undo</button>`:""}<button type="button" class="x" aria-label="Dismiss">×</button>`;
+  d.querySelector(".x").onclick=()=>{ clearTimeout(xToastT); d.remove(); };
+  if(undo) d.querySelector(".undo").onclick=()=>{ clearTimeout(xToastT); d.remove(); undo(); };
+  document.body.appendChild(d); xToastT=setTimeout(()=>d.remove(),8000);
+}
 document.getElementById("xtable").addEventListener("keydown",e=>{ const th=e.target.closest("th[data-k]"); if(th && (e.key==="Enter"||e.key===" ")){ e.preventDefault(); xSortBy(th.dataset.k); } });
 (function(){ let t="builder"; try{ t=localStorage.getItem("apb-tab")||"builder"; }catch(e){} showTab(t==="explorer"?"explorer":"builder"); })();
 
