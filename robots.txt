@@ -1,0 +1,5 @@
+# Portfolio Builder | Slate Labs — a public, static site. Crawling is welcome.
+User-agent: *
+Allow: /
+
+Sitemap: https://www.portfoliobuilder.cloud/sitemap.xml

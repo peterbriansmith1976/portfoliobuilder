@@ -1,0 +1,5 @@
+# Portfolio Builder | Slate Labs
+Contact: mailto:hello@portfoliobuilder.cloud
+Expires: 2027-09-17T00:00:00.000Z
+Preferred-Languages: en
+Canonical: https://www.portfoliobuilder.cloud/.well-known/security.txt

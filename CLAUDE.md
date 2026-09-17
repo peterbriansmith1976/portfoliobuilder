@@ -20,9 +20,11 @@ attribution, intended audience, accuracy, and jurisdiction. It replaced the Aviv
 entity text (AIGSL, Aviva Investors Luxembourg S.A., Aviva Investors Schweiz GmbH), which was
 Aviva's own regulatory statement and could not travel to a tool Aviva does not issue.
 
-It appears verbatim in all three surfaces — screen warnings panel, print document, and email
-copy. Treat it as fixed legal text: do not reword, condense or split it, and if it changes,
-change it in all three places together.
+It appears verbatim in **four** surfaces — screen warnings panel, print document, email copy, and the
+About page, which reuses the screen block exactly. Treat it as fixed legal text: do not reword,
+condense or split it, and if it changes, change it in all four places together. `about.html` scopes
+`--ink` to white inside the block, because the block's first paragraph carries an inline
+`color:var(--ink)` that would otherwise render dark navy on the dark panel and vanish.
 
 A short lead line, "Not an Aviva publication…", sits at the top of each warnings block, above
 the four Warning bullets. That placement is deliberate, not decorative: nominative fair use of
@@ -47,6 +49,11 @@ replaces one JSON file and never touches the app.
   separately by `fetch_inside.py` and optional (see Fund explorer).
 - `refresh_dashboard.py` — builds the payload from the source workbook.
 - `update_data.sh`, `check_data.py` — monthly refresh with a pre-publish review report.
+- `about.html` — a plain About page: what the tool is, who provides it, data sources, privacy, contact
+  (hello@portfoliobuilder.cloud), and the warnings block reproduced verbatim. Linked under the
+  disclaimer on the dashboard (hidden in print).
+- `robots.txt`, `sitemap.xml`, `.well-known/security.txt`, `.nojekyll` — crawler and legitimacy signals,
+  added because Aviva's web filter isolates the site as uncategorised (see below).
 - `publish.sh` — the only publishing route. Local helpers, all gitignored.
 - `Portfolio builder files.xlsx` — monthly source workbook, project root, fixed name,
   gitignored. Four sheets:
@@ -450,6 +457,22 @@ badge and re-renders. `loadData()` fetches, shape-checks, then calls it.
 - The client-side shape check guards against a truncated or half-written upload. It is not a
   substitute for upstream validation: `build_data()` already raises on any gap in a spliced
   series.
+
+## Hosting and being recognised by web filters
+
+**Aviva's network isolates the site as uncategorised** ("Web_Isolation_View_Only"), which makes it
+view-only and so unusable, since the tool needs typing. Only Aviva IT can lift that, through the IT
+Self Service Portal. Do not suggest workarounds (hotspot, VPN, another address): the github.io address
+redirects to the custom domain anyway, and a workaround turns an allow-list request into a conduct
+question. The author is an Aviva employee asking to use their own product on Aviva's network, so the
+outside business interests policy is the other half of that request.
+
+The site now carries the signals categorisers look for: a page description and canonical and Open Graph
+tags, `robots.txt`, `sitemap.xml`, `/.well-known/security.txt` and an About page naming the operator,
+the data sources and a contact. **`security.txt` has an `Expires` date and must be renewed yearly.**
+`.nojekyll` is required or GitHub Pages will not serve the `.well-known` folder. Still outstanding and
+only the user can do them: SPF and DMARC records on the domain, Google Search Console and Bing
+Webmaster Tools.
 
 ## Hosting
 
