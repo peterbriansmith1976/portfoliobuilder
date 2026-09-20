@@ -52,3 +52,4 @@ refresh_daily.sh
 promote.sh
 fetch_allocation.py
 fetch_inside.py
+fetch_others.py

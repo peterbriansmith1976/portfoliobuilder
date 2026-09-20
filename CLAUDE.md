@@ -15,12 +15,42 @@ The data is still overwhelmingly Aviva fund data (32 of 37 funds), so the produc
 provider-neutral in name only. Fund names keep their "Aviva" prefix because those are the funds'
 legal names; renaming them would misidentify regulated products.
 
+**Displayed names keep "Aviva"** on every surface (screen, print, email), at the user's request (18 Sep 2026),
+so Aviva funds read the same way as Zurich, New Ireland, Irish Life and Royal London funds beside them.
+`short()` still drops the series suffix, "(Ireland)" and a trailing "Fund", but no longer the "Aviva "
+prefix. The five Dimensional funds keep their own names, by the user's decision: they are in the Aviva
+range (and under Aviva in the Provider filter) but "Aviva" is not part of their legal names.
+**The share-class ending is never displayed** ("Series C", "Series 1", any "Series X", and a closing "G" as on
+Stewardship Ethical Equity and four Zurich funds), at the user's request,
+since every figure is gross of fees and the class adds nothing. `fullName()` strips it and is used wherever the
+full name is shown (picker tooltip, holdings table, print, email, explorer titles); `short()` builds on it. The
+data keeps the legal names, which remain the keys for selections and allocations.
+
 The regulatory disclaimer is **Slate Labs** text covering provider status, trade marks and
 attribution, intended audience, accuracy, and jurisdiction. It replaced the Aviva Investors
 entity text (AIGSL, Aviva Investors Luxembourg S.A., Aviva Investors Schweiz GmbH), which was
 Aviva's own regulatory statement and could not travel to a tool Aviva does not issue.
 
-It appears verbatim in **four** surfaces — screen warnings panel, print document, email copy, and the
+**Revised 20 Sep 2026** at the user's request, in every surface that carries each sentence: the source now reads
+"the Aviva Ireland website and the Fund Focus service provided by Longboat Analytics / MoneyMate / CSS" and names
+those three in the accuracy clause; the cost sentence now reads "Where a portfolio cost is shown... All performance
+figures are gross: no fund, adviser or plan-level charges have been deducted", since the All Funds tabs show no cost
+and the old "gross of charges; the portfolio cost... has not been deducted" said the same thing twice (the user
+spotted the tautology).
+
+**Print now carries the full text, from the screen block itself.** It used to hold three paragraphs where the
+others held seven, omitting the simulated-performance, cost and volatility paragraphs. Fixed on the user's
+instruction (20 Sep 2026): `buildPrintDoc()` reads `.disc`'s innerHTML, swaps the h3 for an h4 and scopes
+`--ink` to #0D1B2A on the wrapper, because the first paragraph's inline `color:var(--ink)` would print
+near-white from dark theme (the same trap `about.html` documents). There is now **one source** for screen,
+print and About; only email keeps its own copy, since Outlook needs inline styles. Verified: all 11 items
+(7 paragraphs, 4 warnings) match the screen word for word. Cost: the block is 85px taller, so a mixed
+comparison such as 2 + 3 funds now runs to 3 pages; page 1 is unchanged in every case and single portfolios
+still print on 2. The heading matches the screen's, both uppercase: reading it as sentence case came from
+measuring `innerText` while `#printdoc` was hidden, where the browser reports untransformed text. Force
+`display:block` before measuring the print document, or the reading is worthless.
+
+It appears in **four** surfaces — screen warnings panel, print document, email copy, and the
 About page, which reuses the screen block exactly. Treat it as fixed legal text: do not reword,
 condense or split it, and if it changes, change it in all four places together. `about.html` scopes
 `--ink` to white inside the block, because the block's first paragraph carries an inline
@@ -47,6 +77,8 @@ replaces one JSON file and never touches the app.
 - `data/allocation.json` — asset mix per fund, fetched separately and optional (see Asset mix).
 - `data/inside.json` — per-fund breakdowns for the Fund explorer's "What's inside" cards, fetched
   separately by `fetch_inside.py` and optional (see Fund explorer).
+- `data/others.json` — the other providers' funds (Zurich, New Ireland, Irish Life, Royal London),
+  fetched separately by `fetch_others.py` and optional (see All Funds tabs).
 - `refresh_dashboard.py` — builds the payload from the source workbook.
 - `update_data.sh`, `check_data.py` — monthly refresh with a pre-publish review report.
 - `about.html` — a plain About page: what the tool is, who provides it, data sources, privacy, contact
@@ -96,6 +128,9 @@ Keychain access from launchd works fine; only the folder was the problem.
 - `fetch_inside.py` — "What's inside" breakdowns, staged to `work/inside.staged.json`. Runs after the
   asset mix in `refresh_daily.sh` and can never block prices; `promote.sh` shows a summary and copies it
   to `data/inside.json` with the month, or with `./promote.sh --allocation`.
+- `fetch_others.py` — the other providers' funds, staged to `work/others.staged.json`. Runs after
+  `fetch_inside.py` and can never block prices; `promote.sh` copies it to `data/others.json` only when its
+  as-at equals the Aviva month, otherwise it is held back.
 
 All are gitignored. `data/` holds only published payloads; anything transient goes in `work/`,
 because `publish.sh` globs `data/*.json` and would otherwise ship working files.
@@ -164,6 +199,78 @@ identical name, one holding 37 funds and one holding 32 without the Dimensional 
 
 `check_data.py` is shared by both routes and blocks on funds disappearing, the as-at going
 backwards, and already-published months changing value.
+
+## All Funds tabs
+
+Four tabs, in the user's order: **Aviva Portfolio Builder | Aviva Fund Explorer | All Funds Portfolio Builder |
+All Funds Explorer** (the first two renamed from "Portfolio builder" and "Fund explorer" on 19 Sep 2026; the explorer
+heading, toasts, notes and portfolio cards name the builder the same way). The All Funds pair is the same builder and the same explorer, not copies, over all 81 funds (37
+Aviva range plus 44 from Zurich, New Ireland, Irish Life and Royal London). The first two tabs read the Aviva
+range only and are byte-identical to before the All Funds tabs existed (explorer table, note and count
+verified against the published build). Built at the user's request; they will decide later whether it goes
+public.
+
+- **Data comes from two saved Fund Focus reports on the owner's account**: 111322 (daily prices) and 111323
+  (AMC, "Risk Profile ESMA", Category). Adding a fund means adding it to **both** reports; nothing in the
+  code lists funds. `fetch_others.py` stops if the two reports disagree, or if 111323's columns are not
+  exactly Name, AMC, Risk Profile ESMA, Category.
+- **Same conventions as `latest.json`**: month-end prices via `fundfocus.prices()` (D+1 stamping), grossed up
+  geometrically by AMC, 6 decimals, no simulated history, `liveStart` the first priced month.
+- **Royal London publishes 0.00% AMC.** By the user's decision their prices carry no AMC, so nothing is
+  added back. Consequence to keep in mind: their portfolios show the lowest cost.
+- **Asset class, the user's rule, in this order:** "Gold" in the name → Alternative; name ending "Equities"
+  → Equity (New Ireland PRIME Equities, iFunds Equities, both by the user's decision); category containing
+  "Managed" or "Fund of Funds" → Multi-Asset; "Bond" → Fixed Income; "Equity" → Equity. An unplaced
+  category stops the run.
+- **ESMA:** published where Fund Focus has it. Otherwise, with 60 months, an indicative band from the
+  fund's own 5-year volatility, `esmaSource: "calculated"`, shown with "≈" and a title (the four Royal
+  London multi-asset funds). Two hand-set sources, both used only where Fund Focus publishes nothing, so a
+  published rating always wins: **Irish Life Forum 3/4/5 take the band in their names** (`ESMA_FROM_NAME`,
+  `esmaSource: "name"`, titled "Taken from the fund's name"), and the **PruFunds are set by the user**, Cautious 3
+  and Growth 4 (`ESMA_SET_BY_OWNER`, `"owner"`, titled "Set by Slate Labs"), never calculated because smoothing
+  makes their volatility meaningless. Neither shows "≈". Every one of the 81 funds now has a rating.
+  **Overrides of published data**, at the user's request (19 Sep 2026): New Ireland Goodbody Dividend Income 6
+  is **Equity** (`CLASS_SET_BY_OWNER`; Fund Focus says Managed Aggressive, so the rule made it Multi-Asset) and
+  **ESMA 6** (`ESMA_OVERRIDE_BY_OWNER`, replacing a *published* 5). The published figure is kept as
+  `esmaPublished` and named in the hover ("Set by Slate Labs; Fund Focus publishes 5"): an override of a
+  provider's own rating is disclosed, never hidden.
+- **Stops:** reports disagree, no prices, gaps, funds ending in different months, bad AMC, unknown provider,
+  unplaced category, a fund disappearing, as-at going backwards, history start moving, a published month
+  changing. All tested.
+- **Client:** `MODE` "aviva" or "all", with separate `STATE_AVIVA` / `STATE_ALL`, so the two builders never
+  share selections. `BF()` is the universe for the mode. Provider chips (`.pchip`, not `.tab`) appear only
+  in the All Funds tabs. Cost there is each fund's **AMC** (`fundCost`), weighted, "not deducted"; the standard-fee
+  control is hidden, since other providers have no standard fee. **No cost is shown in sections 1 and 2** of the
+  All Funds builder (no picker tag, no Fund cost column, `holdCostTh` hidden and the total's colspan 4), and the
+  **All Funds Explorer has no Fee vs standard column**, both at the user's request (19 Sep 2026). Section 3 follows:
+  no Portfolio cost card (four cards, `.cards.four`) and no cost column in building blocks. Cost wording elsewhere is
+  mode-aware: the section 2 heading drops "& cost" (`#secCost`), the growth legend reads "Gross of AMC", and the
+  projection and performance-basis notes say no charges are deducted. **The disclaimer still carries the sentence
+  "Portfolio cost figures are based on the standard portfolio cost entered by the user..."**, untrue on this tab;
+  it is fixed legal text, so it waits for the user's disclaimer revision with the price-source sentence. The Aviva
+  builder's markup is byte-identical to before apart from three ids.
+- **Print and email work in the All Funds Portfolio Builder** (enabled 20 Sep 2026, once the disclaimer named Fund
+  Focus as a source). They were disabled because both priced every fund as `stdFee + costAdj`, and a non-Aviva fund
+  has no `costAdj`, so `1.00 + null` printed the standard fee as that fund's cost: a wrong figure, not a blank.
+  Both are now cost-free in "all" mode, matching the screen: no cost column in the print composition and building
+  blocks tables (and their colgroups), no Portfolio cost key figure (`.pd-kpis.four`), no standard cost in the
+  print sub-header, no Cost p.a. column or cost stat cell in email (stat cells 25% wide instead of 20%), and the
+  print methodology says no charges have been deducted. Verified: header and row cell counts match in every table,
+  no cost figure survives anywhere, page 1 still fits and a 5 + 5 still runs to 3 pages, and the Aviva print and
+  email output is byte-identical.
+- **Asset mix and What's inside** cover only Aviva and Dimensional. A portfolio holding other funds says
+  so; an other-provider fund's card shows AMC and ESMA and says no breakdown source is available.
+- **`others.json` must end in the same month as `latest.json`**, or `mergeOthers()` drops it and the tab
+  says why. A missing or malformed file leaves the Aviva range working (verified).
+- **All Funds Explorer:** all 81 funds, plus a Provider filter (portfolios hidden when a provider is chosen;
+  the filter is hidden in the Fund explorer). It has no Fee vs standard column, the standard fee being Aviva's
+  alone. Its portfolio rows and Add to buttons are the All Funds Portfolio Builder's.
+  Each explorer keeps its own state (`X_AVIVA` / `X_ALL`: filters, search, sort, ticks, compare view);
+  `showTab()` sets `MODE`, `state` and `X` together for every tab.
+- **Verified:** all 6,503 returns re-derived from the raw report; 484 explorer cells match Python; the
+  Aviva builder (17 sections, three scenarios) and all 37 Aviva explorer rows byte-identical to before.
+- **Before it goes public:** data licence scope with Longboat/CSS for non-Aviva funds, the disclaimer
+  revision, and the outside interests question.
 
 ## Asset mix
 
@@ -248,8 +355,11 @@ Agreed with the user in three stages: 1 the fund table (built), 2 a compare scre
 drawdown charts for up to 5 ticked funds, 3 optional extras they choose from (per-fund asset mix,
 stress episodes, correlation table, rank in asset class, add to portfolio).
 
-- **Table columns:** fund, asset class, launched, ESMA, fee vs standard, 1M, 3M, YTD, 1Y, 2Y/3Y/5Y/10Y p.a.,
-  since launch p.a., Vol 5Y, max DD since launch, plus an optional cumulative custom period column.
+- **Table columns:** fund, add to, asset class, ESMA, fee vs standard, 1M, 3M, YTD, 1Y, 2Y/3Y/5Y/10Y p.a.,
+  Vol 5Y, Max DD 5Y, plus an optional cumulative custom period column. Launched and since launch p.a. were
+  removed and max drawdown moved from since launch to 5 years at the user's request (19 Sep 2026), so Vol and
+  Max DD share one basis, the same 60 months, both flagged ◆ when those months include simulated history.
+  Max DD 5Y matches the compare screen's own Max DD 5Y for all 37 funds and an independent Python check.
   Asset class filter, name search, sort by any heading (blanks always last), and an end month that
   recalculates every figure.
 - **ESMA filter** is a dropdown straight after the asset class chips (user's placement). It lists only
@@ -261,10 +371,7 @@ stress episodes, correlation table, rank in asset class, add to portfolio).
   (`+0.25%` in `--neg`, `−0.10%` in `--pos`), and **blank on the standard fee** so only the funds that
   differ draw the eye. 17 of 37 funds are standard. A portfolio row shows its allocation-weighted
   difference. Verified cell by cell against the picker's own tags.
-- **Since launch starts at `liveIdx + 1`**, the first month built entirely from live prices, so it
-  never includes simulated history. For every non-simulated fund that equals `startIdx` (verified).
-  It needs 12 such months, otherwise "—": an annualised part year would mislead. Max DD since launch
-  uses the same months. Period columns 1M to 10Y follow the builder's `fundPeriod` convention exactly,
+- Period columns 1M to 10Y follow the builder's `fundPeriod` convention exactly,
   including its ◆ rule (`from < liveIdx`), so a fund's figures agree between the two tabs.
 - **Portfolio A and B appear as rows**, because to this table a portfolio is exactly what a fund is: a
   monthly return series with a start month. `portfolioFund(k)` wraps `series(k, cs, END())` from the
@@ -275,8 +382,7 @@ stress episodes, correlation table, rank in asset class, add to portfolio).
   - Category Multi-Asset, badged "Portfolio", pinned to the top of the default sort but ranked among
     the funds as soon as a column heading is clicked, which is the point of having them there.
   - `liveIdx` is the **latest** live start among the holdings, so a month counts as simulated while any
-    holding still is, which is what `series()` already flags. Since launch and max DD since launch then
-    exclude simulated months exactly as they do for a fund.
+    holding still is, which is what `series()` already flags.
   - **ESMA is the band for the portfolio's own volatility over the same 5 years as its Vol 5Y cell**, so
     the row is self-consistent; it is path-based like the builder's and indicative, since regulatory
     SRRI uses a fixed basis. **Fee vs standard is the allocation-weighted `costAdj`** of its holdings,
@@ -429,8 +535,8 @@ stress episodes, correlation table, rank in asset class, add to portfolio).
   selected period and the shared history reaches back that far** (the heading names the basis, e.g.
   "Vol 10Y" / "Max DD 10Y"), at the user's request. A clamped 10Y falls back to 5Y, and a fund whose
   own history is shorter reads "—" rather than a different period inside the same column. This is a
-  third basis alongside the two in Locked methodology: the main explorer table keeps Vol 5Y and max DD
-  since launch, and the builder keeps its own. Do not unify them.
+  third basis alongside the two in Locked methodology: the main explorer table is fixed at 5 years for both,
+  and the builder keeps its own. Do not unify them.
 - `growthChartSVG` takes an optional `th.amt`; the explorer passes 10000, and the builder still reads
   its investment box, verified byte-identical.
 - **Class names are the explorer's own** (`.xwbtn`, `.xchip`, `.xpick`): the builder binds click
@@ -470,9 +576,21 @@ outside business interests policy is the other half of that request.
 The site now carries the signals categorisers look for: a page description and canonical and Open Graph
 tags, `robots.txt`, `sitemap.xml`, `/.well-known/security.txt` and an About page naming the operator,
 the data sources and a contact. **`security.txt` has an `Expires` date and must be renewed yearly.**
-`.nojekyll` is required or GitHub Pages will not serve the `.well-known` folder. Still outstanding and
-only the user can do them: SPF and DMARC records on the domain, Google Search Console and Bing
-Webmaster Tools.
+`.nojekyll` is required or GitHub Pages will not serve the `.well-known` folder. **Search engines are registered** (17 Sep 2026): Google Search Console holds a *domain* property
+(covers www and apex), verified by DNS, sitemap submitted and read successfully, both pages found;
+Bing Webmaster Tools holds https://www.portfoliobuilder.cloud/, verified by DNS, sitemap submitted.
+
+**DNS records that must not be deleted**, all in Hostinger (nameservers `*.dns-parking.com`, DNS
+managed there, the site's A and www CNAME records point at GitHub Pages):
+`google-site-verification=...` TXT at the root and the `d8d77...` CNAME to `verify.bing.com` keep
+those verifications alive; the two `improvmx.com` MX records, the `v=spf1 include:spf.improvmx.com
+~all` TXT and the `_dmarc` TXT run the mail side.
+
+**hello@portfoliobuilder.cloud forwards to the owner's inbox** through ImprovMX's free tier (chosen
+over Cloudflare Email Routing, which would have moved DNS off Hostinger, and over a paid Hostinger
+mailbox). Hostinger itself offers no forwarding on a domain-only account. ImprovMX also created a
+catch-all `*@` alias. Receiving only: replies come from the owner's own address, and DMARC `p=reject`
+would block sending as the domain until that is set up properly.
 
 ## Hosting
 

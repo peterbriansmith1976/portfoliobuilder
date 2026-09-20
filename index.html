@@ -105,9 +105,17 @@ main.grid{max-width:1240px;margin:0 auto;padding:0 20px 30px;display:grid;grid-t
    Borrows the logomark's tile shape, not its colour. */
 .sec-icon{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;flex:0 0 30px;margin-right:10px;background:var(--raised);border-radius:8px;color:var(--ink)}
 .tab.on{background:var(--signal);color:var(--signal-ink);border-color:var(--signal)}
+/* All Funds Portfolio Builder: provider filter above the category tabs. Its own class, since .tab is bound globally. */
+.provs{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px}
+.provs[hidden]{display:none}
+.pchip{background:transparent;border:1px solid var(--hair);color:var(--muted);border-radius:6px;padding:4px 9px;font-size:11.5px;font-weight:700;cursor:pointer;font-family:inherit}
+.pchip.on{background:var(--signal);color:var(--signal-ink);border-color:var(--signal)}
+.pchip:focus-visible{outline:2px solid var(--signal);outline-offset:1px}
+.costtag.amc{color:var(--muted);font-weight:700}
+#xtable td.fee.na{color:var(--faint);font-weight:400}
 .fundlist{max-height:520px;overflow-y:auto}
 .cat{font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);padding:12px 4px 4px}
-.fundrow{display:flex;align-items:center;gap:10px;width:100%;height:42px;text-align:left;background:transparent;border:none;border-radius:6px;padding:0 8px;cursor:pointer;font-family:inherit;color:var(--ink);font-size:13.5px}
+.fundrow{display:flex;align-items:center;gap:10px;width:100%;height:42px;text-align:left;background:transparent;border:none;border-radius:6px;padding:0 8px;cursor:pointer;font-family:inherit;color:var(--ink);font-size:12px}
 .fundrow:hover{background:var(--raised)}
 .fundrow.checked{background:var(--signal-wash)}
 .fundrow:disabled{opacity:.4;cursor:not-allowed}
@@ -152,6 +160,7 @@ tr.total td{font-weight:800;border-bottom:none}
 .wbtn{background:var(--raised);border:1px solid var(--hair);color:var(--muted);border-radius:6px;padding:7px 11px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit}
 .wbtn.on{background:var(--signal);color:var(--signal-ink);border-color:var(--signal)}
 .cards{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin:10px 0}
+.cards.four{grid-template-columns:repeat(4,1fr)}
 .scard{background:var(--raised);border:1px solid var(--hair);border-radius:10px;padding:13px}
 .scard .lbl{font-size:10.5px;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);font-weight:700}
 .scard .val{font-size:21px;font-weight:800;margin-top:5px}
@@ -199,7 +208,7 @@ table.proj.compact td:first-child,table.proj.compact th:first-child{white-space:
 #calTable td.v .dia{position:absolute;right:2px;top:6px;font-size:9px;line-height:1;color:var(--sim);font-weight:400}
 @media(max-width:560px){.acwrap{grid-template-columns:1fr;justify-items:center}}
 @media(prefers-reduced-motion:reduce){.acwrap svg path{transition:none}}
-@media(max-width:980px){main.grid{grid-template-columns:1fr}.cards{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:980px){main.grid{grid-template-columns:1fr}.cards,.cards.four{grid-template-columns:repeat(2,1fr)}}
 /* footer disclaimers */
 .disc-wrap{padding:0 0 30px}
 .aboutlink{margin-top:10px;font-size:12px}
@@ -227,6 +236,15 @@ table.proj.compact td:first-child,table.proj.compact th:first-child{white-space:
 .ddmk:focus-visible circle:first-of-type,.ddmk.on circle:first-of-type{r:7}
 .ddtip{position:absolute;transform:translate(-50%,-100%);pointer-events:none;background:var(--raised);border:1px solid var(--hair);border-radius:7px;padding:5px 9px;font-size:11.5px;line-height:1.45;color:var(--ink);white-space:nowrap;box-shadow:0 4px 14px rgba(0,0,0,.28);z-index:3}
 .ddtip b{font-variant-numeric:tabular-nums}
+/* the picker's full fund name, shown at once on hover or focus; the list is narrow and cuts long names short */
+/* the picker's full fund name, laid exactly over the shortened one so the name simply extends in place */
+.picktip{position:fixed;z-index:20;transform:translateY(-50%);white-space:nowrap;pointer-events:none;
+  font-size:12px;line-height:1.35;padding:4px 9px;border-radius:9px;border:1px solid var(--hair);
+  color:color-mix(in srgb,var(--ink) 78%,var(--muted));
+  background:color-mix(in srgb,var(--raised) 88%,transparent);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);
+  box-shadow:0 2px 8px rgba(0,0,0,.12);opacity:0;visibility:hidden;transition:opacity .2s ease,visibility 0s linear .2s}
+.picktip.on{opacity:1;visibility:visible;transition:opacity .2s ease .1s,visibility 0s}
+@media (prefers-reduced-motion:reduce){.picktip,.picktip.on{transition:none}}
 .ddtip .w{color:var(--muted)}
 .xcontrols{display:flex;flex-wrap:wrap;gap:14px 22px;align-items:flex-end;margin-bottom:14px}
 .xchips{display:flex;flex-wrap:wrap;gap:6px}
@@ -346,6 +364,7 @@ table.proj.compact td:first-child,table.proj.compact th:first-child{white-space:
 .pd-sub{font-size:8.5px;color:#66737F;margin:0 0 4px}
 .pd-h{font-size:8px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#0D1B2A;margin:12px 0 5px;padding-bottom:3px;border-bottom:1px solid #0D1B2A}
 .pd-kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
+.pd-kpis.four{grid-template-columns:repeat(4,1fr)}
 .pd-kpi{border-top:2px solid #0D1B2A;padding-top:5px}
 .pd-kpi .l{font-size:7px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#66737F}
 .pd-kpi .v{font-size:17px;font-weight:900;font-variant-numeric:tabular-nums;margin-top:1px;color:#0D1B2A}
@@ -412,8 +431,10 @@ table.proj.compact td:first-child,table.proj.compact th:first-child{white-space:
 </div></header>
 
 <nav class="wrap" aria-label="Views"><div class="apptabs" role="tablist">
-  <button class="apptab on" role="tab" data-tab="builder" aria-selected="true">Portfolio builder</button>
-  <button class="apptab" role="tab" data-tab="explorer" aria-selected="false">Fund explorer</button>
+  <button class="apptab on" role="tab" data-tab="builder" aria-selected="true">Aviva Portfolio Builder</button>
+  <button class="apptab" role="tab" data-tab="explorer" aria-selected="false">Aviva Fund Explorer</button>
+  <button class="apptab" role="tab" data-tab="all" aria-selected="false">All Funds Portfolio Builder</button>
+  <button class="apptab" role="tab" data-tab="allx" aria-selected="false">All Funds Explorer</button>
 </div></nav>
 
 <main class="grid">
@@ -422,9 +443,10 @@ table.proj.compact td:first-child,table.proj.compact th:first-child{white-space:
       <div class="card-head"><h2><span class="sec-icon"><svg width="19" height="19" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="3" y1="6" x2="17" y2="6"/><circle cx="8" cy="6" r="2" fill="currentColor" stroke="none"/><line x1="3" y1="10" x2="17" y2="10"/><circle cx="13" cy="10" r="2" fill="currentColor" stroke="none"/><line x1="3" y1="14" x2="17" y2="14"/><circle cx="6" cy="14" r="2" fill="currentColor" stroke="none"/></svg></span>1 · Choose funds</h2><span class="count"><span class="editchip" id="editchip">Portfolio A</span> <span id="selcount">0/5</span></span></div>
       <div class="card-body">
         <input id="filter" placeholder="Filter funds…" aria-label="Filter funds">
+        <div class="provs" id="provs" hidden></div>
         <div class="tabs" id="tabs"></div>
         <div class="fundlist" id="fundlist"></div>
-        <div class="hint">Tags show fund cost vs the standard fee. <span class="simmark">◆</span> Index/simulated performance prior to the fund's live pricing date — the date is shown in the allocations table and shaded on the growth chart.</div>
+        <div class="hint" id="pickHint">Tags show fund cost vs the standard fee. <span class="simmark">◆</span> Index/simulated performance prior to the fund's live pricing date — the date is shown in the allocations table and shaded on the growth chart.</div>
       </div>
     </div>
   </section>
@@ -432,7 +454,7 @@ table.proj.compact td:first-child,table.proj.compact th:first-child{white-space:
   <section>
     <div class="card">
       <div class="card-head">
-        <div style="display:flex;align-items:center;gap:12px"><h2><span class="sec-icon"><svg width="19" height="19" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M10 2v8l6.5 4A8 8 0 1 0 10 18" stroke-linecap="round"/><path d="M10 2A8 8 0 0 1 17.9 9H10z" opacity=".45"/></svg></span>2 · Set allocations &amp; cost</h2>
+        <div style="display:flex;align-items:center;gap:12px"><h2><span class="sec-icon"><svg width="19" height="19" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M10 2v8l6.5 4A8 8 0 1 0 10 18" stroke-linecap="round"/><path d="M10 2A8 8 0 0 1 17.9 9H10z" opacity=".45"/></svg></span>2 · Set allocations<span id="secCost">&nbsp;&amp; cost</span></h2>
           <div class="ptabs">
             <button class="ptab on" data-p="A" id="ptabA">Portfolio A</button>
             <button class="ptab" data-p="B" id="ptabB">Portfolio B · compare</button>
@@ -446,14 +468,15 @@ table.proj.compact td:first-child,table.proj.compact th:first-child{white-space:
       <div class="card-body">
         <div class="controls">
           <div class="ctrl"><label>Investment €</label><input type="text" id="amt" class="edit" value="100,000" inputmode="numeric" autocomplete="off"></div>
-          <div class="ctrl"><label>Standard portfolio cost % p.a.</label><input type="number" id="stdFee" class="edit" value="1.00" min="0" max="3" step="0.05"></div>
+          <div class="ctrl" id="stdFeeCtrl"><label>Standard portfolio cost % p.a.</label><input type="number" id="stdFee" class="edit" value="1.00" min="0" max="3" step="0.05"></div>
         </div>
+        <p class="hint" id="allNote" hidden></p>
         <p class="empty" id="allocEmpty" style="padding:14px 0">Choose funds on the left to start building. Each fund gets a weight; the portfolio must total exactly 100%. Portfolio B is optional — build it to compare two portfolios side by side.</p>
         <div id="holdWrap" style="display:none">
         <table class="hold compact">
-          <thead><tr><th>Fund</th><th>Category</th><th>ESMA</th><th>Fund cost</th><th>History from</th><th style="text-align:right">Alloc %</th><th></th></tr></thead>
+          <thead><tr><th>Fund</th><th>Category</th><th>ESMA</th><th id="holdCostTh">Fund cost</th><th>History from</th><th style="text-align:right">Alloc %</th><th></th></tr></thead>
           <tbody id="holdBody"></tbody>
-          <tfoot><tr class="total"><td colspan="5">Total</td><td style="text-align:right"><span id="allocTotal">0</span>%</td><td></td></tr></tfoot>
+          <tfoot><tr class="total"><td colspan="5" id="holdTotLbl">Total</td><td style="text-align:right"><span id="allocTotal">0</span>%</td><td></td></tr></tfoot>
         </table>
         <div id="railwrap">
           <div id="rail" role="img" aria-label="Allocation bar"></div>
@@ -532,9 +555,9 @@ table.proj.compact td:first-child,table.proj.compact th:first-child{white-space:
         <li><b>Warning:</b> Past performance is not a reliable guide to future performance.</li>
         <li><b>Warning:</b> These funds may be affected by changes in currency exchange rates.</li>
       </ul>
-      <p>Source of performance and prices is the Aviva Ireland website provided by Longboat Analytics / MoneyMate. We believe the sources to be reliable, but we cannot guarantee the accuracy or completeness of the information provided by the Fund Managers/Longboat Analytics. The figures quoted are calculated on an offer to offer basis with income reinvested. Performance is quoted gross of annual management charge. The returns on policies linked to a fund may not be the same because of the effects of any other policy specific charges. Fund availability varies by product type — please contact your Financial Broker for details of the funds available by product type. For information on risk ratings, charges, securities lending or other fund related topics on how these funds work, please see the relevant fund factsheets, KIID or specific fund website, or contact your Financial Broker. The information contained in this service should not be construed as an investment recommendation.</p>
+      <p>Source of performance and prices is the Aviva Ireland website and the Fund Focus service provided by Longboat Analytics / MoneyMate / CSS. We believe the sources to be reliable, but we cannot guarantee the accuracy or completeness of the information provided by the Fund Managers, Longboat Analytics / MoneyMate or CSS. The figures quoted are calculated on an offer to offer basis with income reinvested. Performance is quoted gross of annual management charge. The returns on policies linked to a fund may not be the same because of the effects of any other policy specific charges. Fund availability varies by product type — please contact your Financial Broker for details of the funds available by product type. For information on risk ratings, charges, securities lending or other fund related topics on how these funds work, please see the relevant fund factsheets, KIID or specific fund website, or contact your Financial Broker. The information contained in this service should not be construed as an investment recommendation.</p>
       <p>For certain funds, performance prior to the fund's live pricing date is index or simulated performance and not actual fund performance. These figures are marked with ◆ throughout this tool and noted beneath any portfolio result that includes them. Simulated or index performance does not reflect actual fund returns and is not a reliable guide to future performance.</p>
-      <p>Portfolio cost figures are based on the standard portfolio cost entered by the user, adjusted by each fund's published fee adjustment, weighted by allocation. Performance figures are shown gross of charges; the portfolio cost is displayed separately and has not been deducted from the returns shown.</p>
+      <p>Where a portfolio cost is shown, it is based on the standard portfolio cost entered by the user, adjusted by each fund's published fee adjustment and weighted by allocation. All performance figures are gross: no fund, adviser or plan-level charges have been deducted from the returns shown.</p>
       <p>Portfolio volatility, maximum drawdown and the portfolio ESMA band are computed from the combined portfolio's own monthly return series (weighted by allocation, rebalanced monthly), so they reflect diversification between funds. Monthly pricing understates true maximum drawdown relative to daily data. Stochastic projections are illustrative simulations and are not guaranteed.</p>
       <p><b>Provider and status.</b> Portfolio Builder is provided by Slate Labs. Slate Labs is not authorised or regulated by the Central Bank of Ireland, does not provide investment advice and does not make recommendations. This tool performs calculations on the funds and allocations you select; every figure it produces is an illustration. <b>Trade marks and attribution.</b> This tool is not issued, approved, reviewed or endorsed by Aviva plc, Aviva Investors, Aviva Life &amp; Pensions Ireland DAC or any other Aviva group company. Fund names, product names and trade marks are the property of their respective owners and are used here only to identify the funds shown. <b>Intended audience.</b> Provided to regulated financial brokers and advisers for their own research and illustration. Not intended for use with, or distribution to, retail clients. Where figures are reproduced for a client, responsibility for that use, including applicable marketing and disclosure requirements, rests with the adviser who reproduces them. <b>Accuracy.</b> Information has been obtained from sources believed to be reliable but has not been independently verified by Slate Labs and is not guaranteed to be accurate or complete. Past performance is not a reliable guide to future performance. The value of an investment and any income from it may go down as well as up, and an investor may not get back the original amount invested. Some figures shown are hypothetical, simulated or projected and may not come to pass. <b>Jurisdiction.</b> Nothing here constitutes an offer or solicitation in any jurisdiction where that would be unlawful, or to any person to whom it would be unlawful to make it. Anyone in possession of this information is responsible for observing the applicable laws and regulations of any relevant jurisdiction.</p>
       <p>This model portfolio tool is illustrative only and is not investment advice.</p>
@@ -544,11 +567,12 @@ table.proj.compact td:first-child,table.proj.compact th:first-child{white-space:
 
 <main id="explorer" style="display:none">
   <div class="card" id="xTableCard">
-    <div class="card-head"><h2><span class="sec-icon"><svg width="19" height="19" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="3.5" width="14" height="13" rx="2"/><line x1="3" y1="8" x2="17" y2="8"/><line x1="3" y1="12.2" x2="17" y2="12.2"/><line x1="8.5" y1="8" x2="8.5" y2="16.5"/></svg></span>Fund explorer</h2><div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><span class="count" id="xCount"></span><button class="btn btn-quiet" id="xClear" type="button">Clear ticks</button><button class="btn btn-primary" id="xCompareBtn" type="button" disabled>Compare</button></div></div>
+    <div class="card-head"><h2><span class="sec-icon"><svg width="19" height="19" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="3.5" width="14" height="13" rx="2"/><line x1="3" y1="8" x2="17" y2="8"/><line x1="3" y1="12.2" x2="17" y2="12.2"/><line x1="8.5" y1="8" x2="8.5" y2="16.5"/></svg></span><span id="xTitle">Aviva Fund Explorer</span></h2><div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><span class="count" id="xCount"></span><button class="btn btn-quiet" id="xClear" type="button">Clear ticks</button><button class="btn btn-primary" id="xCompareBtn" type="button" disabled>Compare</button></div></div>
     <div class="card-body">
       <div class="xcontrols">
         <div class="ctrl"><label>Asset class</label><div class="xchips" id="xCats"></div></div>
         <div class="ctrl"><label for="xEsma">ESMA</label><select id="xEsma"><option value="">All</option></select></div>
+        <div class="ctrl" id="xProvCtrl"><label for="xProv">Provider</label><select id="xProv"><option value="">All</option></select></div>
         <div class="ctrl"><label for="xfilter">Find a fund</label><input id="xfilter" type="search" placeholder="Search by name" autocomplete="off"></div>
         <div class="ctrl"><label for="xEnd">Performance to</label><select id="xEnd"></select></div>
         <div class="ctrl"><label for="xFrom">Custom period</label><select id="xFrom" aria-label="Custom period from"></select> <select id="xTo" aria-label="Custom period to"></select></div>
@@ -589,7 +613,7 @@ table.proj.compact td:first-child,table.proj.compact th:first-child{white-space:
 <div id="emailCopySrc" style="position:fixed;left:-99999px;top:0;width:640px;background:#ffffff"></div>
 
 <script>
-const DATA = {asOf:null, funds:[]};  // populated at runtime by loadData()
+const DATA = {asOf:null, funds:[], others:[]};  // populated at runtime by loadData(); others by loadOthers()
 
 /* ---------- helpers ---------- */
 const pIdx = p => { const [y,m]=p.split("-").map(Number); return y*12+(m-1); };
@@ -610,10 +634,31 @@ const AC=["var(--ac1)","var(--ac2)","var(--ac3)","var(--ac4)","var(--ac5)","var(
 const AC_FIXED=["#2F6A99","#6A9DC6","#8C98A3","#B06A3B","#BF9528","#7B6DA2"];
 let ALLOC=null, ALLOC_ERR=null;  // asset mix payload, loaded separately and never required
 const AC_METHOD="Each fund's asset mix is taken from its provider's most recent published factsheet data: the Aviva fund centre (Longboat Analytics) for Aviva funds and Dimensional's fund centre for Dimensional funds. Provider categories are grouped into six asset classes, and each fund's mix is scaled to total exactly 100%. The portfolio mix is the allocation-weighted average of its funds. Providers publish on different month ends, so the as-at dates are shown with the mix. Aviva Physical Gold publishes no asset mix and is classified as 100% gold. Asset mix is a current snapshot, not a history, and does not describe how the funds were invested over the performance window.";
-const state = { act:"A", P:{A:{sel:[],alloc:{}},B:{sel:[],alloc:{}}}, cat:"All", win:"60", cFrom:null, cTo:null };
+let state = { act:"A", P:{A:{sel:[],alloc:{}},B:{sel:[],alloc:{}}}, cat:"All", win:"60", cFrom:null, cTo:null };
+/* Two builders share one set of screens. "aviva" is the Portfolio builder tab and reads only the Aviva range;
+   "all" is the All Funds Portfolio Builder and its explorer, and adds the other providers from data/others.json. Each keeps its own
+   portfolios, so switching tabs never moves a selection. With MODE "aviva" every helper below returns
+   exactly what the code did before the All Funds tabs existed. */
+let MODE="aviva";
+const STATE_AVIVA=state;
+const STATE_ALL={ act:"A", P:{A:{sel:[],alloc:{}},B:{sel:[],alloc:{}}}, cat:"All", prov:"All", win:"60", cFrom:null, cTo:null };
+let ALLF=[], OTHERS_RAW=null, OTHERS_ERR=null;
+const BF=()=> MODE==="all" ? ALLF : DATA.funds;
+const provOf=f=> f.provider || "Aviva";            // the 37 funds of the Aviva range, Dimensional included
+const PROVS=["Aviva","Zurich","New Ireland","Irish Life","Royal London"];
+// Aviva prices a fund as the standard fee plus its adjustment; across providers the comparable figure is the AMC
+const fundCost=(f,sf)=> MODE==="all" ? f.amc : sf+f.costAdj;
+// "≈" marks an ESMA band calculated from 5-year volatility where the provider publishes none
+const ESMA_SRC_TITLE={calculated:"Calculated from 5-year volatility; not a published rating", name:"Taken from the fund's name; not a published rating", owner:"Set by Slate Labs; no published rating"};
+// where a set rating replaces a published one, the published figure is named rather than hidden
+const esmaTitle=f=>f.esmaPublished!=null ? ` title="Set by Slate Labs; Fund Focus publishes ${f.esmaPublished}"`
+  : ESMA_SRC_TITLE[f.esmaSource] ? ` title="${ESMA_SRC_TITLE[f.esmaSource]}"` : "";
+const esmaTxt=(f,dash)=> f.esma==null ? dash : (f.esmaSource==="calculated" ? "≈" : "")+f.esma;
 const fmtE = v => "€" + Math.round(v).toLocaleString("en-IE");
 const fmtP = (v,d=1) => (v===null||v===undefined||!isFinite(v))?"n/a":(v*100).toFixed(d) + "%";
-const short=n=>n.replace(/^Aviva\s+/,"").replace(/\s+Series\s+(C|1|G|K)$/,"").replace(/\s+\(Ireland\)/,"").replace(/\s+Fund$/,"");
+// the share-class ending ("Series C", "Series 1", a closing "G") is dropped wherever a name is shown: every figure is gross of fees
+const fullName=n=>n.replace(/\s+Series\s+[A-Z0-9]+$/i,"").replace(/\s+G$/,"");
+const short=n=>fullName(n).replace(/\s+\(Ireland\)/,"").replace(/\s+Fund$/,"");
 const esc=s=>s.replace(/&/g,"&amp;").replace(/</g,"&lt;");
 const stdFee=()=> (+document.getElementById("stdFee").value||0)/100;
 // Euro amount fields are text so they can show "100,000"; read them through here, never via .value directly.
@@ -622,7 +667,7 @@ const amtVal=()=> numVal("amt",100000);
 const xAmtVal=()=> Math.min(Math.max(numVal("xAmt",10000),1),1e9);   // the compare chart's own amount
 
 function fundRet(f, i){ const k = i - f.startIdx; return (k>=0 && k<f.returns.length) ? f.returns[k] : null; }
-function selFunds(k){ return state.P[k].sel.map(n => DATA.funds.find(f=>f.name===n)); }
+function selFunds(k){ return state.P[k].sel.map(n => BF().find(f=>f.name===n)); }
 function weights(k){ return state.P[k].sel.reduce((s,n)=>s+(+state.P[k].alloc[n]||0),0); }
 function valid(k){ return state.P[k].sel.length>0 && Math.abs(weights(k)-100)<0.01; }
 function validKeys(){ return ["A","B"].filter(valid); }
@@ -660,7 +705,7 @@ function maxDD(a){ let idx=1,pk=1,dd=0; for(const r of a){ idx*=(1+r); pk=Math.m
 function drawdownPath(a){ let idx=1,pk=1; const out=[]; for(const r of a){ idx*=(1+r); pk=Math.max(pk,idx); out.push(idx/pk-1); } return out; }
 function srri(v){ return v<0.005?1:v<0.02?2:v<0.05?3:v<0.10?4:v<0.15?5:v<0.25?6:7; }
 function wCost(k){ const tot=weights(k)/100, sf=stdFee();
-  return selFunds(k).reduce((a,f)=>a+((+state.P[k].alloc[f.name]||0)/100/tot)*(sf+f.costAdj),0); }
+  return selFunds(k).reduce((a,f)=>a+((+state.P[k].alloc[f.name]||0)/100/tot)*fundCost(f,sf),0); }
 
 function niceAxis(anchor,mn,mx){
   /* The span includes the anchor, because the axis always shows it. Sizing the step from
@@ -717,32 +762,52 @@ const catSort=arr=>[...arr].sort((a,b)=>{
   const ia=CAT_ORDER.indexOf(a), ib=CAT_ORDER.indexOf(b);
   return (ia<0?99:ia)-(ib<0?99:ib) || a.localeCompare(b);
 });
+const pickTip=document.createElement("div");
+pickTip.className="picktip"; pickTip.setAttribute("role","tooltip"); document.body.appendChild(pickTip);
+document.getElementById("fundlist").addEventListener("scroll",()=>pickTip.classList.remove("on"));
+window.addEventListener("scroll",()=>pickTip.classList.remove("on"),{passive:true});
 function renderPicker(){
   const k=state.act, P=state.P[k];
   const chip=document.getElementById("editchip");
   chip.textContent="Portfolio "+k; chip.className="editchip"+(k==="B"?" b":"");
-  const cats = ["All", ...catSort([...new Set(DATA.funds.map(f=>f.category))])];
+  const provBox=document.getElementById("provs");
+  if(MODE==="all"){
+    const n=p=>ALLF.filter(f=>provOf(f)===p).length;
+    provBox.innerHTML=["All",...PROVS].map(p=>`<button type="button" class="pchip${p===state.prov?" on":""}" data-p="${p}" aria-pressed="${p===state.prov}">${p}${p==="All"?"":` ${n(p)}`}</button>`).join("");
+    provBox.querySelectorAll(".pchip").forEach(b=>b.onclick=()=>{state.prov=b.dataset.p;renderPicker();});
+  }
+  provBox.hidden=MODE!=="all";
+  const inProv=f=> MODE!=="all" || state.prov==="All" || provOf(f)===state.prov;
+  const cats = ["All", ...catSort([...new Set(BF().map(f=>f.category))])];
   document.getElementById("tabs").innerHTML = cats.map(c=>
     `<button class="tab ${c===state.cat?'on':''}" data-c="${c}">${CAT_ICON[c]||""}${c}</button>`).join("");
   document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{state.cat=b.dataset.c;renderPicker();});
   const q=(document.getElementById("filter").value||"").trim().toLowerCase();
-  const groups=catSort([...new Set(DATA.funds.map(f=>f.category))]).filter(c=>state.cat==="All"||c===state.cat);
+  const groups=catSort([...new Set(BF().map(f=>f.category))]).filter(c=>state.cat==="All"||c===state.cat);
   let html="";
   groups.forEach(cat=>{
-    const fs=DATA.funds.filter(f=>f.category===cat&&(!q||f.name.toLowerCase().includes(q)));
+    const fs=BF().filter(f=>f.category===cat&&inProv(f)&&(!q||f.name.toLowerCase().includes(q)));
     if(!fs.length) return;
     html+=`<div class="cat">${cat}</div>`;
     fs.forEach(f=>{
       const si=P.sel.indexOf(f.name), checked=si>=0, dis=!checked&&P.sel.length>=5;
-      const tag=f.costAdj?`<span class="costtag ${f.costAdj>0?"up":"down"}">${f.costAdj>0?"+":"−"}${Math.abs(f.costAdj*100).toFixed(2)}%</span>`:`<span class="costtag none"></span>`;
-      html+=`<button class="fundrow${checked?" checked":""}" data-f="${esc(f.name)}" title="${esc(f.name)}" ${dis?"disabled":""}>
+      const tag=MODE==="all"?"":f.costAdj?`<span class="costtag ${f.costAdj>0?"up":"down"}">${f.costAdj>0?"+":"−"}${Math.abs(f.costAdj*100).toFixed(2)}%</span>`:`<span class="costtag none"></span>`;
+      html+=`<button class="fundrow${checked?" checked":""}" data-f="${esc(f.name)}" ${dis?"disabled":""}>
         <span class="box" style="${checked?`border-color:${SEG[si]};background:${SEG[si]}`:""}"></span>
         <span class="nm">${esc(short(f.name))}${f.simulated?' <span class="simmark">◆</span>':""}</span>
-        <span class="meta"><span class="esma">ESMA ${f.esma??"–"}</span>${tag}</span></button>`;
+        <span class="meta"><span class="esma"${esmaTitle(f)}>ESMA ${esmaTxt(f,"–")}</span>${tag}</span></button>`;
     });
   });
+  pickTip.classList.remove("on");
   document.getElementById("fundlist").innerHTML=html||'<p class="empty">No funds match — try another tab or clear the filter.</p>';
   document.querySelectorAll(".fundrow").forEach(el=>el.onclick=()=>toggleFund(el.dataset.f));
+  document.querySelectorAll(".fundrow").forEach(el=>{
+    const show=()=>{ const r=el.querySelector(".nm").getBoundingClientRect();
+      pickTip.textContent=fullName(el.dataset.f); pickTip.classList.add("on");
+      // padding 9px + border 1px: the tip's text starts exactly where the name's does
+      pickTip.style.left=(r.left-10)+"px"; pickTip.style.top=(r.top+r.height/2)+"px"; };
+    el.addEventListener("mouseenter",show); el.addEventListener("focus",show);
+    el.addEventListener("mouseleave",()=>pickTip.classList.remove("on")); el.addEventListener("blur",()=>pickTip.classList.remove("on")); });
   document.getElementById("selcount").textContent=`${P.sel.length}/5`;
 }
 function toggleFund(name){
@@ -771,9 +836,9 @@ function renderHoldings(){
   if(!has) return;
   const sf=stdFee();
   document.getElementById("holdBody").innerHTML = selFunds(k).map((f,i)=>`
-    <tr><td class="nm"><div class="t"><span class="sw" style="background:${SEG[i]}"></span>${f.name} ${f.simulated?'<span class="simmark">◆</span>':''}</div></td>
-    <td>${f.category}</td><td>${f.esma??"–"}</td>
-    <td>${fmtP(sf+f.costAdj,2)}</td>
+    <tr><td class="nm"><div class="t"><span class="sw" style="background:${SEG[i]}"></span>${esc(fullName(f.name))} ${f.simulated?'<span class="simmark">◆</span>':''}</div></td>
+    <td>${f.category}</td><td>${esmaTxt(f,"–")}</td>
+    ${MODE==="all"?"":`<td>${fmtP(fundCost(f,sf),2)}</td>`}
     <td>${pLbl(f.startIdx)}${f.simulated?` <span class="simflag">(live ${pLbl(f.liveIdx)})</span>`:""}</td>
     <td style="text-align:right"><input class="alloc" data-f="${esc(f.name)}" type="number" min="0" max="100" step="1" placeholder="–" value="${P.alloc[f.name]??""}"></td>
     <td><button class="rm" data-f="${esc(f.name)}" title="Remove">✕</button></td></tr>`).join("");
@@ -1203,13 +1268,14 @@ function renderCards(keys,win){
     const s=series(k,win[0],win[1]);
     const gv=vol(s.g), col=k==="B"?"b":"a";
     if(keys.length===2) html+=`<div class="rowlbl ${col}">Portfolio ${k} — ${selFunds(k).map(f=>esc(short(f.name))).join(", ")}</div>`;
+    // no cost card in the All Funds builder, at the user's request
     const cards=[
-      ["Portfolio cost",fmtP(wCost(k),2),"weighted, p.a. — not deducted"],
+      ...(MODE==="all"?[]:[["Portfolio cost",fmtP(wCost(k),2),"weighted, p.a. — not deducted"]]),
       ["Return (gross)",fmtP(ann(s.g)),"annualised, window"],
       ["Volatility",fmtP(gv),"annualised, gross series"],
       ["Max drawdown",fmtP(maxDD(s.g)),"gross series, monthly"],
       ["Portfolio ESMA",String(srri(gv)),"SRRI band, selected window"]];
-    html+=`<div class="cards">`+cards.map(c=>
+    html+=`<div class="cards${cards.length===4?" four":""}">`+cards.map(c=>
       `<div class="scard"><div class="lbl">${c[0]}</div><div class="val">${c[1]}</div><div class="sub">${c[2]}</div></div>`).join("")+`</div>`;
     const rc=riskContributions(k,win);
     if(rc){
@@ -1242,7 +1308,7 @@ function renderBuildingBlocks(keys, win){
     let rows="";
     selFunds(k).forEach((f,i)=>{
       rows+=`<tr><td><span class="fn"><span class="sw" style="background:${SEG[i]}"></span><span>${esc(short(f.name))}${f.simulated?' <span class="simmark">◆</span>':''}</span></span></td>
-        <td><b>${+state.P[k].alloc[f.name]||0}%</b></td><td>${fmtP(sf+f.costAdj,2)}</td>`;
+        <td><b>${+state.P[k].alloc[f.name]||0}%</b></td>${MODE==="all"?"":`<td>${fmtP(fundCost(f,sf),2)}</td>`}`;
       pDefs.forEach(([,m,pa])=>{
         const r=fundPeriod(f,m,pa);
         rows+=`<td class="${r.v!==null&&r.v<0?"neg":""}">${r.v===null?"—":fmtP(r.v)+(r.sim?`<span class="simd">◆</span>`:"")}</td>`;
@@ -1250,7 +1316,7 @@ function renderBuildingBlocks(keys, win){
       const rk=fundRisk(f, win[0], win[1]);
       rows+=`<td>${fmtP(rk.vol)}</td><td class="neg">${fmtP(rk.mdd)}</td></tr>`;
     });
-    html+=`<table class="proj compact"><thead><tr><th>Fund</th><th>Weight</th><th>Cost</th>${pDefs.map(d=>`<th>${d[0]}</th>`).join("")}<th>Vol · ${winShort(win)}</th><th>MDD · ${winShort(win)}</th></tr></thead><tbody>${rows}</tbody></table>`;
+    html+=`<table class="proj compact"><thead><tr><th>Fund</th><th>Weight</th>${MODE==="all"?"":"<th>Cost</th>"}${pDefs.map(d=>`<th>${d[0]}</th>`).join("")}<th>Vol · ${winShort(win)}</th><th>MDD · ${winShort(win)}</th></tr></thead><tbody>${rows}</tbody></table>`;
   });
   document.getElementById("bblocks").innerHTML=html;
   equaliseBBRows();
@@ -1339,7 +1405,10 @@ function renderAssetMix(keys){
     if(keys.length===2) html+=`<div class="rowlbl ${k==="B"?"b":"a"}">Portfolio ${k}</div>`;
     const a=aggregateAssetMix(k);
     if(a.err){ html+=`<div class="hint">Asset mix unavailable (${esc(a.err)}). All other figures are unaffected.</div>`; return; }
-    if(a.missing){ html+=`<div class="hint">Asset mix unavailable: no asset mix held for ${a.missing.map(n=>esc(short(n))).join(", ")}.</div>`; return; }
+    if(a.missing){ const other=a.missing.map(n=>BF().find(f=>f.name===n)).filter(f=>f&&f.provider);
+      html+= other.length
+        ? `<div class="hint">Asset mix is published for Aviva and Dimensional funds only, so it can't be shown for a portfolio holding ${other.map(f=>esc(short(f.name))).join(", ")}. All other figures are unaffected.</div>`
+        : `<div class="hint">Asset mix unavailable: no asset mix held for ${a.missing.map(n=>esc(short(n))).join(", ")}.</div>`; return; }
     const pres=acPresent(a.mix);
     const rows=pres.map(x=>`<tr data-ac="${x.i}" data-n="${esc(x.n)}" data-v="${fmtAc(x.v)}"><td><span class="sw" style="background:${AC[x.i]}"></span>${esc(x.n)}</td><td class="${x.v<0?"neg":""}">${fmtAc(x.v)}</td></tr>`).join("");
     const total=AC_CLASSES.reduce((s,c)=>s+a.mix[c],0);
@@ -1426,13 +1495,13 @@ function renderProjection(keys,win){
       note+=`<strong>Portfolio ${k}: ${(d20*100).toFixed(1)}% of paths are fully depleted within 20 years at this withdrawal rate.</strong> `; });
     note+=`Withdrawals are fixed in euro terms (not indexed to inflation). `;
   }
-  note+=`Values are gross of AMC and all other charges — the portfolio cost shown above and any adviser or plan-level charges would reduce these outcomes and raise depletion risk. Illustrative, not guaranteed.`;
+  note+=`Values are gross of AMC and all other charges — ${MODE==="all"?"fund charges":"the portfolio cost shown above"} and any adviser or plan-level charges would reduce these outcomes and raise depletion risk. Illustrative, not guaranteed.`;
   document.getElementById("simNote").innerHTML=note;
 }
 function renderMethod(keys){
   const simFunds=[...new Set(keys.flatMap(k=>selFunds(k)))].filter(f=>f.simulated);
   document.getElementById("methodNote").innerHTML=`
-    <strong>Performance basis.</strong> Fund performance is computed from a continuous monthly return series built from MoneyMate offer prices (net of AMC), grossed up geometrically by each fund's AMC to match the fund centre's gross-of-AMC convention. All performance, growth, stress and projection figures are shown gross of AMC and any other charges: the weighted portfolio cost is displayed separately and has not been deducted, because adviser and plan-level charges vary and are not known here. Volatility, maximum drawdown and the portfolio ESMA band are computed on the actual portfolio return series (gross), so diversification between funds is fully reflected. The portfolio ESMA figure maps the window's annualised volatility to the SRRI bands and is indicative — the regulatory SRRI is measured over a fixed 5-year basis.${keys.length===2?" In comparison mode both portfolios are measured over the same window, based on the common history of all selected funds across A and B.":""}<br><br>
+    <strong>Performance basis.</strong> Fund performance is computed from a continuous monthly return series built from MoneyMate offer prices (net of AMC), grossed up geometrically by each fund's AMC to match the fund centre's gross-of-AMC convention. All performance, growth, stress and projection figures are shown gross of AMC and any other charges: ${MODE==="all"?"no charges have been deducted":"the weighted portfolio cost is displayed separately and has not been deducted"}, because adviser and plan-level charges vary and are not known here. Volatility, maximum drawdown and the portfolio ESMA band are computed on the actual portfolio return series (gross), so diversification between funds is fully reflected. The portfolio ESMA figure maps the window's annualised volatility to the SRRI bands and is indicative — the regulatory SRRI is measured over a fixed 5-year basis.${keys.length===2?" In comparison mode both portfolios are measured over the same window, based on the common history of all selected funds across A and B.":""}<br><br>
     ${simFunds.length?`<strong>Simulated history.</strong> ${simFunds.map(f=>`${esc(short(f.name))} has no live price history before ${pLbl(f.liveIdx)}`).join("; ")}. ${SIM_METHOD}<br><br>`:""}
     <strong>Asset mix.</strong> ${AC_METHOD}<br><br>
     <strong>Calendar years and worst periods.</strong> ${CAL_WORST_METHOD}<br><br>
@@ -1497,9 +1566,9 @@ function buildPrintDoc(opt={}){
   const band=`<div class="pd-band"><span class="bm"><svg width="17" height="14" viewBox="0 0 41 33" fill="none"><path d="M5.5 0H33v10h4.5A3.5 3.5 0 0 1 41 13.5V27.5A5.5 5.5 0 0 1 35.5 33H5.5A5.5 5.5 0 0 1 0 27.5V5.5A5.5 5.5 0 0 1 5.5 0Z" fill="#0D1B2A"/></svg><img src="data:image/png;base64,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" alt="Slate Labs" style="height:10px;width:auto;display:block"></span><span class="t2">${two?"Portfolio comparison":"Model portfolio review"} · Prepared ${today}</span></div>`;
 
   const comp = k => { const st=stByKey[k];
-    return `<table class="pd-table pd-fixed"><colgroup><col><col style="width:32px"><col style="width:46px"><col style="width:44px"></colgroup><thead><tr><th>Fund</th><th class="r">ESMA</th><th class="r">Weight</th><th class="r">Cost</th></tr></thead><tbody>`+
-      fsByKey[k].map(f=>`<tr><td>${esc(f.name)}${f.simulated?" ◆":""}<div class="pd-cat">${esc(f.category)}</div></td><td class="r">${f.esma??"—"}</td><td class="r"><b>${+state.P[k].alloc[f.name]||0}%</b></td><td class="r">${fmtP(sf+f.costAdj,2)}</td></tr>`).join("")+
-      `<tr class="tot"><td>Total</td><td></td><td class="r">${weights(k)}%</td><td class="r">${fmtP(st.cost,2)}</td></tr></tbody></table>`; };
+    return `<table class="pd-table pd-fixed"><colgroup><col><col style="width:32px"><col style="width:46px">${MODE==="all"?"":`<col style="width:44px">`}</colgroup><thead><tr><th>Fund</th><th class="r">ESMA</th><th class="r">Weight</th>${MODE==="all"?"":`<th class="r">Cost</th>`}</tr></thead><tbody>`+
+      fsByKey[k].map(f=>`<tr><td>${esc(fullName(f.name))}${f.simulated?" ◆":""}<div class="pd-cat">${esc(f.category)}</div></td><td class="r">${f.esma??"—"}</td><td class="r"><b>${+state.P[k].alloc[f.name]||0}%</b></td>${MODE==="all"?"":`<td class="r">${fmtP(sf+f.costAdj,2)}</td>`}</tr>`).join("")+
+      `<tr class="tot"><td>Total</td><td></td><td class="r">${weights(k)}%</td>${MODE==="all"?"":`<td class="r">${fmtP(st.cost,2)}</td>`}</tr></tbody></table>`; };
 
   const amix = (k,size) => { const a=aggregateAssetMix(k);
     if(a.err||a.missing) return `<p class="pd-note">Asset mix unavailable${a.missing?`: no asset mix held for ${a.missing.map(n=>esc(short(n))).join(", ")}`:""}.</p>`;
@@ -1515,8 +1584,8 @@ function buildPrintDoc(opt={}){
     return `<svg viewBox="0 0 ${7*cw+6*gap} 22" width="100%">${cells}</svg><div class="pd-esma-l"><span>Lower risk</span><span>Higher risk</span></div><p class="pd-note">Indicative: annualised volatility over the ${basis(st)} mapped to the SRRI bands. Not the regulatory SRRI.</p>`; };
 
   const bblocks = k => { const fs=fsByKey[k], st=stByKey[k];
-    return `<table class="pd-table pd-fixed"><colgroup><col style="width:25%"><col style="width:7%"><col style="width:7%"><col style="width:6.5%"><col style="width:6.5%"><col style="width:6.5%"><col style="width:7.5%"><col style="width:7.5%"><col style="width:7.5%"><col style="width:9%"><col style="width:9.5%"></colgroup><thead><tr><th>Fund</th><th class="r">Weight</th><th class="r">Cost</th><th class="r">1M</th><th class="r">YTD</th><th class="r">1Y</th><th class="r">3Y p.a.</th><th class="r">5Y p.a.</th><th class="r">10Y p.a.</th><th class="r">Vol · ${st.lbl}</th><th class="r">MDD · ${st.lbl}</th></tr></thead><tbody>`+
-      fs.map(f=>{ let r=`<tr><td>${esc(short(f.name))}${f.simulated?" ◆":""}</td><td class="r"><b>${+state.P[k].alloc[f.name]||0}%</b></td><td class="r">${fmtP(sf+f.costAdj,2)}</td>`;
+    return `<table class="pd-table pd-fixed"><colgroup><col style="width:25%"><col style="width:7%"><col style="width:7%"><col style="width:6.5%"><col style="width:6.5%"><col style="width:6.5%"><col style="width:7.5%"><col style="width:7.5%"><col style="width:7.5%"><col style="width:9%"><col style="width:9.5%"></colgroup><thead><tr><th>Fund</th><th class="r">Weight</th>${MODE==="all"?"":`<th class="r">Cost</th>`}<th class="r">1M</th><th class="r">YTD</th><th class="r">1Y</th><th class="r">3Y p.a.</th><th class="r">5Y p.a.</th><th class="r">10Y p.a.</th><th class="r">Vol · ${st.lbl}</th><th class="r">MDD · ${st.lbl}</th></tr></thead><tbody>`+
+      fs.map(f=>{ let r=`<tr><td>${esc(short(f.name))}${f.simulated?" ◆":""}</td><td class="r"><b>${+state.P[k].alloc[f.name]||0}%</b></td>${MODE==="all"?"":`<td class="r">${fmtP(sf+f.costAdj,2)}</td>`}`;
         pDefs.forEach(([m,pa])=>{ const v=fundPeriod(f,m,pa); r+=`<td class="r${v.v!==null&&v.v<0?" neg":""}">${v.v===null?"—":fmtP(v.v)+(v.sim?`<span class="pd-dia">◆</span>`:"")}</td>`; });
         const rk=fundRisk(f, st.from, st.to);  // print keeps a fixed basis, shared with this portfolio's key figures
         return r+`<td class="r">${fmtP(rk.vol)}</td><td class="r neg">${fmtP(rk.mdd)}</td></tr>`; }).join("")+`</tbody></table>`; };
@@ -1561,20 +1630,20 @@ function buildPrintDoc(opt={}){
   /* ---------- page 1 ---------- */
   let h=`<div class="pd-page1">${band}
   <div class="pd-titlerow"><svg width="30" height="30" viewBox="0 0 30 30"><rect width="30" height="30" rx="8" fill="#1A4FD6"/><rect x="7" y="18" width="9" height="3" rx="1.5" fill="#FFFFFF"/><rect x="7" y="13.5" width="13" height="3" rx="1.5" fill="#FFFFFF"/><rect x="7" y="9" width="17" height="3" rx="1.5" fill="#FFFFFF"/></svg><div><div class="pd-eyebrow">Portfolio Builder</div><div class="pd-title">${two?"Portfolio Comparison":"Model Portfolio Review"}</div></div></div>
-  <p class="pd-sub">Performance data to ${pLbl(end)} · EUR · Returns gross of AMC · Standard portfolio cost ${fmtP(sf,2)} p.a. · Investment ${fmtE(amt)}</p>`;
+  <p class="pd-sub">Performance data to ${pLbl(end)} · EUR · Returns gross of AMC${MODE==="all"?"":` · Standard portfolio cost ${fmtP(sf,2)} p.a.`} · Investment ${fmtE(amt)}</p>`;
 
   if(!two){
     const k=keys[0], st=stByKey[k];
-    h+=`<div class="pd-h">Key figures · ${basis(st)}</div><div class="pd-kpis">`+
-      [["Return p.a. gross",fmtP(st.ret),""],["Volatility",fmtP(st.vol,2),""],["Max drawdown",fmtP(st.mdd,2)," neg"],["Portfolio ESMA",String(st.esma),""],["Portfolio cost p.a.",fmtP(st.cost,2),""]]
+    h+=`<div class="pd-h">Key figures · ${basis(st)}</div><div class="pd-kpis${MODE==="all"?" four":""}">`+
+      [["Return p.a. gross",fmtP(st.ret),""],["Volatility",fmtP(st.vol,2),""],["Max drawdown",fmtP(st.mdd,2)," neg"],["Portfolio ESMA",String(st.esma),""],...(MODE==="all"?[]:[["Portfolio cost p.a.",fmtP(st.cost,2),""]])]
         .map(([l,v,c])=>`<div class="pd-kpi"><div class="l">${l}</div><div class="v${c}">${v}</div></div>`).join("")+`</div>`;
     h+=`<div class="pd-cols"><div class="pd-left"><div class="pd-h">Portfolio composition</div>${comp(k)}<div class="pd-h">Asset mix</div>${amix(k,96)}${esmaOn?`<div class="pd-h">Portfolio ESMA · indicative</div>${esmaScale(st)}`:""}</div><div class="pd-right">${charts}</div></div>`;
     h+=`<div class="pd-h">Performance by period · gross of AMC</div>${bars}`;
     if(bbP1) h+=`<div class="pd-h">Portfolio building blocks</div>${bblocks(k)}`;
   } else {
-    h+=`<table class="pd-table pd-kft"><thead><tr><th>Key figures</th><th class="r">Return p.a. gross</th><th class="r">Volatility</th><th class="r">Max drawdown</th><th class="r">Portfolio ESMA</th><th class="r">Portfolio cost p.a.</th><th class="r">Basis</th></tr></thead><tbody>`+
+    h+=`<table class="pd-table pd-kft"><thead><tr><th>Key figures</th><th class="r">Return p.a. gross</th><th class="r">Volatility</th><th class="r">Max drawdown</th><th class="r">Portfolio ESMA</th>${MODE==="all"?"":`<th class="r">Portfolio cost p.a.</th>`}<th class="r">Basis</th></tr></thead><tbody>`+
       keys.map(k=>{ const st=stByKey[k];
-        return `<tr><td class="pd-pl ${cls(k)}">Portfolio ${k}</td><td class="r big">${fmtP(st.ret)}</td><td class="r big">${fmtP(st.vol,2)}</td><td class="r big neg">${fmtP(st.mdd,2)}</td><td class="r big">${st.esma}</td><td class="r big">${fmtP(st.cost,2)}</td><td class="r">${basis(st)}</td></tr>`; }).join("")+`</tbody></table>`;
+        return `<tr><td class="pd-pl ${cls(k)}">Portfolio ${k}</td><td class="r big">${fmtP(st.ret)}</td><td class="r big">${fmtP(st.vol,2)}</td><td class="r big neg">${fmtP(st.mdd,2)}</td><td class="r big">${st.esma}</td>${MODE==="all"?"":`<td class="r big">${fmtP(st.cost,2)}</td>`}<td class="r">${basis(st)}</td></tr>`; }).join("")+`</tbody></table>`;
     h+=`<div class="pd-cols"><div class="pd-left"><div class="pd-h">Portfolio composition</div>`+keys.map(k=>`<p class="pd-lbl ${cls(k)}">Portfolio ${k}</p>${comp(k)}`).join("")+`</div><div class="pd-right">${charts}</div></div>`;
     if(amixP1) h+=amixAB;
     h+=`<div class="pd-h">Performance by period · gross of AMC</div>${bars}`;
@@ -1592,20 +1661,14 @@ function buildPrintDoc(opt={}){
 
   const basisPhrase = two ? "the basis stated above for each portfolio" : `the ${stByKey[keys[0]].lbl} basis stated above`;
   const anySim = keys.some(k=>fsByKey[k].some(f=>f.simulated));
-  h+=`<div class="pd-sec"><div class="pd-h">Notes and methodology</div><p class="pd-meth">Portfolio figures are computed from the combined portfolio's own monthly return series (funds' spliced price histories, weighted by allocation, rebalanced monthly), so volatility, maximum drawdown and the ESMA band reflect diversification between funds. Fund and portfolio returns are gross of AMC; the total portfolio cost is shown separately and has not been deducted, and adviser or plan-level charges would further reduce outcomes. Stress episode returns use month-end pricing, which understates intra-month falls. Fund-level Vol and MDD and the key figures are measured over ${basisPhrase}. The portfolio ESMA figure maps annualised volatility to the SRRI bands and is indicative only. Where any fund has no history for a period, the figure is shown as n/a. ${CAL_WORST_METHOD}</p>`+
+  h+=`<div class="pd-sec"><div class="pd-h">Notes and methodology</div><p class="pd-meth">Portfolio figures are computed from the combined portfolio's own monthly return series (funds' spliced price histories, weighted by allocation, rebalanced monthly), so volatility, maximum drawdown and the ESMA band reflect diversification between funds. Fund and portfolio returns are gross of AMC; ${MODE==="all"?"no charges have been deducted, and fund, adviser or plan-level charges would reduce outcomes":"the total portfolio cost is shown separately and has not been deducted, and adviser or plan-level charges would further reduce outcomes"}. Stress episode returns use month-end pricing, which understates intra-month falls. Fund-level Vol and MDD and the key figures are measured over ${basisPhrase}. The portfolio ESMA figure maps annualised volatility to the SRRI bands and is indicative only. Where any fund has no history for a period, the figure is shown as n/a. ${CAL_WORST_METHOD}</p>`+
     (anySim?`<p class="pd-meth">◆ Marked funds have no live price history before their live pricing date. ${SIM_METHOD}</p>`:"")+
     `<p class="pd-meth"><b>Asset mix.</b> ${AC_METHOD}</p></div>`;
-  h+=`<div class="pd-disc"><h4>Warnings &amp; important information</h4>
-  <p style="color:#0D1B2A">Portfolio Builder is provided and created by Slate Labs. It is not issued, approved or endorsed by any insurance company or investment manager. Slate Labs is not regulated by the Central Bank of Ireland and information provided is for illustrative purposes only and should not be relied upon for investment decisions.</p>
-  <ul>
-    <li><b>Warning:</b> The value of your investment may go down as well as up.</li>
-    <li><b>Warning:</b> If you invest in these funds you may lose some or all of the money you invest.</li>
-    <li><b>Warning:</b> Past performance is not a reliable guide to future performance.</li>
-    <li><b>Warning:</b> These funds may be affected by changes in currency exchange rates.</li>
-  </ul>
-  <p>Source of performance and prices is the Aviva Ireland website provided by Longboat Analytics / MoneyMate. We believe the sources to be reliable, but we cannot guarantee the accuracy or completeness of the information provided by the Fund Managers/Longboat Analytics. Performance is quoted gross of annual management charge. The returns on policies linked to a fund may not be the same because of the effects of any other policy specific charges. Fund availability varies by product type — please contact your Financial Broker for details of the funds available by product type. For information on risk ratings, charges, securities lending or other fund related topics on how these funds work, please see the relevant fund factsheets, KIID or specific fund website, or contact your Financial Broker. The information contained in this document should not be construed as an investment recommendation. This model portfolio review is illustrative only and is not investment advice.</p>
-  <p><b>Provider and status.</b> Portfolio Builder is provided by Slate Labs. Slate Labs is not authorised or regulated by the Central Bank of Ireland, does not provide investment advice and does not make recommendations. This tool performs calculations on the funds and allocations you select; every figure it produces is an illustration. <b>Trade marks and attribution.</b> This tool is not issued, approved, reviewed or endorsed by Aviva plc, Aviva Investors, Aviva Life &amp; Pensions Ireland DAC or any other Aviva group company. Fund names, product names and trade marks are the property of their respective owners and are used here only to identify the funds shown. <b>Intended audience.</b> Provided to regulated financial brokers and advisers for their own research and illustration. Not intended for use with, or distribution to, retail clients. Where figures are reproduced for a client, responsibility for that use, including applicable marketing and disclosure requirements, rests with the adviser who reproduces them. <b>Accuracy.</b> Information has been obtained from sources believed to be reliable but has not been independently verified by Slate Labs and is not guaranteed to be accurate or complete. Past performance is not a reliable guide to future performance. The value of an investment and any income from it may go down as well as up, and an investor may not get back the original amount invested. Some figures shown are hypothetical, simulated or projected and may not come to pass. <b>Jurisdiction.</b> Nothing here constitutes an offer or solicitation in any jurisdiction where that would be unlawful, or to any person to whom it would be unlawful to make it. Anyone in possession of this information is responsible for observing the applicable laws and regulations of any relevant jurisdiction.</p>
-  </div></div>`;
+  /* The print disclaimer is the screen block itself, so the fixed legal text has one source and the
+     two cannot drift apart. `--ink` is scoped to print ink because the block's first paragraph carries
+     an inline color:var(--ink), which in dark theme would otherwise print near-white on white. */
+  const disc=document.querySelector(".disc").innerHTML.replace("<h3>","<h4>").replace("</h3>","</h4>");
+  h+=`<div class="pd-disc" style="--ink:#0D1B2A">${disc}</div></div>`;
   return h;
 }
 
@@ -1653,7 +1716,7 @@ function buildEmailSummaryHTML(keys, win){
   const tdR=bg=>td(bg)+"text-align:right;";
   const tdR2=bg=>tdR(bg)+"font-variant-numeric:tabular-nums;";
   const cap=txt=>`<p style="font-size:8px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:${MUT};margin:0 0 4px;background:#ffffff;font-family:${FONT}">${txt}</p>`;
-  const statCell=(label,val,accent,negv,last)=>`<td style="width:20%;padding:9px 10px;border-top:3px solid ${accent};border-bottom:1px solid ${BORDER};background:#ffffff;font-family:${FONT}${last?"":`;border-right:1px solid ${BORDER}`}">
+  const statCell=(label,val,accent,negv,last)=>`<td style="width:${MODE==="all"?25:20}%;padding:9px 10px;border-top:3px solid ${accent};border-bottom:1px solid ${BORDER};background:#ffffff;font-family:${FONT}${last?"":`;border-right:1px solid ${BORDER}`}">
       <div style="font-size:8px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:${MUT}">${label}</div>
       <div style="font-size:15px;font-weight:900;color:${negv?NEG:NAVY};margin-top:2px;font-variant-numeric:tabular-nums">${val}</div>
     </td>`;
@@ -1674,13 +1737,13 @@ function buildEmailSummaryHTML(keys, win){
     if(two) h+=`<p style="font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:${clr(k)};margin:0 0 10px;background:#ffffff;font-family:${FONT}">Portfolio ${k}</p>`;
     h+=cap("Composition");
     h+=`<table border="0" cellpadding="0" cellspacing="0" style="border-collapse:collapse;width:100%;background:#ffffff;margin-bottom:12px"><thead><tr>
-      <th style="${th}">Fund</th><th style="${th}">Asset class</th><th style="${thR}">ESMA</th><th style="${thR}">Weight</th><th style="${thR}">Cost p.a.</th>
+      <th style="${th}">Fund</th><th style="${th}">Asset class</th><th style="${thR}">ESMA</th><th style="${thR}">Weight</th>${MODE==="all"?"":`<th style="${thR}">Cost p.a.</th>`}
     </tr></thead><tbody>`;
     fs.forEach((f,i)=>{
       const bg=i%2?STRIPE:"#ffffff";
-      h+=`<tr><td style="${td(bg)}">${esc(f.name)}${f.simulated?" ◆":""}</td><td style="${td(bg)}">${f.category}</td><td style="${tdR2(bg)}">${f.esma??"—"}</td><td style="${tdR2(bg)}"><b>${+state.P[k].alloc[f.name]||0}%</b></td><td style="${tdR2(bg)}">${fmtP(sf+f.costAdj,2)}</td></tr>`;
+      h+=`<tr><td style="${td(bg)}">${esc(fullName(f.name))}${f.simulated?" ◆":""}</td><td style="${td(bg)}">${f.category}</td><td style="${tdR2(bg)}">${f.esma??"—"}</td><td style="${tdR2(bg)}"><b>${+state.P[k].alloc[f.name]||0}%</b></td>${MODE==="all"?"":`<td style="${tdR2(bg)}">${fmtP(sf+f.costAdj,2)}</td>`}</tr>`;
     });
-    h+=`<tr><td colspan="3" style="${td("#ffffff")}border-top:2px solid ${NAVY};"><b>Total</b></td><td style="${tdR2("#ffffff")}border-top:2px solid ${NAVY};"><b>${weights(k)}%</b></td><td style="${tdR2("#ffffff")}border-top:2px solid ${NAVY};"><b>${fmtP(wCost(k),2)}</b></td></tr>`;
+    h+=`<tr><td colspan="3" style="${td("#ffffff")}border-top:2px solid ${NAVY};"><b>Total</b></td><td style="${tdR2("#ffffff")}border-top:2px solid ${NAVY};"><b>${weights(k)}%</b></td>${MODE==="all"?"":`<td style="${tdR2("#ffffff")}border-top:2px solid ${NAVY};"><b>${fmtP(wCost(k),2)}</b></td>`}</tr>`;
     h+=`</tbody></table>`;
     const am=aggregateAssetMix(k);
     if(am.mix){
@@ -1695,7 +1758,7 @@ function buildEmailSummaryHTML(keys, win){
     }
     h+=cap("Performance summary");
     h+=`<table border="0" cellpadding="0" cellspacing="0" style="border-collapse:collapse;width:100%"><tr>
-      ${statCell("Portfolio cost",fmtP(wCost(k),2),accent,false,false)}
+      ${MODE==="all"?"":statCell("Portfolio cost",fmtP(wCost(k),2),accent,false,false)}
       ${statCell("Return (gross)",fmtP(ann(s.g)),accent,false,false)}
       ${statCell("Volatility",fmtP(gv),accent,false,false)}
       ${statCell("Max drawdown",fmtP(maxDD(s.g)),accent,true,false)}
@@ -1710,7 +1773,7 @@ function buildEmailSummaryHTML(keys, win){
 
   const simFunds=[...new Set(keys.flatMap(k=>selFunds(k)))].filter(f=>f.simulated);
   h+=h2("Methodology &amp; important information");
-  h+=p8(`<b>Performance basis.</b> Fund performance is computed from a continuous monthly return series built from MoneyMate offer prices (net of AMC), grossed up geometrically by each fund's AMC to match the fund centre's gross-of-AMC convention. All performance, growth, stress and projection figures are shown gross of AMC and any other charges: the weighted portfolio cost is displayed separately and has not been deducted, because adviser and plan-level charges vary and are not known here. Volatility, maximum drawdown and the portfolio ESMA band are computed on the actual portfolio return series (gross), so diversification between funds is fully reflected. The portfolio ESMA figure maps the window's annualised volatility to the SRRI bands and is indicative — the regulatory SRRI is measured over a fixed 5-year basis.${two?" In comparison mode both portfolios are measured over the same window, based on the common history of all selected funds across A and B.":""}`);
+  h+=p8(`<b>Performance basis.</b> Fund performance is computed from a continuous monthly return series built from MoneyMate offer prices (net of AMC), grossed up geometrically by each fund's AMC to match the fund centre's gross-of-AMC convention. All performance, growth, stress and projection figures are shown gross of AMC and any other charges: ${MODE==="all"?"no charges have been deducted":"the weighted portfolio cost is displayed separately and has not been deducted"}, because adviser and plan-level charges vary and are not known here. Volatility, maximum drawdown and the portfolio ESMA band are computed on the actual portfolio return series (gross), so diversification between funds is fully reflected. The portfolio ESMA figure maps the window's annualised volatility to the SRRI bands and is indicative — the regulatory SRRI is measured over a fixed 5-year basis.${two?" In comparison mode both portfolios are measured over the same window, based on the common history of all selected funds across A and B.":""}`);
   if(simFunds.length) h+=p8(`<b>Simulated history.</b> ${simFunds.map(f=>`${esc(short(f.name))} has no live price history before ${pLbl(f.liveIdx)}`).join("; ")}. ${SIM_METHOD}`);
   h+=p8(`<b>Asset mix.</b> ${AC_METHOD}`);
   h+=p8(`<b>Limitations.</b> Monthly pricing understates true maximum drawdown and intra-month stress losses relative to daily data. The gross-up assumes AMC is the only fund-level charge embedded in unit prices. Published fund centre figures may differ by small amounts due to business-day price sampling.`);
@@ -1724,9 +1787,9 @@ function buildEmailSummaryHTML(keys, win){
     ${li("<b>Warning:</b> Past performance is not a reliable guide to future performance.")}
     ${li("<b>Warning:</b> These funds may be affected by changes in currency exchange rates.")}
   </ul>`;
-  h+=p7(`Source of performance and prices is the Aviva Ireland website provided by Longboat Analytics / MoneyMate. We believe the sources to be reliable, but we cannot guarantee the accuracy or completeness of the information provided by the Fund Managers/Longboat Analytics. The figures quoted are calculated on an offer to offer basis with income reinvested. Performance is quoted gross of annual management charge. The returns on policies linked to a fund may not be the same because of the effects of any other policy specific charges. Fund availability varies by product type — please contact your Financial Broker for details of the funds available by product type. For information on risk ratings, charges, securities lending or other fund related topics on how these funds work, please see the relevant fund factsheets, KIID or specific fund website, or contact your Financial Broker. The information contained in this service should not be construed as an investment recommendation.`);
+  h+=p7(`Source of performance and prices is the Aviva Ireland website and the Fund Focus service provided by Longboat Analytics / MoneyMate / CSS. We believe the sources to be reliable, but we cannot guarantee the accuracy or completeness of the information provided by the Fund Managers, Longboat Analytics / MoneyMate or CSS. The figures quoted are calculated on an offer to offer basis with income reinvested. Performance is quoted gross of annual management charge. The returns on policies linked to a fund may not be the same because of the effects of any other policy specific charges. Fund availability varies by product type — please contact your Financial Broker for details of the funds available by product type. For information on risk ratings, charges, securities lending or other fund related topics on how these funds work, please see the relevant fund factsheets, KIID or specific fund website, or contact your Financial Broker. The information contained in this service should not be construed as an investment recommendation.`);
   h+=p7(`For certain funds, performance prior to the fund's live pricing date is index or simulated performance and not actual fund performance. These figures are marked with ◆ throughout this tool and noted beneath any portfolio result that includes them. Simulated or index performance does not reflect actual fund returns and is not a reliable guide to future performance.`);
-  h+=p7(`Portfolio cost figures are based on the standard portfolio cost entered by the user, adjusted by each fund's published fee adjustment, weighted by allocation. Performance figures are shown gross of charges; the portfolio cost is displayed separately and has not been deducted from the returns shown.`);
+  h+=p7(`Where a portfolio cost is shown, it is based on the standard portfolio cost entered by the user, adjusted by each fund's published fee adjustment and weighted by allocation. All performance figures are gross: no fund, adviser or plan-level charges have been deducted from the returns shown.`);
   h+=p7(`Portfolio volatility, maximum drawdown and the portfolio ESMA band are computed from the combined portfolio's own monthly return series (weighted by allocation, rebalanced monthly), so they reflect diversification between funds. Monthly pricing understates true maximum drawdown relative to daily data. Stochastic projections are illustrative simulations and are not guaranteed.`);
   h+=p7(`<b>Provider and status.</b> Portfolio Builder is provided by Slate Labs. Slate Labs is not authorised or regulated by the Central Bank of Ireland, does not provide investment advice and does not make recommendations. This tool performs calculations on the funds and allocations you select; every figure it produces is an illustration. <b>Trade marks and attribution.</b> This tool is not issued, approved, reviewed or endorsed by Aviva plc, Aviva Investors, Aviva Life &amp; Pensions Ireland DAC or any other Aviva group company. Fund names, product names and trade marks are the property of their respective owners and are used here only to identify the funds shown. <b>Intended audience.</b> Provided to regulated financial brokers and advisers for their own research and illustration. Not intended for use with, or distribution to, retail clients. Where figures are reproduced for a client, responsibility for that use, including applicable marketing and disclosure requirements, rests with the adviser who reproduces them. <b>Accuracy.</b> Information has been obtained from sources believed to be reliable but has not been independently verified by Slate Labs and is not guaranteed to be accurate or complete. Past performance is not a reliable guide to future performance. The value of an investment and any income from it may go down as well as up, and an investor may not get back the original amount invested. Some figures shown are hypothetical, simulated or projected and may not come to pass. <b>Jurisdiction.</b> Nothing here constitutes an offer or solicitation in any jurisdiction where that would be unlawful, or to any person to whom it would be unlawful to make it. Anyone in possession of this information is responsible for observing the applicable laws and regulations of any relevant jurisdiction.`);
   h+=`<p style="font-size:7px;line-height:10px;mso-line-height-rule:exactly;color:${MUT};margin:0;mso-margin-top-alt:0;mso-margin-bottom-alt:0;background:#ffffff;font-family:${FONT}">This model portfolio tool is illustrative only and is not investment advice.</p>
@@ -1760,7 +1823,7 @@ function renderAll(){
   document.getElementById("perfChart").innerHTML=barChartSVG(sets,{...DARK,bar:CA});
   document.getElementById("perfLegend").innerHTML=
     (keys.length===2?`<span><span class="swl" style="background:${CA}"></span>Portfolio A</span><span><span class="swl" style="background:${CB}"></span>Portfolio B</span>`:
-    `<span><span class="swl" style="background:${CA}"></span>Gross of AMC — portfolio cost shown separately, not deducted</span>`)+
+    `<span><span class="swl" style="background:${CA}"></span>${MODE==="all"?"Gross of AMC":"Gross of AMC — portfolio cost shown separately, not deducted"}</span>`)+
     `<span><span class="swl" style="background:var(--sim)"></span>◆ period includes simulated history</span>`;
   renderCalendar(keys);
   renderBuildingBlocks(keys, win);
@@ -1839,17 +1902,17 @@ document.getElementById("copyEmailBtn").onclick=()=>{
    filterable and sortable. Screen only, by decision; the builder, its print and email are untouched. */
 const X_CATS=["All","Multi-Asset","Equity","Alternative","Fixed Income"];
 const X_COLS=[
-  {k:"name",l:"Fund",first:1},{k:"cat",l:"Asset class",first:1},{k:"launch",l:"Launched",first:1},
+  {k:"name",l:"Fund",first:1},{k:"cat",l:"Asset class",first:1},
   {k:"esma",l:"ESMA",first:1},{k:"fee",l:"Fee vs standard",first:1},
   {k:"m1",l:"1M",first:-1},{k:"m3",l:"3M",first:-1},{k:"ytd",l:"YTD",first:-1},{k:"y1",l:"1Y",first:-1},
   {k:"y2",l:"2Y p.a.",first:-1},{k:"y3",l:"3Y p.a.",first:-1},{k:"y5",l:"5Y p.a.",first:-1},{k:"y10",l:"10Y p.a.",first:-1},
-  {k:"sl",l:"Since launch p.a.",first:-1},{k:"vol",l:"Vol 5Y",first:1},{k:"mdd",l:"Max DD since launch",first:-1}];
+  {k:"vol",l:"Vol 5Y",first:1},{k:"mdd",l:"Max DD 5Y",first:-1}];
 /* A portfolio is, to the explorer, exactly what a fund is: a monthly return series with a start
    month. series() already builds the allocation-weighted, monthly-rebalanced series the builder
    charts, so nothing is recomputed here and the two tabs cannot disagree. Only a portfolio whose
    allocations add to 100 has a series, so only a valid one appears. */
 function portfolioFund(k){
-  if(!DATA.funds.length || !valid(k)) return null;
+  if(!BF().length || !valid(k)) return null;
   const fs=selFunds(k); if(fs.some(f=>!f)) return null;
   const cs=Math.max(...fs.map(f=>f.startIdx)), E=END();
   const s=series(k,cs,E); if(!s) return null;
@@ -1858,15 +1921,21 @@ function portfolioFund(k){
     // a month is simulated when any holding still is, which is every month before the latest live start
     liveIdx:Math.max(...fs.map(f=>f.liveIdx)), returns:s.g, simulated:s.sim.some(Boolean),
     amc: fs.some(f=>f.amc==null) ? null : fs.reduce((a,f)=>a+w(f)*f.amc,0),
-    costAdj: fs.reduce((a,f)=>a+w(f)*(f.costAdj||0),0), esma:null};
+    // the standard-fee difference only means something when every holding is priced on Aviva's standard fee
+    costAdj: fs.some(f=>f.costAdj==null) ? null : fs.reduce((a,f)=>a+w(f)*(f.costAdj||0),0), esma:null};
   /* ESMA from the portfolio's own volatility over the same 5 years as its Vol 5Y cell, so the row is
      self-consistent. Path-based like the builder's, and indicative: regulatory SRRI is a fixed basis. */
   const vr=xRets(f0,(X.end??E)-59,(X.end??E));
   if(vr) f0.esma=srri(vol(vr));
   return f0;
 }
-const xFunds=()=>[...["A","B"].map(portfolioFund).filter(Boolean), ...DATA.funds];
-const X={cat:"All", esma:"", q:"", end:null, from:null, to:null, sortKey:null, sortDir:1, sel:[], view:"table", cwin:"60", cFrom:null, cTo:null};
+/* Two explorers share one set of screens, as the two builders do. The Fund explorer reads the Aviva range and
+   the Portfolio builder's portfolios; the All Funds Explorer reads every provider and the All Funds Portfolio
+   Builder's portfolios. Each keeps its own filters, ticks and view. */
+const xFunds=()=>[...["A","B"].map(portfolioFund).filter(Boolean), ...BF()];
+const X_NEW=()=>({cat:"All", prov:"", esma:"", q:"", end:null, from:null, to:null, sortKey:null, sortDir:1, sel:[], view:"table", cwin:"60", cFrom:null, cTo:null});
+const X_AVIVA=X_NEW(), X_ALL=X_NEW();
+let X=X_AVIVA;
 const X_MAX=5;   // compare limit, matching the builder's five fund colours
 // the monthly returns over [from,to], or null when the fund's history doesn't cover the whole span
 function xRets(f, from, to){
@@ -1879,13 +1948,10 @@ function xRow(f, end){
     row[key]= r ? {v: pa?Math.pow(1+cum(r),12/months)-1:cum(r), sim: from<f.liveIdx} : {v:null}; };
   per("m1",1,false); per("m3",3,false); per("ytd",end-(Math.floor(end/12)*12-1),false); per("y1",12,false);
   per("y2",24,true); per("y3",36,true); per("y5",60,true); per("y10",120,true);
-  /* Since launch starts at the first month built entirely from live prices (liveIdx+1), so it holds no
-     simulated history. It needs a year of those months; an annualised part year would mislead. */
-  const lr=xRets(f, f.liveIdx+1, end);
-  row.sl  = lr && lr.length>=12 ? {v:Math.pow(1+cum(lr),12/lr.length)-1} : {v:null};
-  row.mdd = lr && lr.length>=12 ? {v:maxDD(lr)} : {v:null};
+  // volatility and max drawdown share one basis: the 5 years to the end month
   const vr=xRets(f, end-59, end);
   row.vol = vr ? {v:vol(vr), sim:end-59<f.liveIdx} : {v:null};
+  row.mdd = vr ? {v:maxDD(vr), sim:end-59<f.liveIdx} : {v:null};
   if(X.from!==null && X.to!==null){ const cr=xRets(f, X.from, X.to); row.cp = cr ? {v:cum(cr), sim:X.from<f.liveIdx} : {v:null}; }
   return row;
 }
@@ -1894,7 +1960,6 @@ function xSortVal(row,k){
   const f=row.f;
   if(k==="name") return xName(f.name).toLowerCase();
   if(k==="cat") return X_CATS.indexOf(f.category);
-  if(k==="launch") return f.liveIdx;
   if(k==="esma") return f.esma ?? null;
   if(k==="fee") return f.costAdj ?? null;
   return row[k] ? row[k].v : null;
@@ -1908,12 +1973,12 @@ function renderExplorer(){
   document.getElementById("xCompare").style.display=X.view==="compare"?"":"none";
   const E=END(), endSel=document.getElementById("xEnd");
   if(X.end===null || X.end>E) X.end=E;
-  if(endSel.dataset.asof!==DATA.asOf){
-    const first=Math.min(...DATA.funds.map(f=>f.startIdx)), opts=[];
+  if(endSel.dataset.asof!==DATA.asOf+"|"+BF().length){
+    const first=Math.min(...BF().map(f=>f.startIdx)), opts=[];
     for(let i=E;i>=first;i--) opts.push(`<option value="${i}">${pLbl(i)}</option>`);
     endSel.innerHTML=opts.join("");
     ["xFrom","xTo"].forEach(id=>document.getElementById(id).innerHTML=`<option value="">${id==="xFrom"?"From":"To"}</option>`+opts.join(""));
-    endSel.dataset.asof=DATA.asOf;
+    endSel.dataset.asof=DATA.asOf+"|"+BF().length;
   }
   endSel.value=String(X.end);
   document.getElementById("xFrom").value=X.from===null?"":String(X.from);
@@ -1923,6 +1988,10 @@ function renderExplorer(){
   if(X.esma && !bands.includes(+X.esma)) X.esma="";
   document.getElementById("xEsma").innerHTML=`<option value="">All</option>`+bands.map(b=>`<option value="${b}">${b} (${all.filter(f=>f.esma===b).length})</option>`).join("");
   document.getElementById("xEsma").value=X.esma;
+  const provs=PROVS.filter(p=>all.some(f=>!f.port&&provOf(f)===p));
+  if(X.prov && !provs.includes(X.prov)) X.prov="";
+  document.getElementById("xProv").innerHTML=`<option value="">All</option>`+provs.map(p=>`<option value="${p}">${p} (${all.filter(f=>!f.port&&provOf(f)===p).length})</option>`).join("");
+  document.getElementById("xProv").value=X.prov;
   document.getElementById("xCats").innerHTML=X_CATS.map(c=>`<button type="button" class="xchip${X.cat===c?" on":""}" data-cat="${c}" aria-pressed="${X.cat===c}">${c}</button>`).join("");
 
   if(X.view==="compare"){ renderCompare(); return; }
@@ -1932,7 +2001,8 @@ function renderExplorer(){
   document.getElementById("xClear").style.display=X.sel.length?"":"none";
   const q=X.q.trim().toLowerCase();
   // ESMA filters on the figure shown in the column: a fund's published rating, a portfolio's own 5-year band
-  const rows=all.filter(f=>(X.cat==="All"||f.category===X.cat) && (!X.esma||String(f.esma)===X.esma) && (!q||f.name.toLowerCase().includes(q))).map(f=>xRow(f,X.end));
+  // a provider filter shows that provider's funds only; the portfolio rows belong to no single provider
+  const rows=all.filter(f=>(X.cat==="All"||f.category===X.cat) && (!X.esma||String(f.esma)===X.esma) && (!X.prov||(!f.port&&provOf(f)===X.prov)) && (!q||f.name.toLowerCase().includes(q))).map(f=>xRow(f,X.end));
   if(X.sortKey){
     rows.sort((a,b)=>{ const va=xSortVal(a,X.sortKey), vb=xSortVal(b,X.sortKey);
       if(va===null && vb===null) return 0; if(va===null) return 1; if(vb===null) return -1;   // no figure always sorts last
@@ -1942,10 +2012,13 @@ function renderExplorer(){
     rows.sort((a,b)=>(b.f.port?1:0)-(a.f.port?1:0) || X_CATS.indexOf(a.f.category)-X_CATS.indexOf(b.f.category) || xName(a.f.name).localeCompare(xName(b.f.name)));
   }
   const showCp=X.from!==null && X.to!==null;
-  const cols=showCp ? [...X_COLS,{k:"cp",l:`${pLbl(X.from)} – ${pLbl(X.to)}`,first:-1}] : X_COLS;
+  const baseCols=MODE==="all" ? X_COLS.filter(c=>c.k!=="fee") : X_COLS;   // the standard fee is Aviva's alone
+  const cols=showCp ? [...baseCols,{k:"cp",l:`${pLbl(X.from)} – ${pLbl(X.to)}`,first:-1}] : baseCols;
   /* Fee reads as the difference from the standard fee, as in the builder's fund picker: nothing at all
      on the standard fee, so only the funds that cost more or less than it draw the eye. */
-  const feeCell=f=>{ const a=f.costAdj||0;
+  const feeCell=f=>{ if(f.costAdj==null && (f.provider||f.port))
+      return `<td class="fee na" title="${f.port?"Holds funds outside the Aviva range, where the standard fee does not apply":`The standard fee applies to Aviva funds. This fund's AMC is ${(f.amc*100).toFixed(2)}%.`}">—</td>`;
+    const a=f.costAdj||0;
     return Math.abs(a)<0.00005 ? `<td></td>`
       : `<td class="fee ${a>0?"up":"down"}">${a>0?"+":"−"}${Math.abs(a*100).toFixed(2)}%</td>`; };
   const cell=o=>{ const v=o.v===null?null:(Math.abs(o.v)<0.0005?0:o.v);
@@ -1960,14 +2033,14 @@ function renderExplorer(){
       return `<button type="button" class="${held?"held":""}" data-add="${k}" data-fund="${esc(f.name)}" ${!held&&full?"disabled":""} title="${lbl}" aria-label="${lbl}">${held?`<span class="on">✓${k}</span><span class="off">✕${k}</span>`:k}</button>`; };
     // a portfolio row has no control: it cannot be added to itself or to the other portfolio
     const addCell=f.port?`<td class="xaddc"></td>`:`<td class="xaddc"><span class="xadd">${addBtn("A")}${addBtn("B")}</span></td>`;
-    return `<tr><td title="${esc(f.name)}"><label class="xpick"><input type="checkbox" data-name="${esc(f.name)}"${on?" checked":""}${!on&&full?" disabled":""} aria-label="Compare ${esc(xName(f.name))}"><span>${esc(xName(f.name))}${f.port?' <span class="xport">Portfolio</span>':""}${f.simulated?' <span class="simmark">◆</span>':""}</span></label></td>${addCell}<td>${f.category}</td><td>${pLbl(f.liveIdx)}</td><td>${f.esma??"—"}</td>${feeCell(f)}`+
-      ["m1","m3","ytd","y1","y2","y3","y5","y10","sl","vol"].map(k=>cell(r[k])).join("")+cell(r.mdd)+(showCp?cell(r.cp):"")+`</tr>`; }).join("");
+    return `<tr><td title="${esc(fullName(f.name))}"><label class="xpick"><input type="checkbox" data-name="${esc(f.name)}"${on?" checked":""}${!on&&full?" disabled":""} aria-label="Compare ${esc(xName(f.name))}"><span>${esc(xName(f.name))}${f.port?` <span class="xport">Portfolio</span>`:""}${f.simulated?' <span class="simmark">◆</span>':""}</span></label></td>${addCell}<td>${f.category}</td><td${esmaTitle(f)}>${esmaTxt(f,"—")}</td>${MODE==="all"?"":feeCell(f)}`+
+      ["m1","m3","ytd","y1","y2","y3","y5","y10","vol"].map(k=>cell(r[k])).join("")+cell(r.mdd)+(showCp?cell(r.cp):"")+`</tr>`; }).join("");
   h+=`</tbody>`;
   document.getElementById("xtable").innerHTML=h;
-  const nP=all.length-DATA.funds.length;
+  const nP=all.length-BF().length;
   document.getElementById("xCount").textContent=`${rows.length} of ${all.length} ${nP?"rows":"funds"}`+
     (nP?` · ${nP} portfolio${nP>1?"s":""} from the builder`:"")+(X.sel.length?` · ${X.sel.length} of ${X_MAX} ticked`:"");
-  document.getElementById("xNote").innerHTML=`Returns are gross of AMC to <strong>${pLbl(X.end)}</strong>. 1M to 1Y are cumulative; 2Y and longer are per year. Since launch starts at each fund's first month of live prices, excludes any simulated history, and is shown once a fund has 12 of those months; max drawdown since launch uses the same months. Vol 5Y is annualised volatility over the 5 years to the end date.${showCp?` The ${pLbl(X.from)} – ${pLbl(X.to)} column is cumulative.`:""} ◆ includes simulated history. — where the history does not cover the period.${nP?` Portfolio ${["A","B"].filter(k=>valid(k)).join(" and ")} come from the Portfolio builder tab, priced from the common start of ${nP>1?"their":"its"} holdings and rebalanced monthly; ESMA is the band for the portfolio's own volatility over the 5 years to the end date, and the fee difference is its allocation-weighted one.`:""} Fee vs standard is a fund's annual charge above or below the standard fee, blank where it is the standard fee. <strong>A</strong> and <strong>B</strong> add a fund to that portfolio in the Portfolio builder at 0%, leaving the weights already set there untouched; press the same button again to take the fund back out, with Undo offered if it was carrying a weight; a greyed button means that portfolio is full at five. Click a column heading to sort. Tick up to ${X_MAX} rows and press Compare to chart them side by side.`;
+  document.getElementById("xNote").innerHTML=`Returns are gross of AMC to <strong>${pLbl(X.end)}</strong>. 1M to 1Y are cumulative; 2Y and longer are per year. Vol 5Y is annualised volatility and Max DD 5Y the largest fall from a peak, both over the 5 years to the end date.${showCp?` The ${pLbl(X.from)} – ${pLbl(X.to)} column is cumulative.`:""} ◆ includes simulated history. — where the history does not cover the period.${nP?` Portfolio ${["A","B"].filter(k=>valid(k)).join(" and ")} come from the ${MODE==="all"?"All Funds Portfolio Builder":"Aviva Portfolio Builder"} tab, priced from the common start of ${nP>1?"their":"its"} holdings and rebalanced monthly; ESMA is the band for the portfolio's own volatility over the 5 years to the end date${MODE==="all"?"":", and the fee difference is its allocation-weighted one"}.`:""}${MODE==="all"?"":" Fee vs standard is a fund's annual charge above or below the standard fee, blank where it is the standard fee."}${MODE==="all"&&DATA.others.length?` Zurich, New Ireland, Irish Life and Royal London funds come from Fund Focus (Longboat Analytics / MoneyMate), grossed up by each fund's AMC (Royal London funds carry none); ≈ marks an ESMA band calculated from 5-year volatility where no rating is published; Irish Life Forum 3, 4 and 5 are rated 3, 4 and 5 from their names, and the New Ireland PruFunds, which publish no rating, are rated by Slate Labs (Cautious 3, Growth 4), as is New Ireland Goodbody Dividend Income 6 (6, where Fund Focus publishes 5).`:""} <strong>A</strong> and <strong>B</strong> add a fund to that portfolio in the ${MODE==="all"?"All Funds Portfolio Builder":"Aviva Portfolio Builder"} at 0%, leaving the weights already set there untouched; press the same button again to take the fund back out, with Undo offered if it was carrying a weight; a greyed button means that portfolio is full at five. Click a column heading to sort. Tick up to ${X_MAX} rows and press Compare to chart them side by side.`;
 }
 /* ---------- fund explorer: compare screen ----------
    Every selected fund is measured over the same months: the window ends at the table's
@@ -2098,6 +2171,14 @@ function insFacts(cells){
     cells.map(([v,l])=>`<div class="xin-fact"><div class="xin-fv" title="${esc(v)}">${esc(v)}</div><div class="xin-fl" title="${esc(l)}">${esc(l)}</div></div>`).join("")+`</div>`;
 }
 function insCard(f,color){
+  if(f.provider){
+    // no breakdown source exists for other providers: same frame, with the figures Fund Focus does give
+    const facts2=[[(f.amc*100).toFixed(2)+"%","AMC"],[esmaTxt(f,"—"),f.esmaSource==="calculated"?"ESMA (calculated)":f.esmaSource==="name"?"ESMA (from name)":f.esmaSource==="owner"?"ESMA (set by Slate Labs)":"ESMA"]];
+    return `<article class="xin"><div class="xin-h"><span class="xin-sq" style="background:${color}"></span><div class="xin-hn"><div class="xin-fn" title="${esc(fullName(f.name))}">${esc(xName(f.name))}</div>`+
+      `<div class="xin-meta"><span class="xin-kind">${esc(f.category)}</span><span>${esc(f.provider)} · Fund Focus</span></div></div></div>`+
+      insFacts(facts2)+`<div class="xin-tabs"><span class="xin-lbl">Breakdown</span></div>`+
+      `<div class="xin-list"><div class="xin-msg">Aviva and Dimensional publish these breakdowns. No source is available for ${esc(f.provider)} funds.</div></div><div class="xin-rc"></div></article>`;
+  }
   const rec=f.port?{kind:"multi"}:((INSIDE&&INSIDE.funds[f.name])||null);
   const kind=rec?rec.kind:((f.category==="Multi-Asset")?"multi":null);
   const al=f.port?aggregateAssetMix(f.port):(ALLOC&&ALLOC.funds[f.name]?{mix:ALLOC.funds[f.name].classes, dates:[ALLOC.funds[f.name].asOf].filter(Boolean), source:ALLOC.funds[f.name].source}:null);
@@ -2106,7 +2187,7 @@ function insCard(f,color){
   const date=iso=>iso?acDate(iso):"";
   if(kind==="multi"){
     const ok=al&&al.mix;
-    meta=f.port?`Portfolio builder${ok&&al.dates.length===1?" · as at "+date(al.dates[0]):ok&&al.dates.length>1?" · mixed month ends":""}`
+    meta=f.port?`${MODE==="all"?"All Funds Portfolio Builder":"Aviva Portfolio Builder"}${ok&&al.dates.length===1?" · as at "+date(al.dates[0]):ok&&al.dates.length>1?" · mixed month ends":""}`
                :`${srcName(al&&al.source)}${ok&&al.dates[0]?" · as at "+date(al.dates[0]):""}`;
     if(ok){
       const rows=AC_CLASSES.map((c,i)=>[AC_LABEL[i], al.mix[c]||0, i]).filter(r=>Math.abs(r[1])>=0.005);
@@ -2116,7 +2197,7 @@ function insCard(f,color){
       recon=`Adds to ${fmtAc(rows.reduce((a,r)=>a+r[1],0))}`;
     } else {
       tabs=`<div class="xin-tabs"><span class="xin-lbl">Asset mix</span></div>`;
-      panel=`<div class="xin-msg">Asset mix unavailable${ALLOC_ERR?": "+esc(ALLOC_ERR):""}.</div>`;
+      panel=`<div class="xin-msg">${al&&al.missing?"Not available: this portfolio holds funds without a published asset mix.":`Asset mix unavailable${ALLOC_ERR?": "+esc(ALLOC_ERR):""}.`}</div>`;
     }
   } else if(!rec){
     meta=""; tabs=`<div class="xin-tabs"><span class="xin-lbl">Breakdown</span></div>`;
@@ -2157,7 +2238,7 @@ function insCard(f,color){
       panel=`<div class="xin-msg"><span><b>No breakdown shown.</b> The fund holds mostly cash while its returns come from derivative strategy positions, so an asset or country split would describe the wrong thing.</span></div>`;
     }
   }
-  return `<article class="xin"><div class="xin-h"><span class="xin-sq" style="background:${color}"></span><div class="xin-hn"><div class="xin-fn" title="${esc(f.name)}">${esc(xName(f.name))}</div>`+
+  return `<article class="xin"><div class="xin-h"><span class="xin-sq" style="background:${color}"></span><div class="xin-hn"><div class="xin-fn" title="${esc(fullName(f.name))}">${esc(xName(f.name))}</div>`+
     `<div class="xin-meta">${kind?`<span class="xin-kind">${INS_KIND[kind]}</span>`:""}<span>${meta}</span></div></div></div>`+
     insFacts(facts)+tabs+`<div class="xin-list">${panel}</div><div class="xin-rc" title="${esc(recon)}">${esc(recon)}</div></article>`;
 }
@@ -2298,8 +2379,36 @@ document.getElementById("xWins").addEventListener("click",e=>{ const bt=e.target
   renderExplorer(); });
 ["xcFrom","xcTo"].forEach(id=>document.getElementById(id).addEventListener("change",e=>{ if(id==="xcFrom") X.cFrom=+e.target.value; else X.cTo=+e.target.value; renderExplorer(); }));
 const DISC_WRAP=document.querySelector(".disc-wrap"), DISC_HOME=DISC_WRAP.parentElement;
+const PICK_HINT_AVIVA=document.getElementById("pickHint").innerHTML;
+function applyMode(){
+  const all=MODE==="all";
+  document.getElementById("pickHint").innerHTML= all
+    ? `ESMA marked ≈ is calculated from 5-year volatility where no rating is published. <span class="simmark">◆</span> Index/simulated performance prior to the fund's live pricing date.`
+    : PICK_HINT_AVIVA;
+  document.getElementById("stdFeeCtrl").hidden=all;
+  // fund costs are not shown in the All Funds builder's first two sections, at the user's request
+  document.getElementById("holdCostTh").style.display=all?"none":"";
+  document.getElementById("secCost").hidden=all;
+  document.getElementById("holdTotLbl").colSpan=all?4:5;
+  const note=document.getElementById("allNote");
+  note.hidden=!all;
+  if(all) note.innerHTML = OTHERS_ERR
+    ? `<b>Other providers' funds could not be loaded</b> (${esc(OTHERS_ERR)}). Only the Aviva range is shown.`
+    : `This tab holds the Aviva range plus Zurich, New Ireland, Irish Life and Royal London funds from Fund Focus. Figures are gross of each fund's AMC; Royal London funds carry none.`;
+  const pb=document.getElementById("printBtn"), eb=document.getElementById("copyEmailBtn");
+  pb.title=eb.title="";
+}
 function showTab(t){
-  const x=t==="explorer";
+  const x=t==="explorer"||t==="allx";
+  // the builder and explorer screens are shared: point them at the chosen tab's funds, portfolios and filters
+  MODE= t==="all"||t==="allx" ? "all" : "aviva";
+  state= MODE==="all" ? STATE_ALL : STATE_AVIVA;
+  X= MODE==="all" ? X_ALL : X_AVIVA;
+  document.getElementById("xTitle").textContent= MODE==="all" ? "All Funds Explorer" : "Aviva Fund Explorer";
+  document.getElementById("xProvCtrl").style.display= MODE==="all" ? "" : "none";
+  document.getElementById("xfilter").value=X.q;
+  applyMode();
+  if(DATA.funds.length) renderAll();
   document.querySelector("main.grid").style.display=x?"none":"";
   document.getElementById("explorer").style.display=x?"":"none";
   (x?document.getElementById("xDisc"):DISC_HOME).appendChild(DISC_WRAP);   // one disclaimer, shown on whichever tab is open
@@ -2312,6 +2421,7 @@ document.querySelectorAll(".apptab").forEach(b=>b.onclick=()=>showTab(b.dataset.
 document.getElementById("xCats").addEventListener("click",e=>{ const b=e.target.closest(".xchip"); if(!b) return; X.cat=b.dataset.cat; renderExplorer(); });
 document.getElementById("xfilter").addEventListener("input",e=>{ X.q=e.target.value; renderExplorer(); });
 document.getElementById("xEsma").addEventListener("change",e=>{ X.esma=e.target.value; renderExplorer(); });
+document.getElementById("xProv").addEventListener("change",e=>{ X.prov=e.target.value; renderExplorer(); });
 document.getElementById("xEnd").addEventListener("change",e=>{ X.end=+e.target.value; renderExplorer(); });
 document.getElementById("xAmt").addEventListener("change",e=>{ e.target.value=Math.round(xAmtVal()).toLocaleString("en-IE"); renderExplorer(); });
 ["xFrom","xTo"].forEach(id=>document.getElementById(id).addEventListener("change",e=>{
@@ -2341,7 +2451,7 @@ document.getElementById("xtable").addEventListener("click",e=>{
   P.sel.push(nm);                        // no allocation, exactly as toggleFund does: the fund lands at 0%
   after();
   const full=state.P[k].sel.length>=5;
-  xToast(`Added <b>${esc(xName(nm))}</b> to Portfolio ${k} at 0% — set its weight in the Portfolio builder.${full?` Portfolio ${k} is now full.`:""}`,
+  xToast(`Added <b>${esc(xName(nm))}</b> to Portfolio ${k} at 0% — set its weight in the ${MODE==="all"?"All Funds Portfolio Builder":"Aviva Portfolio Builder"}.${full?` Portfolio ${k} is now full.`:""}`,
     ()=>{ const j=P.sel.indexOf(nm); if(j>=0){ P.sel.splice(j,1); delete P.alloc[nm]; after(); xToast(`<b>${esc(xName(nm))}</b> removed from Portfolio ${k} again.`); } });
 });
 const fmtN=v=>String(Math.round(v*100)/100);
@@ -2355,19 +2465,53 @@ function xToast(html,undo){
   document.body.appendChild(d); xToastT=setTimeout(()=>d.remove(),8000);
 }
 document.getElementById("xtable").addEventListener("keydown",e=>{ const th=e.target.closest("th[data-k]"); if(th && (e.key==="Enter"||e.key===" ")){ e.preventDefault(); xSortBy(th.dataset.k); } });
-(function(){ let t="builder"; try{ t=localStorage.getItem("apb-tab")||"builder"; }catch(e){} showTab(t==="explorer"?"explorer":"builder"); })();
+(function(){ let t="builder"; try{ t=localStorage.getItem("apb-tab")||"builder"; }catch(e){} showTab(["explorer","all","allx"].includes(t)?t:"builder"); })();
 
 function applyData(nd){
   DATA.asOf=nd.asOf; DATA.funds=nd.funds;
   DATA.funds.forEach(f=>{f.startIdx=pIdx(f.start);f.liveIdx=pIdx(f.liveStart);});
-  const names=new Set(DATA.funds.map(f=>f.name));
-  ["A","B"].forEach(k=>{ state.P[k].sel=state.P[k].sel.filter(n=>names.has(n));
-    Object.keys(state.P[k].alloc).forEach(n=>{ if(!names.has(n)) delete state.P[k].alloc[n]; }); });
+  pruneState(STATE_AVIVA, DATA.funds);
+  mergeOthers();
   document.getElementById("asOf").textContent=pLbl(END());
   renderAll();
   if(document.getElementById("explorer").style.display!=="none") renderExplorer();
 }
 
+function pruneState(st, funds){   // drop selections naming funds that no longer exist
+  const names=new Set(funds.map(f=>f.name));
+  ["A","B"].forEach(k=>{ st.P[k].sel=st.P[k].sel.filter(n=>names.has(n));
+    Object.keys(st.P[k].alloc).forEach(n=>{ if(!names.has(n)) delete st.P[k].alloc[n]; }); });
+}
+/* The other providers join the Aviva range only when both have arrived and end in the same month:
+   mixing funds that end in different months would cut every common window short. Any problem leaves
+   the All Funds tabs showing the Aviva range, with the reason, and touches nothing else. */
+function mergeOthers(){
+  DATA.others=[]; OTHERS_ERR=null;
+  if(OTHERS_RAW && OTHERS_RAW.err) OTHERS_ERR=OTHERS_RAW.err;
+  else if(OTHERS_RAW && DATA.funds.length){
+    if(OTHERS_RAW.asOf!==DATA.asOf) OTHERS_ERR=`other providers end ${OTHERS_RAW.asOf}, the Aviva range ${DATA.asOf}`;
+    else {
+      DATA.others=OTHERS_RAW.funds.map(f=>({...f, startIdx:pIdx(f.start), liveIdx:pIdx(f.liveStart)}));
+    }
+  }
+  ALLF=DATA.funds.concat(DATA.others);
+  pruneState(STATE_ALL, ALLF);
+  if(MODE==="all") applyMode();
+}
+async function loadOthers(){
+  try{
+    const res=await fetch("data/others.json?v="+Date.now(), {cache:"no-store"});
+    if(!res.ok) throw new Error("HTTP "+res.status);
+    const d=await res.json(), bad=validShape(d);
+    if(bad) throw new Error(bad);
+    if(d.funds.some(f=>!f.provider || typeof f.amc!=="number")) throw new Error("a fund has no provider or AMC");
+    OTHERS_RAW=d;
+  }catch(err){ OTHERS_RAW={err:err.message}; }
+  if(!DATA.funds.length) return;          // applyData merges once the Aviva range arrives
+  mergeOthers();
+  if(MODE==="all") renderAll();
+  if(document.getElementById("explorer").style.display!=="none") renderExplorer();
+}
 /* ---------- data loading ----------
    Data is fetched rather than embedded so the app and the numbers ship independently.
    Cache-busted on every load: without this a broker keeps seeing last month's figures
@@ -2417,6 +2561,7 @@ async function loadAlloc(){
 async function loadData(){
   const alloc = loadAlloc();
   loadInside();   // What's inside: optional, never awaited, never blocks the prices
+  loadOthers();   // other providers for the two All Funds tabs: optional, never blocks the Aviva range
   try{
     const res = await fetch("data/latest.json?v=" + Date.now(), {cache:"no-store"});
     if(!res.ok) throw new Error("HTTP " + res.status);
