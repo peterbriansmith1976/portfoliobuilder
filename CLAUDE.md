@@ -204,8 +204,9 @@ backwards, and already-published months changing value.
 
 Four tabs, in the user's order: **Aviva Portfolio Builder | Aviva Fund Explorer | All Funds Portfolio Builder |
 All Funds Explorer** (the first two renamed from "Portfolio builder" and "Fund explorer" on 19 Sep 2026; the explorer
-heading, toasts, notes and portfolio cards name the builder the same way). The All Funds pair is the same builder and the same explorer, not copies, over all 81 funds (37
-Aviva range plus 44 from Zurich, New Ireland, Irish Life and Royal London). The first two tabs read the Aviva
+heading, toasts, notes and portfolio cards name the builder the same way). The All Funds pair is the same builder and the same explorer, not copies, over all 96 funds (37
+Aviva range plus 59 from Zurich, New Ireland, Irish Life, Royal London and Standard Life; 15 Standard Life
+funds were added to the reports by the user on 20 Sep 2026). The first two tabs read the Aviva
 range only and are byte-identical to before the All Funds tabs existed (explorer table, note and count
 verified against the published build). Built at the user's request; they will decide later whether it goes
 public.
@@ -218,10 +219,16 @@ public.
   geometrically by AMC, 6 decimals, no simulated history, `liveStart` the first priced month.
 - **Royal London publishes 0.00% AMC.** By the user's decision their prices carry no AMC, so nothing is
   added back. Consequence to keep in mind: their portfolios show the lowest cost.
+- **Providers are derived from the data, never listed in code** (`PROVS()`: Aviva first, then the distinct
+  providers in `others.json`, alphabetical). Adding a provider to the Fund Focus reports gives it a chip and an
+  entry in the explorer's filter with no code change. `fetch_others.py` still holds `PROVIDERS` as a **guard**:
+  an unknown name prefix stops the run rather than inventing a provider (it fired on Standard Life, as intended).
 - **Asset class, the user's rule, in this order:** "Gold" in the name → Alternative; name ending "Equities"
   → Equity (New Ireland PRIME Equities, iFunds Equities, both by the user's decision); category containing
   "Managed" or "Fund of Funds" → Multi-Asset; "Bond" → Fixed Income; "Equity" → Equity. An unplaced
-  category stops the run.
+  category stops the run. Standard Life's five **Global Index 20/40/60/80/100** sit in category "Specialist
+  Funds", which no rule places; all five are **Multi-Asset** by the user's decision (`CLASS_SET_BY_OWNER`),
+  including 100. The 10 MyFolio funds are placed by the "Managed" rule and carry published ESMA ratings.
 - **ESMA:** published where Fund Focus has it. Otherwise, with 60 months, an indicative band from the
   fund's own 5-year volatility, `esmaSource: "calculated"`, shown with "≈" and a title (the four Royal
   London multi-asset funds). Two hand-set sources, both used only where Fund Focus publishes nothing, so a

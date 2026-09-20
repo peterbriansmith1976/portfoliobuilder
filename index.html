@@ -645,7 +645,9 @@ const STATE_ALL={ act:"A", P:{A:{sel:[],alloc:{}},B:{sel:[],alloc:{}}}, cat:"All
 let ALLF=[], OTHERS_RAW=null, OTHERS_ERR=null;
 const BF=()=> MODE==="all" ? ALLF : DATA.funds;
 const provOf=f=> f.provider || "Aviva";            // the 37 funds of the Aviva range, Dimensional included
-const PROVS=["Aviva","Zurich","New Ireland","Irish Life","Royal London"];
+/* Derived from the data, never listed in code: a provider added to the Fund Focus report appears in the
+   chips and the explorer's filter on its own. Aviva leads, the rest are alphabetical. */
+const PROVS=()=>["Aviva",...[...new Set(DATA.others.map(provOf))].sort((a,b)=>a.localeCompare(b))];
 // Aviva prices a fund as the standard fee plus its adjustment; across providers the comparable figure is the AMC
 const fundCost=(f,sf)=> MODE==="all" ? f.amc : sf+f.costAdj;
 // "≈" marks an ESMA band calculated from 5-year volatility where the provider publishes none
@@ -773,7 +775,7 @@ function renderPicker(){
   const provBox=document.getElementById("provs");
   if(MODE==="all"){
     const n=p=>ALLF.filter(f=>provOf(f)===p).length;
-    provBox.innerHTML=["All",...PROVS].map(p=>`<button type="button" class="pchip${p===state.prov?" on":""}" data-p="${p}" aria-pressed="${p===state.prov}">${p}${p==="All"?"":` ${n(p)}`}</button>`).join("");
+    provBox.innerHTML=["All",...PROVS()].map(p=>`<button type="button" class="pchip${p===state.prov?" on":""}" data-p="${p}" aria-pressed="${p===state.prov}">${p}${p==="All"?"":` ${n(p)}`}</button>`).join("");
     provBox.querySelectorAll(".pchip").forEach(b=>b.onclick=()=>{state.prov=b.dataset.p;renderPicker();});
   }
   provBox.hidden=MODE!=="all";
@@ -1988,7 +1990,7 @@ function renderExplorer(){
   if(X.esma && !bands.includes(+X.esma)) X.esma="";
   document.getElementById("xEsma").innerHTML=`<option value="">All</option>`+bands.map(b=>`<option value="${b}">${b} (${all.filter(f=>f.esma===b).length})</option>`).join("");
   document.getElementById("xEsma").value=X.esma;
-  const provs=PROVS.filter(p=>all.some(f=>!f.port&&provOf(f)===p));
+  const provs=PROVS().filter(p=>all.some(f=>!f.port&&provOf(f)===p));
   if(X.prov && !provs.includes(X.prov)) X.prov="";
   document.getElementById("xProv").innerHTML=`<option value="">All</option>`+provs.map(p=>`<option value="${p}">${p} (${all.filter(f=>!f.port&&provOf(f)===p).length})</option>`).join("");
   document.getElementById("xProv").value=X.prov;
