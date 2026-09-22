@@ -128,6 +128,15 @@ Keychain access from launchd works fine; only the folder was the problem.
 - `fetch_inside.py` — "What's inside" breakdowns, staged to `work/inside.staged.json`. Runs after the
   asset mix in `refresh_daily.sh` and can never block prices; `promote.sh` shows a summary and copies it
   to `data/inside.json` with the month, or with `./promote.sh --allocation`.
+- `watch_history.py` — the daily watch on already-published months. Runs on the days `month_ready.py` says
+  there is no new month, re-derives the last 12 published months of both payloads from fresh prices and
+  notifies if any figure moved. Reads only: it never stages, never edits, never publishes. Added 22 Sep 2026
+  because a restatement was otherwise invisible until the next month end, up to four weeks later. Compares
+  **rounded to 6 decimals**, as the payloads are written, or every figure differs in the 7th decimal.
+  Tolerances differ by payload: `others.json` is derived from these same prices so it must reproduce exactly
+  (1e-9), while the Aviva series came from the workbook's higher-precision prices (2e-4, the monthly overlap
+  check's own tolerance). Verified: 1,152 figures reproduce with nothing flagged, and a deliberately altered
+  month is caught and named.
 - `fetch_others.py` — the other providers' funds, staged to `work/others.staged.json`. Runs after
   `fetch_inside.py` and can never block prices; `promote.sh` copies it to `data/others.json` only when its
   as-at equals the Aviva month, otherwise it is held back.
@@ -164,8 +173,37 @@ to fail when tightened below the floor.
 Covers the 32 Aviva funds. The 5 Dimensional funds are not on the public feed and are covered
 by the overlap check.
 
+### The fetch sets its own date range, always
+
+Both price fetches window the saved report before running it: **from 01/01/2001, monthly frequency
+(`Frequency: 2`), to today**. `fetch_month.py` windows from a few months back, same anchor and frequency.
+Never rely on the saved report's own range, and never hard-code an end date (`fetch_month.py` carried
+`to = "2026-09-30"`, eight days from expiring when it was found).
+
+The anchor day is what matters: a monthly range anchored on the 1st returns stamps on the 1st, and under
+D+1 stamping those are month ends. On 22 Sep 2026 report 111322 came back anchored on the 5th (its saved
+`FromDate` had become 05/01/2001), so every stamp was the 5th, `prices()` kept nothing and the run would
+have stopped with "no month-end prices". Both fetches now also **stop on any stamp that is not the 1st**,
+so a range change is reported rather than inferred. Verified: the monthly pull reproduces `others.json`
+byte for byte, and all 4,996 live Aviva month-figures to within the 2e-4 tolerance (18 exceed it, all
+Stewardship Ethical Equity before 2010, max 6e-4, old prices quoted to few decimals).
+
 ### Things that will bite
 
+- **The spike check** (`fundfocus.month_end_spikes`, called by both price fetches before staging) pulls the
+  daily prices around the month end and stops the run when a price moves more than 2% and hands back more
+  than 2% the next business day. Tested: it names all five MyFolio Active funds on 01/09/2026 and flags
+  nothing across four other month ends on both reports. Zurich Life Gold falling 2.9% that same day is not
+  flagged, because it kept falling. It only examines the month being published, so it will not re-stop on
+  August.
+- **A bad month-end price is not hypothetical.** On 01/09/2026 the five Standard Life MyFolio Active funds
+  printed about 5% below the 31/08 price and recovered the next day (Active I: 138.70, 131.60, 138.00). That
+  stamp is August's month end, so the published August return for those five reads about -4.8% instead of
+  about +0.3%, and their 5Y volatility about 0.4pp high. Found 22 Sep 2026 by checking a figure that looked
+  wrong; it is the only such event in 15 months of daily prices across all 59 funds. A spike check (a
+  month-end price that falls sharply and recovers the next business day) is not yet implemented. When the
+  provider corrects the price, the "published months must not change" guard will stop the run: that
+  correction is a deliberate override, not a reason to weaken the guard.
 - **Longboat publishes net of AMC; the dashboard stores gross.** Comparing the wrong basis
   manufactures a ~4.6pp error that looks like a real fault.
 - **Stamping is D+1.** A price stamped date D is the price for D-1, so the stamp on the 1st of
