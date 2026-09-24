@@ -327,6 +327,41 @@ public.
 - **Before it goes public:** data licence scope with Longboat/CSS for non-Aviva funds, the disclaimer
   revision, and the outside interests question.
 
+## Income sustainability tab
+
+A fifth tab beside All Funds Explorer, built 23/24 Sep 2026. It answers whether an income lasts, which
+none of the other tabs do. Screen only, hidden in print, and it carries the warnings block like the others.
+
+- **Selections are any fund and any valid portfolio from either builder**, up to three, labelled
+  "Portfolio A · Aviva Portfolio Builder" and so on (user's decision: both builders, not just the one the
+  tab sits beside). `iPortfolio()` points `MODE`/`state` at the right builder for one call and restores
+  them, so a portfolio's series is the builder's own `series()`, never a second implementation. The tab
+  therefore owns no mode, and `showTab()` deliberately leaves `MODE` alone for it.
+- **Engine:** the projection chart's own maths, GBM fitted to each selection's whole history, 2,000 paths,
+  monthly steps, fixed seed. The draws are generated once (`iDraws`) and reused by every run, which changes
+  no figure and is what makes the sensitivity runs and the income solver affordable.
+- **It deducts the charge entered**, alone in the tool. A sustainability figure computed gross would be
+  wrong rather than conservative. The notes say so; the disclaimer stands unrevised at the user's decision,
+  since the underlying fund performance data is still gross.
+- **The card is five things, in the user's order:** sustainability with a bar, central forecast, the 90%
+  range (5th to 95th, hidden when more than 5% of runs end empty, since every low percentile is then zero
+  and an upper bound alone says nothing), what happens to the income in the worst 5% of outcomes, and
+  sustainability at 1pp and 2pp lower returns. Everything else lives in a "Behind the figures" table:
+  the income that clears 90% (bisection on the same paths), the stressed scenario, and the calibration
+  split into live and index-derived months.
+- **Percentiles are 5/95 throughout** (card, chart band and the runs-out figure), a true 90% range, chosen
+  over 10/90 at the user's request for prudence and to match the builder's projection chart. Note that
+  10/90 is the PRIIPs KID convention, so this tab is deliberately more conservative than a fund KID.
+- **The sequencing stress is a scenario, not a probability**, and is labelled as one: every run starts with
+  the worst three years a fund of that ESMA band has had (`I_STRESS`, Fixed ESG 20/60/80 and Global Equity
+  ESG Passive, one family so the levels are measured alike; those falls are index derived). Only ESMA 3 to 6
+  have a proxy; anything else gets no stress and says so.
+- **Verified:** the other four tabs byte-identical (both builders, both explorer tables and notes, print and
+  email); the tab reproduces the reviewed prototype's figures exactly for the same inputs; a constant-return
+  series matches closed-form arithmetic to the cent for fixed and inflation-linked income, and the depletion
+  year is exact.
+- A standalone `/income.html` existed for one day while this was agreed; it was removed when the tab landed.
+
 ## Asset mix
 
 The allocation-weighted asset mix of each portfolio, at **portfolio level only**: a doughnut of

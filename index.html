@@ -113,6 +113,35 @@ main.grid{max-width:1240px;margin:0 auto;padding:0 20px 30px;display:grid;grid-t
 .pchip:focus-visible{outline:2px solid var(--signal);outline-offset:1px}
 .costtag.amc{color:var(--muted);font-weight:700}
 #xtable td.fee.na{color:var(--faint);font-weight:400}
+/* ---------- income sustainability tab ---------- */
+.inc-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px;margin-bottom:16px}
+.ic{background:var(--surface);border:1px solid var(--hair);border-radius:12px;overflow:hidden}
+.ic-h{padding:10px 14px;font-weight:800;font-size:13.5px;line-height:1.3;color:#fff;min-height:62px;
+  display:flex;flex-direction:column;justify-content:center}
+.ic-h .nm{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.ic-h .sub{display:block;font-size:11px;font-weight:600;opacity:.85;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ic-b{padding:14px}
+.ic-big{text-align:center;padding:2px 0 0}
+.ic-lbl{font-size:11px;font-weight:700;color:var(--muted)}
+.ic-v{font-size:30px;font-weight:900;letter-spacing:-.5px;font-variant-numeric:tabular-nums;line-height:1.15}
+.ic-sub{font-size:11.5px;color:var(--faint);font-variant-numeric:tabular-nums;line-height:1.5}
+.ic-meter{height:8px;padding:0;border-radius:4px;background:var(--raised);border:1px solid var(--hair);margin:7px 8px 0;overflow:hidden}
+.ic-meter i{display:block;height:100%;min-width:3px;border-radius:4px}
+.ic-mid{text-align:center;padding:10px 0 4px;border-top:1px solid var(--hair);margin-top:10px}
+.ic-mid .ic-v{font-size:17px;font-weight:800}
+.ic-range{border-top:1px solid var(--hair);margin-top:10px;padding:10px 6px 9px;text-align:center}
+.ic-range .pair2{display:flex;align-items:baseline;justify-content:center;gap:9px;margin-top:4px}
+.ic-range .ic-v{font-size:14.5px;white-space:nowrap}
+.ic-range .to{font-size:10.5px;color:var(--faint);font-weight:700}
+.ic-runs{border-top:1px solid var(--hair);padding:10px 4px 0;font-size:12px;color:var(--muted);text-align:center;line-height:1.5}
+.ic-runs b{color:var(--neg);font-variant-numeric:tabular-nums}
+.ic-runs .ok{color:var(--pos)}
+.ic-sens{font-size:11px;color:var(--muted);border-top:1px solid var(--hair);margin-top:12px;padding-top:9px;line-height:1.5}
+.ic-sens b{color:var(--ink);font-variant-numeric:tabular-nums}
+.ic-sens-h{font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--faint);margin-bottom:4px}
+.ic-sens-r{display:flex;justify-content:space-between;gap:10px;padding:1px 0}
+#iExtras .mut{color:var(--faint);font-size:10.5px}
+@media print{#income{display:none!important}}
 .fundlist{max-height:520px;overflow-y:auto}
 .cat{font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);padding:12px 4px 4px}
 .fundrow{display:flex;align-items:center;gap:10px;width:100%;height:42px;text-align:left;background:transparent;border:none;border-radius:6px;padding:0 8px;cursor:pointer;font-family:inherit;color:var(--ink);font-size:12px}
@@ -435,6 +464,7 @@ table.proj.compact td:first-child,table.proj.compact th:first-child{white-space:
   <button class="apptab" role="tab" data-tab="explorer" aria-selected="false">Aviva Fund Explorer</button>
   <button class="apptab" role="tab" data-tab="all" aria-selected="false">All Funds Portfolio Builder</button>
   <button class="apptab" role="tab" data-tab="allx" aria-selected="false">All Funds Explorer</button>
+  <button class="apptab" role="tab" data-tab="income" aria-selected="false">Income Sustainability</button>
 </div></nav>
 
 <main class="grid">
@@ -563,6 +593,53 @@ table.proj.compact td:first-child,table.proj.compact th:first-child{white-space:
       <p>This model portfolio tool is illustrative only and is not investment advice.</p>
     </div><p class="aboutlink"><a href="about.html">About this tool and Slate Labs</a></p></div>
   </section>
+</main>
+
+<main id="income" style="display:none">
+  <div class="card">
+    <div class="card-head"><h2><span class="sec-icon"><svg width="19" height="19" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 16.5V9M8 16.5V4.5M13 16.5v-5M18 16.5V7"/></svg></span>The plan</h2></div>
+    <div class="card-body">
+      <div class="xcontrols">
+        <div class="ctrl"><label for="iAmt">Amount €</label><input class="edit" id="iAmt" type="text" inputmode="numeric" value="500,000" style="width:110px"></div>
+        <div class="ctrl"><label for="iInc">Income €</label><input class="edit" id="iInc" type="text" inputmode="numeric" value="20,000" style="width:100px"></div>
+        <div class="ctrl"><label>Per</label><div class="xchips" id="iPer"></div></div>
+        <div class="ctrl"><label>Withdrawal type</label><div class="xchips" id="iType"></div></div>
+        <div class="ctrl"><label for="iInfl">Inflation % p.a.</label><input id="iInfl" type="number" value="0" step="0.5" min="0" max="10" disabled style="width:80px"></div>
+        <div class="ctrl"><label for="iYrs">Years</label><input class="edit" id="iYrs" type="number" value="30" min="1" max="40" style="width:70px"></div>
+        <div class="ctrl"><label for="iFee">Total charges % p.a.</label><input class="edit" id="iFee" type="number" value="1.00" step="0.05" min="0" max="5" style="width:90px"></div>
+        <div class="ctrl"><label>Sequencing stress</label><div class="xchips" id="iShock"></div></div>
+      </div>
+      <div class="xcontrols" id="iPicks" style="margin-top:2px"></div>
+      <p class="hint" id="iWarn" style="display:none"></p>
+    </div>
+  </div>
+
+  <div class="cards inc-cards" id="iCards"></div>
+
+  <div class="card">
+    <div class="card-head"><h2>Behind the figures</h2></div>
+    <div class="card-body"><div style="overflow-x:auto"><table class="proj compact" id="iExtras"></table></div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><h2>Range of outcomes</h2></div>
+    <div class="card-body">
+      <div class="xchips" id="iLegend" style="margin-bottom:10px"></div>
+      <div id="iChart"></div>
+      <p class="hint" id="iChartNote"></p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><h2>Year by year, central forecast</h2></div>
+    <div class="card-body"><div style="overflow-x:auto"><table class="proj compact" id="iTbl"></table></div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><h2>Notes and methodology</h2></div>
+    <div class="card-body"><p class="hint" id="iMethod"></p></div>
+  </div>
+  <div id="iDisc"></div>
 </main>
 
 <main id="explorer" style="display:none">
@@ -2401,9 +2478,10 @@ function applyMode(){
   pb.title=eb.title="";
 }
 function showTab(t){
-  const x=t==="explorer"||t==="allx";
-  // the builder and explorer screens are shared: point them at the chosen tab's funds, portfolios and filters
-  MODE= t==="all"||t==="allx" ? "all" : "aviva";
+  const x=t==="explorer"||t==="allx", inc=t==="income";
+  /* The income tab reads both builders, so it does not own a mode. Leave MODE and state as the last
+     builder or explorer left them, or its portfolio lookups would silently switch universe. */
+  if(!inc) MODE= t==="all"||t==="allx" ? "all" : "aviva";
   state= MODE==="all" ? STATE_ALL : STATE_AVIVA;
   X= MODE==="all" ? X_ALL : X_AVIVA;
   document.getElementById("xTitle").textContent= MODE==="all" ? "All Funds Explorer" : "Aviva Fund Explorer";
@@ -2411,14 +2489,313 @@ function showTab(t){
   document.getElementById("xfilter").value=X.q;
   applyMode();
   if(DATA.funds.length) renderAll();
-  document.querySelector("main.grid").style.display=x?"none":"";
+  document.querySelector("main.grid").style.display=(x||inc)?"none":"";
   document.getElementById("explorer").style.display=x?"":"none";
-  (x?document.getElementById("xDisc"):DISC_HOME).appendChild(DISC_WRAP);   // one disclaimer, shown on whichever tab is open
+  document.getElementById("income").style.display=inc?"":"none";
+  (inc?document.getElementById("iDisc"):x?document.getElementById("xDisc"):DISC_HOME).appendChild(DISC_WRAP);   // one disclaimer, shown on whichever tab is open
   document.querySelectorAll(".apptab").forEach(b=>{ const on=b.dataset.tab===t; b.classList.toggle("on",on); b.setAttribute("aria-selected",String(on)); });
   try{ localStorage.setItem("apb-tab",t); }catch(e){}
   if(x) renderExplorer();
+  else if(inc) renderIncome();
   else equaliseBBRows();   // rows rendered while this tab was hidden measured 0 tall and got no equal height
 }
+
+/* ---------- income sustainability ----------------------------------------
+   Does an income last? The engine is the dashboard's own projection maths: an independent random
+   month drawn from the selection's fitted history, 2,000 paths, fixed seed. It differs from every
+   other surface in one way, by design: the charge entered here is deducted, because a sustainability
+   figure computed gross would be wrong rather than conservative. The underlying fund performance is
+   still gross, which is what the warnings block describes.
+
+   Selections are any fund and any valid portfolio from either builder, so the tab reads across the
+   whole tool rather than belonging to one side of it. */
+const IN={per:"y", type:"fixed", shock:"off", sel:["","",""], bands:[]};
+const I_N=2000, I_TMAX=40*12;
+let I_Z=null;
+function iDraws(){
+  if(I_Z) return I_Z;
+  I_Z=new Float32Array(I_N*I_TMAX);
+  const rnd=mulberry32(20260630);
+  for(let i=0;i<I_Z.length;i++){
+    const u1=Math.max(rnd(),1e-12), u2=rnd();
+    I_Z[i]=Math.sqrt(-2*Math.log(u1))*Math.cos(2*Math.PI*u2);
+  }
+  return I_Z;
+}
+/* The worst three years a fund of each risk level has actually had, from one fund family so the
+   levels are measured the same way. Those funds priced live only from 2022, so the 2006-09 falls are
+   index derived, the same history the tool marks with a diamond. Nothing outside ESMA 3 to 6 has a
+   proxy, and a selection outside that range simply gets no stress. */
+const I_STRESS={
+  3:{cum:-0.066, src:"Aviva Fixed ESG 20, 2020-23"},
+  4:{cum:-0.251, src:"Aviva Fixed ESG 60, 2006-09"},
+  5:{cum:-0.344, src:"Aviva Fixed ESG 80, 2006-09"},
+  6:{cum:-0.428, src:"Aviva Global Equity ESG Passive, 2006-09"}};
+
+function iFit(rets){
+  const lr=rets.map(r=>Math.log(1+r));
+  const mu=lr.reduce((s,x)=>s+x,0)/lr.length;
+  return {mu, sd:Math.sqrt(lr.reduce((s,x)=>s+(x-mu)*(x-mu),0)/(lr.length-1))};
+}
+/* Sustainability alone, with no percentile arrays to build or sort: the income solver calls this
+   fifteen times a selection, so it has to stay cheap. */
+function iSustain(f, o){
+  const z=iDraws(), T=o.years*12, n=o.paths||I_N;
+  const shiftM=Math.pow(1+(o.shift||0),1/12), dropM=o.drop?Math.pow(1+o.drop,1/36):0;
+  const feeM=Math.pow(1+o.fee,1/12)-1;
+  let ok=0;
+  for(let p=0;p<n;p++){
+    let V=o.amt, inc=o.income/12, alive=true;
+    for(let t=0;t<T;t++){
+      let r=(dropM&&t<36)?dropM-1:Math.exp(f.mu+f.sd*z[p*I_TMAX+t])-1;
+      r=(1+r)*shiftM-1;
+      V=V*(1+r)-V*feeM;
+      if(V>=inc){ V-=inc; } else { alive=false; break; }
+      if(t%12===11) inc*=(1+o.infl);
+    }
+    if(alive) ok++;
+  }
+  return ok/n;
+}
+function iRun(f, o){
+  const z=iDraws(), T=o.years*12;
+  const shiftM=Math.pow(1+(o.shift||0),1/12), dropM=o.drop?Math.pow(1+o.drop,1/36):0;
+  const feeM=Math.pow(1+o.fee,1/12)-1;
+  const yrs=[]; for(let y=0;y<=o.years;y++) yrs.push(new Float64Array(I_N));
+  const lasted=new Float64Array(I_N);
+  let failed=0;
+  for(let p=0;p<I_N;p++){
+    let V=o.amt, inc=o.income/12, alive=true;
+    yrs[0][p]=V; lasted[p]=T;
+    for(let t=0;t<T;t++){
+      let r=(dropM&&t<36)?dropM-1:Math.exp(f.mu+f.sd*z[p*I_TMAX+t])-1;
+      r=(1+r)*shiftM-1;
+      V=V*(1+r)-V*feeM;
+      if(V>=inc){ V-=inc; } else { V=0; if(alive){ alive=false; failed++; lasted[p]=t; } }
+      if(t%12===11){ inc*=(1+o.infl); yrs[Math.floor(t/12)+1][p]=V; }
+    }
+  }
+  const pct=(a,q)=>{ const v=Array.from(a).sort((x,y)=>x-y); return v[Math.floor(q*(I_N-1))]; };
+  return {grid:yrs.map(a=>({p5:pct(a,.05), p50:pct(a,.5), p95:pct(a,.95)})),
+          sustain:1-failed/I_N, lastedP05:pct(lasted,.05)/12};
+}
+/* What income clears 90%? Bisection on the same paths, so it agrees with the figure beside it. */
+function iSolve(f, o){
+  let lo=0, hi=o.amt*0.25;
+  const coarse={...o, paths:800};
+  if(iSustain(f,{...coarse,income:hi})>=0.9) return hi;
+  for(let i=0;i<12 && hi-lo>200;i++){ const m=(lo+hi)/2; if(iSustain(f,{...coarse,income:m})>=0.9) lo=m; else hi=m; }
+  for(let i=0;i<3 && hi-lo>50;i++){ const m=(lo+hi)/2; if(iSustain(f,{...o,income:m})>=0.9) lo=m; else hi=m; }
+  return lo;
+}
+
+/* A selection is a name: "F:<fund name>" for a fund, or "P:<aviva|all>:<A|B>" for a portfolio.
+   Portfolios are read by pointing the builder's own state at the right side for one call, so the
+   series is exactly what that builder charts, not a second implementation of it. */
+function iOptions(){
+  const out=[];
+  ["aviva","all"].forEach(m=>{
+    const label = m==="aviva" ? "Aviva Portfolio Builder" : "All Funds Portfolio Builder";
+    ["A","B"].forEach(k=>{ const S=iPortfolio(m,k); if(S) out.push({v:`P:${m}:${k}`, g:"Portfolios", t:`Portfolio ${k} · ${label}`}); });
+  });
+  // the picker's fixed category order, not the order the funds happen to arrive in
+  CAT_ORDER.forEach(c=>ALLF.filter(f=>f.category===c).forEach(f=>out.push({v:`F:${f.name}`, g:c, t:xName(f.name)})));
+  return out;
+}
+function iPortfolio(mode,k){
+  const m0=MODE, s0=state;
+  MODE=mode; state = mode==="all" ? STATE_ALL : STATE_AVIVA;
+  let S=null;
+  try{
+    if(valid(k) && !selFunds(k).some(f=>!f)){
+      const fs=selFunds(k), cs=Math.max(...fs.map(f=>f.startIdx)), E=END();
+      const ser=series(k,cs,E);
+      if(ser) S={name:`Portfolio ${k}`,
+                 sub:(mode==="all"?"All Funds builder":"Aviva builder")+" · "+fs.map(f=>short(f.name)).join(", "),
+                 rets:ser.g, end:E, sim:Math.max(0, Math.max(...fs.map(f=>f.liveIdx))-cs+1),
+                 esma:srri(vol(ser.g.slice(-60)))};
+    }
+  } finally { MODE=m0; state=s0; }
+  return S;
+}
+function iSeries(v){
+  if(!v) return null;
+  if(v.startsWith("P:")){ const [,m,k]=v.split(":"); return iPortfolio(m,k); }
+  const f=ALLF.find(x=>x.name===v.slice(2)); if(!f) return null;
+  return {name:xName(f.name), sub:f.category+" · "+provOf(f), rets:f.returns.slice(),
+          end:f.startIdx+f.returns.length-1, sim:Math.max(0,f.liveIdx-f.startIdx), esma:f.esma};
+}
+
+
+function iClamp(id, lo, hi, money){
+  const el=document.getElementById(id);
+  let v=+String(el.value).replace(/,/g,"");
+  if(!isFinite(v)) v=lo;
+  v=Math.max(lo,Math.min(hi,v));
+  el.value = money ? Math.round(v).toLocaleString("en-IE") : v;
+  return v;
+}
+function iAxis(mx, want=6){
+  const raw=mx/want, pow=Math.pow(10,Math.floor(Math.log10(raw||1))), n=raw/pow;
+  const step=(n<=1?1:n<=2?2:n<=2.5?2.5:n<=5?5:10)*pow;
+  return {step, top:Math.ceil(mx/step)*step};
+}
+function iChartSVG(runs, years, bands){
+  const W=960,H=300,P={l:70,r:14,t:12,b:26};
+  const mx=Math.max(...runs.flatMap((r,k)=>r.res.grid.map(g=>bands[k]?g.p95:g.p50)),1);
+  const {step,top}=iAxis(mx);
+  const x=i=>P.l+(W-P.l-P.r)*i/years, y=v=>H-P.b-(H-P.t-P.b)*(v/top);
+  let g=`<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Range of projected values">`;
+  for(let v=0;v<=top;v+=step) g+=`<line x1="${P.l}" y1="${y(v)}" x2="${W-P.r}" y2="${y(v)}" stroke="var(--hair)" stroke-width="1"/>`
+    +`<text x="${P.l-8}" y="${y(v)+3.5}" text-anchor="end" font-size="10" fill="var(--muted)">${fmtE(v)}</text>`;
+  runs.forEach((r,k)=>{
+    if(bands[k]){
+      let d=`M ${x(0)} ${y(r.res.grid[0].p5)}`;
+      r.res.grid.forEach((p,i)=>d+=` L ${x(i)} ${y(p.p5)}`);
+      for(let i=r.res.grid.length-1;i>=0;i--) d+=` L ${x(i)} ${y(r.res.grid[i].p95)}`;
+      g+=`<path d="${d} Z" fill="${SEG[k]}" opacity=".16"/>`;
+    }
+    let d=""; r.res.grid.forEach((p,i)=>d+=(i?" L ":"M ")+x(i)+" "+y(p.p50));
+    g+=`<path d="${d}" fill="none" stroke="${SEG[k]}" stroke-width="2"/>`;
+  });
+  for(let i=0;i<=years;i+=Math.max(1,Math.ceil(years/10)))
+    g+=`<text x="${x(i)}" y="${H-8}" text-anchor="middle" font-size="10" fill="var(--muted)">${i}y</text>`;
+  return g+`</svg>`;
+}
+function renderIncome(){
+  if(!DATA.funds.length) return;
+  const opts=iOptions();
+  // a selection naming a portfolio that has since gone invalid falls back to nothing
+  IN.sel=IN.sel.map(v=>opts.some(o=>o.v===v)?v:"");
+  if(!IN.sel.some(Boolean)){ const first=opts[0]; if(first) IN.sel[0]=first.v; }
+  document.getElementById("iPicks").innerHTML=IN.sel.map((v,i)=>{
+    const groups=[...new Set(opts.map(o=>o.g))];
+    return `<div class="ctrl"><label for="iSel${i}">Selection ${i+1}</label><select class="edit" id="iSel${i}" style="min-width:250px">`+
+      `<option value=""${v?"":" selected"}>None</option>`+
+      groups.map(gr=>`<optgroup label="${esc(gr)}">`+opts.filter(o=>o.g===gr)
+        .map(o=>`<option value="${esc(o.v)}"${o.v===v?" selected":""}>${esc(o.t)}</option>`).join("")+`</optgroup>`).join("")+
+      `</select></div>`;}).join("");
+
+  const amt=iClamp("iAmt",1000,1e9,true), incRaw=iClamp("iInc",0,1e8,true);
+  const years=iClamp("iYrs",1,40,false), fee=iClamp("iFee",0,5,false)/100;
+  const cpi=IN.type==="infl" ? iClamp("iInfl",0,10,false)/100 : 0;
+  document.getElementById("iInfl").disabled = IN.type!=="infl";
+  if(IN.type!=="infl") document.getElementById("iInfl").value=0;
+  const income=IN.per==="m" ? incRaw*12 : incRaw;
+  const o={amt, income, years, fee, infl:cpi, cpi};
+
+  const warn=[];
+  if(income/amt>0.15) warn.push(`A withdrawal level of ${fmtP(income/amt)} is far above anything these funds can sustain.`);
+  if(!income) warn.push("No income set, so this only projects the fund.");
+  const wEl=document.getElementById("iWarn");
+  wEl.textContent=warn.join(" "); wEl.style.display=warn.length?"block":"none";
+
+  const runs=IN.sel.map(v=>{ const S=iSeries(v); if(!S||S.rets.length<24) return null;
+    const f=iFit(S.rets), band=S.esma||srri(vol(S.rets.slice(-60))), st=I_STRESS[band];
+    const base={...o, drop:0};
+    return {S, f, band, st,
+      res:iRun(f, base),
+      sens:[0.01,0.02].map(d=>iSustain(f,{...base, shift:-d})),
+      stressSus: IN.shock==="on" && st ? iSustain(f,{...base, drop:st.cum}) : null,
+      safe:iSolve(f, base)}; }).filter(Boolean);
+
+  const perLbl=IN.per==="m"?"a month":"a year";
+  document.getElementById("iCards").innerHTML=runs.map((r,k)=>{
+    const g=r.res.grid[years], real=Math.pow(1+o.cpi,-years);
+    const sus=r.res.sustain, col=sus>=0.9?"var(--pos)":sus>=0.7?"var(--d2)":"var(--neg)";
+    const unpaidM=Math.round((years-r.res.lastedP05)*12);
+    const runsOut = unpaidM<=0 ? `<span class="ok">the income still lasts all ${years} years</span>`
+      : `the income stops in <b>year ${Math.floor(r.res.lastedP05)+1}</b>, ${(unpaidM/12).toFixed(unpaidM%12?1:0)} years short`;
+    return `<div class="ic"><div class="ic-h" style="background:${SEG[k]}" title="${esc(r.S.name)} — ${esc(r.S.sub)}">
+        <span class="nm">${esc(r.S.name)}</span><span class="sub">${esc(r.S.sub)}</span></div>
+      <div class="ic-b">
+        <div class="ic-big"><div class="ic-lbl">Sustainability</div>
+          <div class="ic-v" style="color:${col}">${Math.round(sus*100)}%</div>
+          <div class="ic-meter"><i style="width:${Math.max(sus*100,0)}%;background:${col}"></i></div>
+          <div class="ic-sub">of 2,000 runs pay ${fmtE(income)} ${perLbl} for ${years} years in full</div></div>
+        <div class="ic-mid"><div class="ic-lbl">Central forecast after ${years} years</div>
+          <div class="ic-v">${g.p50>1?fmtE(g.p50):"nothing left"}</div>
+          ${g.p50>1&&o.cpi?`<div class="ic-sub">${fmtE(g.p50*real)} inflation adjusted</div>`:""}</div>
+        ${g.p5>1?`<div class="ic-range"><div class="ic-lbl">90% chance of ending between</div>
+          <div class="pair2"><span class="ic-v">${fmtE(g.p5)}</span><span class="to">to</span><span class="ic-v">${fmtE(g.p95)}</span></div></div>`:""}
+        <div class="ic-runs"><div class="ic-lbl">In the worst 5% of outcomes</div>${runsOut}</div>
+        <div class="ic-sens"><div class="ic-sens-h">If future returns average less than the past</div>
+          <div class="ic-sens-r"><span>1% a year lower</span><b>${Math.round(r.sens[0]*100)}% sustainable</b></div>
+          <div class="ic-sens-r"><span>2% a year lower</span><b>${Math.round(r.sens[1]*100)}% sustainable</b></div></div>
+      </div></div>`;}).join("") || `<p class="empty" style="padding:14px 0">Choose a fund or a portfolio to model an income.</p>`;
+
+  document.getElementById("iExtras").innerHTML = runs.length
+    ? `<thead><tr><th>Selection</th><th>Income that clears 90%</th>${IN.shock==="on"?`<th>Survives a bad first 3 years</th>`:""}<th>Calibrated on</th></tr></thead><tbody>`+
+      runs.map((r,k)=>{ const live=r.S.rets.length-(r.S.sim||0), f=iFit(r.S.rets);
+        return `<tr><td><span class="sw" style="background:${SEG[k]}"></span>${esc(r.S.name)}</td>
+          <td>${fmtE(IN.per==="m"?r.safe/12:r.safe)} ${perLbl} <span class="mut">(${fmtP(r.safe/amt)})</span></td>
+          ${IN.shock==="on"?`<td>${r.st?`${Math.round(r.stressSus*100)}% of runs <span class="mut">${fmtP(r.st.cum)} over 3 years, ESMA ${r.band}, ${esc(r.st.src)}<span class="simd">◆</span></span>`:`<span class="mut">no proxy at ESMA ${r.band}</span>`}</td>`:""}
+          <td class="mut">${r.S.rets.length} months to ${pLbl(r.S.end)}: ${live} live${r.S.sim?`, ${r.S.sim} index derived<span class="simd">◆</span>`:""} · return ${fmtP(Math.exp(f.mu*12)-1)} p.a. · vol ${fmtP(f.sd*Math.sqrt(12))} · charges ${fmtP(fee,2)} deducted</td></tr>`;
+      }).join("")+`</tbody>` : "";
+
+  if(IN.bands.length!==runs.length) IN.bands=runs.map(()=>runs.length<=2);
+  document.getElementById("iLegend").innerHTML=runs.map((r,k)=>
+    `<button type="button" class="xchip${IN.bands[k]?" on":""}" data-band="${k}" aria-pressed="${IN.bands[k]}">
+      <span class="sw" style="background:${SEG[k]}"></span>${esc(r.S.name)} <span style="color:var(--faint)">${IN.bands[k]?"range shown":"show range"}</span></button>`).join("");
+  document.getElementById("iChart").innerHTML = runs.length ? iChartSVG(runs, years, IN.bands) : "";
+  document.getElementById("iChartNote").textContent = runs.length
+    ? "The line is each selection's central forecast: an even chance of ending above it or below. A shown range is the same 90% range the cards quote, with 1 in 20 finishing below it and 1 in 20 above."
+    : "";
+
+  let h="";
+  if(runs.length){
+    h=`<thead><tr><th>Year</th>${runs.map(r=>`<th>${esc(r.S.name)}</th>`).join("")}<th>Income drawn</th></tr></thead><tbody>`;
+    let inc=income;
+    for(let y=1;y<=years;y++){
+      h+=`<tr><td>${y}</td>`+runs.map(r=>`<td>${r.res.grid[y].p50>1?fmtE(r.res.grid[y].p50):"depleted"}</td>`).join("")+`<td>${fmtE(inc)}</td></tr>`;
+      inc*=(1+o.infl);
+    }
+    h+=`</tbody>`;
+  }
+  document.getElementById("iTbl").innerHTML=h;
+
+  document.getElementById("iMethod").innerHTML=
+    `Each projected month is an independent random draw from a distribution fitted to the selection's own history, the same engine as the builder's projection chart:
+     2,000 paths, monthly steps, fixed seed. Income is taken monthly${o.infl?` and rises by ${fmtP(o.infl)} a year`:" and stays level in euro"}.
+     <strong>Charges of ${fmtP(fee,2)} a year are deducted monthly</strong>; every other figure in this tool is gross of charges, and this tab is the exception, since a sustainability figure computed gross would mislead.
+     ${IN.shock==="on"?`The sequencing stress replaces the first three years with the worst three a fund of that ESMA level has actually had, then ordinary months. It is a scenario, not a probability: every run starts with the same fall, so it answers what happens if the bad years come first, not how likely that is. Those falls are index derived<span class="simd">◆</span> rather than live fund prices.`:""}
+     Sustainability is the share of paths that pay the income in full for every year, so it carries a sampling error of roughly a point, most of all near 50%.
+     Central forecast is the median end value; the range is the 5th to the 95th percentile, quoted as a 90% chance; the income running out figure uses that same 5th percentile.
+     Every chance quoted is the model's own and is not a guarantee.
+     Where a selection's history includes months before its live pricing date, marked<span class="simd">◆</span> in the table above, those months are index derived. ${SIM_METHOD}`;
+}
+
+/* The income tab's own controls. Class names are the explorer's (.xchip), never .tab or .wbtn,
+   which the builder binds globally at load. */
+function iChips(id, key, opts, after){
+  const box=document.getElementById(id);
+  const draw=()=>box.innerHTML=opts.map(([v,l])=>
+    `<button type="button" class="xchip${IN[key]===v?" on":""}" data-v="${v}" aria-pressed="${IN[key]===v}">${l}</button>`).join("");
+  draw();
+  box.addEventListener("click",e=>{ const b=e.target.closest(".xchip"); if(!b) return;
+    IN[key]=b.dataset.v; draw(); if(after) after(); renderIncome(); });
+}
+iChips("iPer","per",[["y","Year"],["m","Month"]]);
+iChips("iType","type",[["fixed","Fixed"],["infl","Inflation linked"]],()=>{
+  const el=document.getElementById("iInfl");
+  el.disabled = IN.type!=="infl";
+  if(IN.type==="infl" && +el.value===0) el.value=2; else if(IN.type!=="infl") el.value=0;
+});
+iChips("iShock","shock",[["off","None"],["on","Bad first 3 years"]]);
+["iAmt","iInc","iYrs","iFee","iInfl"].forEach(id=>{
+  const el=document.getElementById(id);
+  let t=null;
+  el.addEventListener("change",renderIncome);
+  el.addEventListener("input",()=>{ clearTimeout(t); t=setTimeout(renderIncome,150); });
+});
+document.getElementById("iPicks").addEventListener("change",e=>{
+  const m=e.target.id && e.target.id.match(/^iSel(\d)$/); if(!m) return;
+  IN.sel[+m[1]]=e.target.value; IN.bands=[]; renderIncome();
+});
+document.getElementById("iLegend").addEventListener("click",e=>{
+  const b=e.target.closest("[data-band]"); if(!b) return;
+  IN.bands[+b.dataset.band]=!IN.bands[+b.dataset.band]; renderIncome();
+});
 document.querySelectorAll(".apptab").forEach(b=>b.onclick=()=>showTab(b.dataset.tab));
 document.getElementById("xCats").addEventListener("click",e=>{ const b=e.target.closest(".xchip"); if(!b) return; X.cat=b.dataset.cat; renderExplorer(); });
 document.getElementById("xfilter").addEventListener("input",e=>{ X.q=e.target.value; renderExplorer(); });
@@ -2467,7 +2844,7 @@ function xToast(html,undo){
   document.body.appendChild(d); xToastT=setTimeout(()=>d.remove(),8000);
 }
 document.getElementById("xtable").addEventListener("keydown",e=>{ const th=e.target.closest("th[data-k]"); if(th && (e.key==="Enter"||e.key===" ")){ e.preventDefault(); xSortBy(th.dataset.k); } });
-(function(){ let t="builder"; try{ t=localStorage.getItem("apb-tab")||"builder"; }catch(e){} showTab(["explorer","all","allx"].includes(t)?t:"builder"); })();
+(function(){ let t="builder"; try{ t=localStorage.getItem("apb-tab")||"builder"; }catch(e){} showTab(["explorer","all","allx","income"].includes(t)?t:"builder"); })();
 
 function applyData(nd){
   DATA.asOf=nd.asOf; DATA.funds=nd.funds;
@@ -2477,6 +2854,7 @@ function applyData(nd){
   document.getElementById("asOf").textContent=pLbl(END());
   renderAll();
   if(document.getElementById("explorer").style.display!=="none") renderExplorer();
+  if(document.getElementById("income").style.display!=="none") renderIncome();
 }
 
 function pruneState(st, funds){   // drop selections naming funds that no longer exist
@@ -2513,6 +2891,7 @@ async function loadOthers(){
   mergeOthers();
   if(MODE==="all") renderAll();
   if(document.getElementById("explorer").style.display!=="none") renderExplorer();
+  if(document.getElementById("income").style.display!=="none") renderIncome();
 }
 /* ---------- data loading ----------
    Data is fetched rather than embedded so the app and the numbers ship independently.
