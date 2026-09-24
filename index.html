@@ -108,6 +108,15 @@ main.grid{max-width:1240px;margin:0 auto;padding:0 20px 30px;display:grid;grid-t
 /* All Funds Portfolio Builder: provider filter above the category tabs. Its own class, since .tab is bound globally. */
 .provs{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px}
 .provs[hidden]{display:none}
+/* Full tab names on a desktop, short ones on a phone: five full names wrapped to four lines each.
+   The bar also wraps below that width, since even the short set needs about 400px in a 335px space. */
+.apptab .tshort{display:none}
+@media(max-width:760px){
+  .apptab .tfull{display:none}
+  .apptab .tshort{display:inline}
+  .apptabs{flex-wrap:wrap;gap:0 2px}
+  .apptab{padding:9px 11px;font-size:13.5px}
+}
 .pchip{background:transparent;border:1px solid var(--hair);color:var(--muted);border-radius:6px;padding:4px 9px;font-size:11.5px;font-weight:700;cursor:pointer;font-family:inherit}
 .pchip.on{background:var(--signal);color:var(--signal-ink);border-color:var(--signal)}
 .pchip:focus-visible{outline:2px solid var(--signal);outline-offset:1px}
@@ -460,11 +469,11 @@ table.proj.compact td:first-child,table.proj.compact th:first-child{white-space:
 </div></header>
 
 <nav class="wrap" aria-label="Views"><div class="apptabs" role="tablist">
-  <button class="apptab on" role="tab" data-tab="builder" aria-selected="true">Aviva Portfolio Builder</button>
-  <button class="apptab" role="tab" data-tab="explorer" aria-selected="false">Aviva Fund Explorer</button>
-  <button class="apptab" role="tab" data-tab="all" aria-selected="false">All Funds Portfolio Builder</button>
-  <button class="apptab" role="tab" data-tab="allx" aria-selected="false">All Funds Explorer</button>
-  <button class="apptab" role="tab" data-tab="income" aria-selected="false">Income Sustainability</button>
+  <button class="apptab on" role="tab" data-tab="builder" aria-selected="true"><span class="tfull">Aviva Portfolio Builder</span><span class="tshort">Builder</span></button>
+  <button class="apptab" role="tab" data-tab="explorer" aria-selected="false"><span class="tfull">Aviva Fund Explorer</span><span class="tshort">Explorer</span></button>
+  <button class="apptab" role="tab" data-tab="all" aria-selected="false"><span class="tfull">All Funds Portfolio Builder</span><span class="tshort">All Builder</span></button>
+  <button class="apptab" role="tab" data-tab="allx" aria-selected="false"><span class="tfull">All Funds Explorer</span><span class="tshort">All Explorer</span></button>
+  <button class="apptab" role="tab" data-tab="income" aria-selected="false"><span class="tfull">Income Sustainability</span><span class="tshort">Income</span></button>
 </div></nav>
 
 <main class="grid">
