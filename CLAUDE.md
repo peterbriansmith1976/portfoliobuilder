@@ -128,6 +128,16 @@ Keychain access from launchd works fine; only the folder was the problem.
 - `fetch_inside.py` — "What's inside" breakdowns, staged to `work/inside.staged.json`. Runs after the
   asset mix in `refresh_daily.sh` and can never block prices; `promote.sh` shows a summary and copies it
   to `data/inside.json` with the month, or with `./promote.sh --allocation`.
+- `correct_month.py` — the controlled way to accept a provider restatement of an already-published month,
+  built 22 Sep 2026 so that taking one is as reviewed as a normal refresh. `python3 correct_month.py 2026-09`
+  shows what would change and stages nothing; `--stage` writes `work/correction.*.json`, and
+  `./promote.sh --correction` shows the differences again, asks, then copies to `data/`, refreshes the dated
+  archive copy and publishes. It stops on: a month that is not the latest published one (the dated archives
+  would disagree), a fund appearing or disappearing, a missing price, a stamp that is not the 1st, a
+  **month-end price that still spikes** (a correction must never import another bad print, and `--force` does
+  not override this), and any per-fund change above 5pp unless `--force` is given. Only the named month is
+  ever touched. Verified against a simulated restatement of two Aviva funds: it found those two and nothing
+  else, the review step cancelled cleanly, and both payloads restored to their original checksums.
 - `watch_history.py` — the daily watch on already-published months. Runs on the days `month_ready.py` says
   there is no new month, re-derives the last 12 published months of both payloads from fresh prices and
   notifies if any figure moved. Reads only: it never stages, never edits, never publishes. Added 22 Sep 2026
