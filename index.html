@@ -123,7 +123,9 @@ main.grid{max-width:1240px;margin:0 auto;padding:0 20px 30px;display:grid;grid-t
 .costtag.amc{color:var(--muted);font-weight:700}
 #xtable td.fee.na{color:var(--faint);font-weight:400}
 /* ---------- income sustainability tab ---------- */
-.inc-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px;margin-bottom:16px}
+/* Capped and centred: with one selection an auto-fit 1fr grid stretched a single card across the
+   whole page, and with two it left a hole on the right. */
+.inc-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,330px));gap:14px;margin-bottom:16px;justify-content:center}
 .ic{background:var(--surface);border:1px solid var(--hair);border-radius:12px;overflow:hidden}
 .ic-h{padding:10px 14px;font-weight:800;font-size:13.5px;line-height:1.3;color:#fff;min-height:62px;
   display:flex;flex-direction:column;justify-content:center}
@@ -149,7 +151,10 @@ main.grid{max-width:1240px;margin:0 auto;padding:0 20px 30px;display:grid;grid-t
 .ic-sens b{color:var(--ink);font-variant-numeric:tabular-nums}
 .ic-sens-h{font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--faint);margin-bottom:4px}
 .ic-sens-r{display:flex;justify-content:space-between;gap:10px;padding:1px 0}
-#iExtras .mut{color:var(--faint);font-size:10.5px}
+.ic-stress{font-size:11px;color:var(--muted);border-top:1px solid var(--hair);margin-top:12px;padding-top:9px;line-height:1.5;
+  background:repeating-linear-gradient(135deg,transparent,transparent 7px,rgba(148,163,176,.05) 7px,rgba(148,163,176,.05) 14px)}
+.ic-stress b{color:var(--ink);font-variant-numeric:tabular-nums}
+.ic-calib{font-size:10px;color:var(--faint);line-height:1.5;border-top:1px solid var(--hair);margin-top:12px;padding-top:9px}
 @media print{#income{display:none!important}}
 .fundlist{max-height:520px;overflow-y:auto}
 .cat{font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);padding:12px 4px 4px}
@@ -606,7 +611,11 @@ table.proj.compact td:first-child,table.proj.compact th:first-child{white-space:
 
 <main id="income" style="display:none">
   <div class="card">
-    <div class="card-head"><h2><span class="sec-icon"><svg width="19" height="19" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 16.5V9M8 16.5V4.5M13 16.5v-5M18 16.5V7"/></svg></span>The plan</h2></div>
+    <div class="card-head"><h2><span class="sec-icon"><svg width="19" height="19" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 16.5V9M8 16.5V4.5M13 16.5v-5M18 16.5V7"/></svg></span>The plan</h2>
+      <div style="display:flex;gap:8px;margin-left:auto">
+        <button class="btn btn-quiet" id="iEmailBtn" type="button">Copy for email</button>
+        <button class="btn btn-primary" id="iPrintBtn" type="button">Print / save PDF</button>
+      </div></div>
     <div class="card-body">
       <div class="xcontrols">
         <div class="ctrl"><label for="iAmt">Amount €</label><input class="edit" id="iAmt" type="text" inputmode="numeric" value="500,000" style="width:110px"></div>
@@ -623,12 +632,7 @@ table.proj.compact td:first-child,table.proj.compact th:first-child{white-space:
     </div>
   </div>
 
-  <div class="cards inc-cards" id="iCards"></div>
-
-  <div class="card">
-    <div class="card-head"><h2>Behind the figures</h2></div>
-    <div class="card-body"><div style="overflow-x:auto"><table class="proj compact" id="iExtras"></table></div></div>
-  </div>
+  <div class="inc-cards" id="iCards"></div>
 
   <div class="card">
     <div class="card-head"><h2>Range of outcomes</h2></div>
@@ -1626,6 +1630,8 @@ function pdStats5(k){
   const s=series(k,from,end), gv=vol(s.g);
   return {lbl:m>=60?"5yr":`${m}m`, from, to:end, ret:ann(s.g), vol:gv, mdd:maxDD(s.g), esma:srri(gv), cost:wCost(k)};
 }
+/* The printed brand band, shared by the portfolio document and the income sheet. */
+const PD_BAND=(title,today)=>`<div class="pd-band"><span class="bm"><svg width="17" height="14" viewBox="0 0 41 33" fill="none"><path d="M5.5 0H33v10h4.5A3.5 3.5 0 0 1 41 13.5V27.5A5.5 5.5 0 0 1 35.5 33H5.5A5.5 5.5 0 0 1 0 27.5V5.5A5.5 5.5 0 0 1 5.5 0Z" fill="#0D1B2A"/></svg><img src="data:image/png;base64,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" alt="Slate Labs" style="height:10px;width:auto;display:block"></span><span class="t2">${title} · Prepared ${today}</span></div>`;
 function buildPrintDoc(opt={}){
   /* opt comes from layoutPrintDoc(), which measures the rendered pages and adjusts:
      gH chart height, barsH performance chart height, esma (show the ESMA scale), bbP1 (single
@@ -1651,7 +1657,7 @@ function buildPrintDoc(opt={}){
   const legend = two ? `<div class="pd-legend"><span>${sq(CA_FIXED)}Portfolio A</span><span>${sq(CB_FIXED)}Portfolio B</span></div>` : "";
   const W_FULL=703, W_RIGHT=411;
 
-  const band=`<div class="pd-band"><span class="bm"><svg width="17" height="14" viewBox="0 0 41 33" fill="none"><path d="M5.5 0H33v10h4.5A3.5 3.5 0 0 1 41 13.5V27.5A5.5 5.5 0 0 1 35.5 33H5.5A5.5 5.5 0 0 1 0 27.5V5.5A5.5 5.5 0 0 1 5.5 0Z" fill="#0D1B2A"/></svg><img src="data:image/png;base64,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" alt="Slate Labs" style="height:10px;width:auto;display:block"></span><span class="t2">${two?"Portfolio comparison":"Model portfolio review"} · Prepared ${today}</span></div>`;
+  const band=PD_BAND(two?"Portfolio comparison":"Model portfolio review", today);
 
   const comp = k => { const st=stByKey[k];
     return `<table class="pd-table pd-fixed"><colgroup><col><col style="width:32px"><col style="width:46px">${MODE==="all"?"":`<col style="width:44px">`}</colgroup><thead><tr><th>Fund</th><th class="r">ESMA</th><th class="r">Weight</th>${MODE==="all"?"":`<th class="r">Cost</th>`}</tr></thead><tbody>`+
@@ -2649,26 +2655,27 @@ function iAxis(mx, want=6){
   const step=(n<=1?1:n<=2?2:n<=2.5?2.5:n<=5?5:10)*pow;
   return {step, top:Math.ceil(mx/step)*step};
 }
-function iChartSVG(runs, years, bands){
-  const W=960,H=300,P={l:70,r:14,t:12,b:26};
+function iChartSVG(runs, years, bands, forPrint, height){
+  const W=960,H=height||300,P={l:70,r:14,t:12,b:26};
+  const col=k=>forPrint?SEG_FIXED[k]:SEG[k], grid=forPrint?"#E2E6EB":"var(--hair)", ink=forPrint?"#66737F":"var(--muted)";
   const mx=Math.max(...runs.flatMap((r,k)=>r.res.grid.map(g=>bands[k]?g.p95:g.p50)),1);
   const {step,top}=iAxis(mx);
   const x=i=>P.l+(W-P.l-P.r)*i/years, y=v=>H-P.b-(H-P.t-P.b)*(v/top);
   let g=`<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Range of projected values">`;
-  for(let v=0;v<=top;v+=step) g+=`<line x1="${P.l}" y1="${y(v)}" x2="${W-P.r}" y2="${y(v)}" stroke="var(--hair)" stroke-width="1"/>`
-    +`<text x="${P.l-8}" y="${y(v)+3.5}" text-anchor="end" font-size="10" fill="var(--muted)">${fmtE(v)}</text>`;
+  for(let v=0;v<=top;v+=step) g+=`<line x1="${P.l}" y1="${y(v)}" x2="${W-P.r}" y2="${y(v)}" stroke="${grid}" stroke-width="1"/>`
+    +`<text x="${P.l-8}" y="${y(v)+3}" text-anchor="end" font-size="8" fill="${ink}">${fmtE(v)}</text>`;
   runs.forEach((r,k)=>{
     if(bands[k]){
       let d=`M ${x(0)} ${y(r.res.grid[0].p5)}`;
       r.res.grid.forEach((p,i)=>d+=` L ${x(i)} ${y(p.p5)}`);
       for(let i=r.res.grid.length-1;i>=0;i--) d+=` L ${x(i)} ${y(r.res.grid[i].p95)}`;
-      g+=`<path d="${d} Z" fill="${SEG[k]}" opacity=".16"/>`;
+      g+=`<path d="${d} Z" fill="${col(k)}" opacity=".16"/>`;
     }
     let d=""; r.res.grid.forEach((p,i)=>d+=(i?" L ":"M ")+x(i)+" "+y(p.p50));
-    g+=`<path d="${d}" fill="none" stroke="${SEG[k]}" stroke-width="2"/>`;
+    g+=`<path d="${d}" fill="none" stroke="${col(k)}" stroke-width="2"/>`;
   });
   for(let i=0;i<=years;i+=Math.max(1,Math.ceil(years/10)))
-    g+=`<text x="${x(i)}" y="${H-8}" text-anchor="middle" font-size="10" fill="var(--muted)">${i}y</text>`;
+    g+=`<text x="${x(i)}" y="${H-8}" text-anchor="middle" font-size="8" fill="${ink}">${i}y</text>`;
   return g+`</svg>`;
 }
 function renderIncome(){
@@ -2728,19 +2735,20 @@ function renderIncome(){
         ${g.p5>1?`<div class="ic-range"><div class="ic-lbl">90% chance of ending between</div>
           <div class="pair2"><span class="ic-v">${fmtE(g.p5)}</span><span class="to">to</span><span class="ic-v">${fmtE(g.p95)}</span></div></div>`:""}
         <div class="ic-runs"><div class="ic-lbl">In the worst 5% of outcomes</div>${runsOut}</div>
+        <div class="ic-mid"><div class="ic-lbl">Income that clears 90%</div>
+          <div class="ic-v">${fmtE(IN.per==="m"?r.safe/12:r.safe)} ${perLbl}</div>
+          <div class="ic-sub">${fmtP(r.safe/o.amt)} of the amount${r.safe<o.income?`, ${fmtE((IN.per==="m"?o.income/12:o.income)-(IN.per==="m"?r.safe/12:r.safe))} less than planned`:""}</div></div>
         <div class="ic-sens"><div class="ic-sens-h">If future returns average less than the past</div>
           <div class="ic-sens-r"><span>1% a year lower</span><b>${Math.round(r.sens[0]*100)}% sustainable</b></div>
           <div class="ic-sens-r"><span>2% a year lower</span><b>${Math.round(r.sens[1]*100)}% sustainable</b></div></div>
+        ${IN.shock==="on"?`<div class="ic-stress"><div class="ic-sens-h">Scenario, not a probability</div>${r.st
+          ? `<div class="ic-sens-r"><span>Survives a bad first 3 years</span><b>${Math.round(r.stressSus*100)}% of runs</b></div>
+             <div class="ic-sens-r" style="color:var(--faint)"><span>${fmtP(r.st.cum)} over 3 years, the worst an ESMA ${r.band} fund has had<span class="simd">◆</span></span></div>`
+          : `<div class="ic-sens-r" style="color:var(--faint)"><span>No proxy at ESMA ${r.band}, so none applied</span></div>`}</div>`:""}
+        <div class="ic-calib">${(()=>{const live=r.S.rets.length-(r.S.sim||0);
+          return `Calibrated on ${r.S.rets.length} months to ${pLbl(r.S.end)}: ${live} live${r.S.sim?`, ${r.S.sim} index derived<span class="simd">◆</span>`:""} ·
+            return ${fmtP(Math.exp(r.f.mu*12)-1)} p.a. · volatility ${fmtP(r.f.sd*Math.sqrt(12))} · charges ${fmtP(o.fee,2)} deducted`;})()}</div>
       </div></div>`;}).join("") || `<p class="empty" style="padding:14px 0">Choose a fund or a portfolio to model an income.</p>`;
-
-  document.getElementById("iExtras").innerHTML = runs.length
-    ? `<thead><tr><th>Selection</th><th>Income that clears 90%</th>${IN.shock==="on"?`<th>Survives a bad first 3 years</th>`:""}<th>Calibrated on</th></tr></thead><tbody>`+
-      runs.map((r,k)=>{ const live=r.S.rets.length-(r.S.sim||0), f=iFit(r.S.rets);
-        return `<tr><td><span class="sw" style="background:${SEG[k]}"></span>${esc(r.S.name)}</td>
-          <td>${fmtE(IN.per==="m"?r.safe/12:r.safe)} ${perLbl} <span class="mut">(${fmtP(r.safe/amt)})</span></td>
-          ${IN.shock==="on"?`<td>${r.st?`${Math.round(r.stressSus*100)}% of runs <span class="mut">${fmtP(r.st.cum)} over 3 years, ESMA ${r.band}, ${esc(r.st.src)}<span class="simd">◆</span></span>`:`<span class="mut">no proxy at ESMA ${r.band}</span>`}</td>`:""}
-          <td class="mut">${r.S.rets.length} months to ${pLbl(r.S.end)}: ${live} live${r.S.sim?`, ${r.S.sim} index derived<span class="simd">◆</span>`:""} · return ${fmtP(Math.exp(f.mu*12)-1)} p.a. · vol ${fmtP(f.sd*Math.sqrt(12))} · charges ${fmtP(fee,2)} deducted</td></tr>`;
-      }).join("")+`</tbody>` : "";
 
   if(IN.bands.length!==runs.length) IN.bands=runs.map(()=>runs.length<=2);
   document.getElementById("iLegend").innerHTML=runs.map((r,k)=>
@@ -2805,6 +2813,128 @@ document.getElementById("iLegend").addEventListener("click",e=>{
   const b=e.target.closest("[data-band]"); if(!b) return;
   IN.bands[+b.dataset.band]=!IN.bands[+b.dataset.band]; renderIncome();
 });
+
+/* ---------- income: the printed sheet and the email copy ------------------
+   Both are built from the same iBundle(), so a printed page and a pasted email can never disagree.
+   Print renders inside this document but always light, so like the builder's print document it uses
+   literal hex rather than var(). Email additionally cannot draw SVG, so it carries no chart. */
+function iBundle(){
+  const amt=iClamp("iAmt",1000,1e9,true), incRaw=iClamp("iInc",0,1e8,true);
+  const years=iClamp("iYrs",1,40,false), fee=iClamp("iFee",0,5,false)/100;
+  const cpi=IN.type==="infl" ? iClamp("iInfl",0,10,false)/100 : 0;
+  const income=IN.per==="m" ? incRaw*12 : incRaw;
+  const o={amt, income, years, fee, infl:cpi, cpi};
+  const runs=IN.sel.map(v=>{ const S=iSeries(v); if(!S||S.rets.length<24) return null;
+    const f=iFit(S.rets), band=S.esma||srri(vol(S.rets.slice(-60))), st=I_STRESS[band];
+    const base={...o, drop:0};
+    return {S, f, band, st, res:iRun(f,base), sens:[0.01,0.02].map(d=>iSustain(f,{...base,shift:-d})),
+            stressSus: IN.shock==="on" && st ? iSustain(f,{...base,drop:st.cum}) : null,
+            safe:iSolve(f,base)}; }).filter(Boolean);
+  return {o, runs, perLbl: IN.per==="m"?"a month":"a year"};
+}
+function iPlanLine(o, perLbl){
+  return `${fmtE(o.amt)} · income ${fmtE(IN.per==="m"?o.income/12:o.income)} ${perLbl}, `+
+    `${o.infl?`rising ${fmtP(o.infl)} a year`:"level in euro"} · ${o.years} years · `+
+    `charges ${fmtP(o.fee,2)} a year deducted · ${IN.shock==="on"?"with a stressed first three years":"no stress applied"}`;
+}
+function iRowsFor(r, o, perLbl){
+  const g=r.res.grid[o.years], real=Math.pow(1+o.cpi,-o.years);
+  const unpaidM=Math.round((o.years-r.res.lastedP05)*12);
+  return {
+    sustain:`${Math.round(r.res.sustain*100)}%`,
+    central: g.p50>1 ? fmtE(g.p50)+(o.cpi?` (${fmtE(g.p50*real)} inflation adjusted)`:"") : "nothing left",
+    range: g.p5>1 ? `${fmtE(g.p5)} to ${fmtE(g.p95)}` : "not shown: more than 5% of runs end with nothing",
+    worst: unpaidM<=0 ? `income lasts all ${o.years} years`
+      : `income stops in year ${Math.floor(r.res.lastedP05)+1}, ${(unpaidM/12).toFixed(unpaidM%12?1:0)} years short`,
+    sens1:`${Math.round(r.sens[0]*100)}%`, sens2:`${Math.round(r.sens[1]*100)}%`,
+    safe:`${fmtE(IN.per==="m"?r.safe/12:r.safe)} ${perLbl}`,
+    stress: r.stressSus==null ? "" : (r.st?`${Math.round(r.stressSus*100)}% of runs`:"no proxy at this ESMA level"),
+    calib:(()=>{ const live=r.S.rets.length-(r.S.sim||0);
+      return `${r.S.rets.length} months to ${pLbl(r.S.end)}: ${live} live${r.S.sim?`, ${r.S.sim} index derived ◆`:""}, `+
+        `return ${fmtP(Math.exp(r.f.mu*12)-1)} p.a., volatility ${fmtP(r.f.sd*Math.sqrt(12))}`; })()
+  };
+}
+function buildIncomePrint(){
+  const {o, runs, perLbl}=iBundle();
+  if(!runs.length) return "";
+  const rows=runs.map(r=>iRowsFor(r,o,perLbl));
+  const th=`<th></th>`+runs.map((r,k)=>`<th class="r">${esc(r.S.name)}</th>`).join("");
+  const line=(lbl,get,cls="")=>`<tr><td>${lbl}</td>`+rows.map(x=>`<td class="r${cls}">${get(x)}</td>`).join("")+`</tr>`;
+  // the stress row pushes the sheet past one page, so the chart gives back the height it needs
+  const chart=iChartSVG(runs, o.years, runs.map(()=>runs.length===1), true, IN.shock==="on"?250:300);
+  return `<div class="pd-page1">
+    ${PD_BAND("Income sustainability", new Date().toLocaleDateString("en-IE"))}
+    <div class="pd-h1">Income sustainability</div>
+    <p class="pd-sub">${iPlanLine(o, perLbl)} · prepared ${new Date().toLocaleDateString("en-IE")} · fund data to ${pLbl(runs[0].S.end)}</p>
+    <div class="pd-sec"><table class="pd-table pd-fixed"><thead><tr>${th}</tr></thead><tbody>
+      ${line("Sustainability", x=>x.sustain)}
+      ${line(`Central forecast after ${o.years} years`, x=>x.central)}
+      ${line("90% chance of ending between", x=>x.range)}
+      ${line("In the worst 5% of outcomes", x=>x.worst)}
+      ${line("If returns are 1% a year lower", x=>x.sens1)}
+      ${line("If returns are 2% a year lower", x=>x.sens2)}
+      ${line("Income that clears 90%", x=>x.safe)}
+      ${IN.shock==="on"?line("Survives a bad first 3 years", x=>x.stress):""}
+      ${line("Calibrated on", x=>x.calib)}
+    </tbody></table></div>
+    <div class="pd-sec"><div class="pd-h">Range of outcomes</div>${chart}</div>
+    <div class="pd-sec"><div class="pd-h">Notes and methodology</div>
+      <p class="pd-meth">${document.getElementById("iMethod").innerHTML}</p></div>
+    <div class="pd-disc" style="--ink:#0D1B2A">${document.querySelector(".disc").innerHTML.replace("<h3>","<h4>").replace("</h3>","</h4>")}</div>
+  </div>`;
+}
+function buildIncomeEmail(){
+  const {o, runs, perLbl}=iBundle();
+  if(!runs.length) return "";
+  const FONT="'Nunito Sans',Arial,sans-serif";
+  const NAVY="#0D1B2A", MUT="#66737F", BORDER="#E2E6EB", STRIPE="#F4F6F9";
+  const th=`font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:#ffffff;background:${NAVY};padding:6px 8px;text-align:left;font-family:${FONT};font-weight:bold;`;
+  const td=(bg,r)=>`padding:6px 8px;border-bottom:1px solid ${BORDER};color:#1D2340;font-family:${FONT};font-size:12px;background:${bg};${r?"text-align:right;":""}`;
+  const rows=runs.map(r=>iRowsFor(r,o,perLbl));
+  const line=(lbl,get,i)=>{ const bg=i%2?STRIPE:"#ffffff";
+    return `<tr><td style="${td(bg)}">${lbl}</td>`+rows.map(x=>`<td style="${td(bg,true)}">${get(x)}</td>`).join("")+`</tr>`; };
+  let h=`<div style="font-family:${FONT};color:${NAVY};max-width:640px;background:#ffffff;padding:4px">
+    <table border="0" cellpadding="0" cellspacing="0" style="width:100%;background:#ffffff;margin-bottom:12px;border-bottom:2px solid #1A4FD6"><tr>
+      <td style="padding:0 0 8px;font-family:${FONT};font-size:15px;font-weight:bold;color:${NAVY}">Income sustainability</td></tr></table>
+    <p style="font-size:10.5px;color:${MUT};font-family:${FONT};line-height:16px;margin:0 0 10px">${iPlanLine(o, perLbl)} · prepared ${new Date().toLocaleDateString("en-IE")} · fund data to ${pLbl(runs[0].S.end)}</p>
+    <table border="0" cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse">
+      <tr><th style="${th}">&nbsp;</th>${runs.map(r=>`<th style="${th}text-align:right">${esc(r.S.name)}</th>`).join("")}</tr>`;
+  const defs=[["Sustainability",x=>x.sustain],[`Central forecast after ${o.years} years`,x=>x.central],
+    ["90% chance of ending between",x=>x.range],["In the worst 5% of outcomes",x=>x.worst],
+    ["If returns are 1% a year lower",x=>x.sens1],["If returns are 2% a year lower",x=>x.sens2],
+    ["Income that clears 90%",x=>x.safe]];
+  if(IN.shock==="on") defs.push(["Survives a bad first 3 years",x=>x.stress]);
+  defs.push(["Calibrated on",x=>x.calib]);
+  defs.forEach(([l,g],i)=>h+=line(l,g,i));
+  h+=`</table>
+    <p style="font-size:9px;color:${MUT};font-family:${FONT};line-height:14px;margin:10px 0 0">${document.getElementById("iMethod").textContent}</p>`;
+  // the warnings block, as the builder's email carries it
+  [...document.querySelectorAll(".disc h3, .disc li, .disc p")].forEach(el=>{
+    const tag=el.tagName==="LI" ? "•&nbsp;" : "";
+    h+=`<p style="font-size:${el.tagName==="H3"?"10px;font-weight:bold;text-transform:uppercase;letter-spacing:.06em;color:"+NAVY:"8.5px;color:"+MUT};font-family:${FONT};line-height:13px;margin:6px 0 0">${tag}${el.innerHTML}</p>`;
+  });
+  return h+`</div>`;
+}
+
+document.getElementById("iPrintBtn").onclick=async()=>{
+  const pd=document.getElementById("printdoc");
+  const html=buildIncomePrint(); if(!html) return;
+  if(document.fonts) await document.fonts.ready;      // measuring and metrics before the font loads are wrong
+  pd.innerHTML=html;
+  await Promise.all([...pd.querySelectorAll("img")].map(i=>i.decode().catch(()=>{})));
+  window.print();
+};
+document.getElementById("iEmailBtn").onclick=()=>{
+  const html=buildIncomeEmail(); if(!html) return;
+  const src=document.getElementById("emailCopySrc");
+  src.innerHTML=html;
+  const range=document.createRange(); range.selectNodeContents(src);
+  const sel=window.getSelection(); sel.removeAllRanges(); sel.addRange(range);
+  const ok=document.execCommand("copy"); sel.removeAllRanges();
+  const btn=document.getElementById("iEmailBtn"), orig=btn.textContent;
+  btn.textContent=ok?"Copied!":"Copy failed";
+  setTimeout(()=>{btn.textContent=orig;},1500);
+};
 document.querySelectorAll(".apptab").forEach(b=>b.onclick=()=>showTab(b.dataset.tab));
 document.getElementById("xCats").addEventListener("click",e=>{ const b=e.target.closest(".xchip"); if(!b) return; X.cat=b.dataset.cat; renderExplorer(); });
 document.getElementById("xfilter").addEventListener("input",e=>{ X.q=e.target.value; renderExplorer(); });

@@ -343,12 +343,23 @@ none of the other tabs do. Screen only, hidden in print, and it carries the warn
 - **It deducts the charge entered**, alone in the tool. A sustainability figure computed gross would be
   wrong rather than conservative. The notes say so; the disclaimer stands unrevised at the user's decision,
   since the underlying fund performance data is still gross.
-- **The card is five things, in the user's order:** sustainability with a bar, central forecast, the 90%
-  range (5th to 95th, hidden when more than 5% of runs end empty, since every low percentile is then zero
-  and an upper bound alone says nothing), what happens to the income in the worst 5% of outcomes, and
-  sustainability at 1pp and 2pp lower returns. Everything else lives in a "Behind the figures" table:
-  the income that clears 90% (bisection on the same paths), the stressed scenario, and the calibration
-  split into live and index-derived months.
+- **The card carries everything**, in the user's order (25 Sep 2026): sustainability with a bar, central
+  forecast, the 90% range (5th to 95th, hidden when more than 5% of runs end empty, since every low
+  percentile is then zero and an upper bound alone says nothing), what happens to the income in the worst
+  5% of outcomes, the income that clears 90% (bisection on the same paths), sustainability at 1pp and 2pp
+  lower returns, the stressed scenario when it is switched on, and the calibration in small print. The
+  "Behind the figures" table that briefly held the last three was removed: the stress toggle appeared dead
+  because its only effect was a column down there, and a control whose result is off screen reads as broken.
+- **`.cards` is the builder's five-column summary row.** The income grid carried both `cards` and
+  `inc-cards` and was silently overridden by it: one selection stretched across the page, three squeezed to
+  230px. The container now uses `inc-cards` alone, `repeat(auto-fit,minmax(290px,330px))` with
+  `justify-content:center`, so one, two or three cards are equal width and centred.
+- **Print and email** (24 Sep 2026) build from one `iBundle()`, so the sheet and the pasted email cannot
+  disagree. Print is one A4 page in every combination tested (one to three selections, stress on or off,
+  40 years, inflation linked: 972 to 991px against the 1000px limit); the chart gives back 50px of height
+  when the stress row appears, which was the only case that spilled. The chart passes literal hex for print,
+  since print is always light, and email carries no chart at all. `PD_BAND(title, today)` is the shared
+  brand band, extracted from `buildPrintDoc` and verified to leave its output byte-identical.
 - **Percentiles are 5/95 throughout** (card, chart band and the runs-out figure), a true 90% range, chosen
   over 10/90 at the user's request for prudence and to match the builder's projection chart. Note that
   10/90 is the PRIIPs KID convention, so this tab is deliberately more conservative than a fund KID.
