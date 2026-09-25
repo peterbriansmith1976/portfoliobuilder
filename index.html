@@ -151,9 +151,8 @@ main.grid{max-width:1240px;margin:0 auto;padding:0 20px 30px;display:grid;grid-t
 .ic-sens b{color:var(--ink);font-variant-numeric:tabular-nums}
 .ic-sens-h{font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--faint);margin-bottom:4px}
 .ic-sens-r{display:flex;justify-content:space-between;gap:10px;padding:1px 0}
-.ic-stress{font-size:11px;color:var(--muted);border-top:1px solid var(--hair);margin-top:12px;padding-top:9px;line-height:1.5;
-  background:repeating-linear-gradient(135deg,transparent,transparent 7px,rgba(148,163,176,.05) 7px,rgba(148,163,176,.05) 14px)}
-.ic-stress b{color:var(--ink);font-variant-numeric:tabular-nums}
+.ic-badge{font-size:10.5px;font-weight:700;color:var(--ink);background:var(--raised);border:1px solid var(--hair);
+  border-radius:7px;padding:6px 9px;margin-bottom:10px;line-height:1.45;text-align:center}
 .ic-calib{font-size:10px;color:var(--faint);line-height:1.5;border-top:1px solid var(--hair);margin-top:12px;padding-top:9px}
 @media print{#income{display:none!important}}
 .fundlist{max-height:520px;overflow-y:auto}
@@ -2709,11 +2708,14 @@ function renderIncome(){
 
   const runs=IN.sel.map(v=>{ const S=iSeries(v); if(!S||S.rets.length<24) return null;
     const f=iFit(S.rets), band=S.esma||srri(vol(S.rets.slice(-60))), st=I_STRESS[band];
-    const base={...o, drop:0};
-    return {S, f, band, st,
+    /* The stress restates the whole illustration rather than adding a footnote: every figure on the
+       card, the chart and the table is computed on paths that start with that fall. A selection with no
+       proxy runs unstressed and says so. */
+    const drop = IN.shock==="on" && st ? st.cum : 0;
+    const base={...o, drop};
+    return {S, f, band, st, drop,
       res:iRun(f, base),
       sens:[0.01,0.02].map(d=>iSustain(f,{...base, shift:-d})),
-      stressSus: IN.shock==="on" && st ? iSustain(f,{...base, drop:st.cum}) : null,
       safe:iSolve(f, base)}; }).filter(Boolean);
 
   const perLbl=IN.per==="m"?"a month":"a year";
@@ -2726,10 +2728,14 @@ function renderIncome(){
     return `<div class="ic"><div class="ic-h" style="background:${SEG[k]}" title="${esc(r.S.name)} — ${esc(r.S.sub)}">
         <span class="nm">${esc(r.S.name)}</span><span class="sub">${esc(r.S.sub)}</span></div>
       <div class="ic-b">
-        <div class="ic-big"><div class="ic-lbl">Sustainability</div>
+        ${IN.shock==="on"?`<div class="ic-badge">${r.drop
+          ? `Scenario, not a probability: the first 3 years lose ${fmtP(r.drop)} evenly, the worst an ESMA ${r.band} fund has had<span class="simd">◆</span>.
+             Every figure below is the share of runs that start that way.`
+          : `No stressed start applied: no proxy at ESMA ${r.band}`}</div>`:""}
+        <div class="ic-big"><div class="ic-lbl">Sustainability${r.drop?" after that start":""}</div>
           <div class="ic-v" style="color:${col}">${Math.round(sus*100)}%</div>
           <div class="ic-meter"><i style="width:${Math.max(sus*100,0)}%;background:${col}"></i></div>
-          <div class="ic-sub">of 2,000 runs pay ${fmtE(income)} ${perLbl} for ${years} years in full</div></div>
+          <div class="ic-sub">of 2,000 runs pay ${fmtE(income)} ${perLbl} for ${years} years in full${r.drop?", each starting with that fall":""}</div></div>
         <div class="ic-mid"><div class="ic-lbl">Central forecast after ${years} years</div>
           <div class="ic-v">${g.p50>1?fmtE(g.p50):"nothing left"}</div>
           ${g.p50>1&&o.cpi?`<div class="ic-sub">${fmtE(g.p50*real)} inflation adjusted</div>`:""}</div>
@@ -2742,10 +2748,6 @@ function renderIncome(){
         <div class="ic-sens"><div class="ic-sens-h">If future returns average less than the past</div>
           <div class="ic-sens-r"><span>1% a year lower</span><b>${Math.round(r.sens[0]*100)}% sustainable</b></div>
           <div class="ic-sens-r"><span>2% a year lower</span><b>${Math.round(r.sens[1]*100)}% sustainable</b></div></div>
-        ${IN.shock==="on"?`<div class="ic-stress"><div class="ic-sens-h">Scenario, not a probability</div>${r.st
-          ? `<div class="ic-sens-r"><span>Survives a bad first 3 years</span><b>${Math.round(r.stressSus*100)}% of runs</b></div>
-             <div class="ic-sens-r" style="color:var(--faint)"><span>${fmtP(r.st.cum)} over 3 years, the worst an ESMA ${r.band} fund has had<span class="simd">◆</span></span></div>`
-          : `<div class="ic-sens-r" style="color:var(--faint)"><span>No proxy at ESMA ${r.band}, so none applied</span></div>`}</div>`:""}
         <div class="ic-calib">${(()=>{const live=r.S.rets.length-(r.S.sim||0);
           return `Calibrated on ${r.S.rets.length} months to ${pLbl(r.S.end)}: ${live} live${r.S.sim?`, ${r.S.sim} index derived<span class="simd">◆</span>`:""} ·
             return ${fmtP(Math.exp(r.f.mu*12)-1)} p.a. · volatility ${fmtP(r.f.sd*Math.sqrt(12))} · charges ${fmtP(o.fee,2)} deducted`;})()}</div>
@@ -2781,7 +2783,11 @@ function renderIncome(){
     `Each projected month is an independent random draw from a distribution fitted to the selection's own history, the same engine as the builder's projection chart:
      2,000 paths, monthly steps, fixed seed. Income is taken monthly${o.infl?` and rises by ${fmtP(o.infl)} a year`:" and stays level in euro"}.
      <strong>Charges of ${fmtP(fee,2)} a year are deducted monthly</strong>; every other figure in this tool is gross of charges, and this tab is the exception, since a sustainability figure computed gross would mislead.
-     ${IN.shock==="on"?`The sequencing stress replaces the first three years with the worst three a fund of that ESMA level has actually had, then ordinary months. It is a scenario, not a probability: every run starts with the same fall, so it answers what happens if the bad years come first, not how likely that is. Those falls are index derived<span class="simd">◆</span> rather than live fund prices.`:""}
+     ${IN.shock==="on"?`<strong>A stressed start is applied, so every figure here is a scenario rather than a probability.</strong>
+     The first three years of every run lose the same amount: the worst any fund at that ESMA level has lost over three years, spread evenly across the 36 months rather than replayed month by month, after which ordinary random months resume.
+     Spreading it evenly is the harsher of the two, since the money starts draining from a lower base at once: the ESMA 5 proxy's own worst three years actually gained 4.3% in year one before falling, which tests four points better than the even decline.
+     The percentages are therefore the share of runs that begin that way, not of all futures, and they answer what happens if the bad years come first, not how likely that is.
+     Those falls are index derived<span class="simd">◆</span> rather than live fund prices.`:""}
      Sustainability is the share of paths that pay the income in full for every year, so it carries a sampling error of roughly a point, most of all near 50%.
      Central forecast is the median end value; the range is the 5th to the 95th percentile, quoted as a 90% chance; the income running out figure uses that same 5th percentile.
      Every chance quoted is the model's own and is not a guarantee.
@@ -2832,9 +2838,9 @@ function iBundle(){
   const o={amt, income, years, fee, infl:cpi, cpi};
   const runs=IN.sel.map(v=>{ const S=iSeries(v); if(!S||S.rets.length<24) return null;
     const f=iFit(S.rets), band=S.esma||srri(vol(S.rets.slice(-60))), st=I_STRESS[band];
-    const base={...o, drop:0};
-    return {S, f, band, st, res:iRun(f,base), sens:[0.01,0.02].map(d=>iSustain(f,{...base,shift:-d})),
-            stressSus: IN.shock==="on" && st ? iSustain(f,{...base,drop:st.cum}) : null,
+    const drop = IN.shock==="on" && st ? st.cum : 0;
+    const base={...o, drop};
+    return {S, f, band, st, drop, res:iRun(f,base), sens:[0.01,0.02].map(d=>iSustain(f,{...base,shift:-d})),
             safe:iSolve(f,base)}; }).filter(Boolean);
   return {o, runs, perLbl: IN.per==="m"?"a month":"a year"};
 }
@@ -2854,7 +2860,7 @@ function iRowsFor(r, o, perLbl){
       : `income stops in year ${Math.floor(r.res.lastedP05)+1}, ${(unpaidM/12).toFixed(unpaidM%12?1:0)} years short`,
     sens1:`${Math.round(r.sens[0]*100)}%`, sens2:`${Math.round(r.sens[1]*100)}%`,
     safe:`${fmtE(IN.per==="m"?r.safe/12:r.safe)} ${perLbl}`,
-    stress: r.stressSus==null ? "" : (r.st?`${Math.round(r.stressSus*100)}% of runs`:"no proxy at this ESMA level"),
+    stress: r.drop ? `first 3 years lose ${fmtP(r.drop)} evenly, the worst an ESMA ${r.band} fund has had ◆; figures below are the share of runs starting that way` : "none: no proxy at this ESMA level",
     calib:(()=>{ const live=r.S.rets.length-(r.S.sim||0);
       return `${r.S.rets.length} months to ${pLbl(r.S.end)}: ${live} live${r.S.sim?`, ${r.S.sim} index derived ◆`:""}, `+
         `return ${fmtP(Math.exp(r.f.mu*12)-1)} p.a., volatility ${fmtP(r.f.sd*Math.sqrt(12))}`; })()
@@ -2867,7 +2873,7 @@ function buildIncomePrint(){
   const th=`<th></th>`+runs.map((r,k)=>`<th class="r">${esc(r.S.name)}</th>`).join("");
   const line=(lbl,get,cls="")=>`<tr><td>${lbl}</td>`+rows.map(x=>`<td class="r${cls}">${get(x)}</td>`).join("")+`</tr>`;
   // the stress row pushes the sheet past one page, so the chart gives back the height it needs
-  const chart=iChartSVG(runs, o.years, runs.map(()=>runs.length===1), true, IN.shock==="on"?250:300);
+  const chart=iChartSVG(runs, o.years, runs.map(()=>runs.length===1), true, IN.shock==="on"?205:300);
   return `<div class="pd-page1">
     ${PD_BAND("Income sustainability", new Date().toLocaleDateString("en-IE"))}
     <div class="pd-h1">Income sustainability</div>
@@ -2880,12 +2886,20 @@ function buildIncomePrint(){
       ${line("If returns are 1% a year lower", x=>x.sens1)}
       ${line("If returns are 2% a year lower", x=>x.sens2)}
       ${line("Income that clears 90%", x=>x.safe)}
-      ${IN.shock==="on"?line("Survives a bad first 3 years", x=>x.stress):""}
+      ${IN.shock==="on"?line("Stressed start applied", x=>x.stress):""}
       ${line("Calibrated on", x=>x.calib)}
     </tbody></table></div>
     <div class="pd-sec"><div class="pd-h">Range of outcomes</div>${chart}</div>
     <div class="pd-sec"><div class="pd-h">Notes and methodology</div>
-      <p class="pd-meth">${document.getElementById("iMethod").innerHTML}</p></div>
+      <p class="pd-meth">Each projected month is an independent random draw from a distribution fitted to the selection's own history:
+      2,000 paths, monthly steps, fixed seed. Income is taken monthly${o.infl?` and rises by ${fmtP(o.infl)} a year`:" and stays level in euro"}, and
+      charges of ${fmtP(o.fee,2)} a year are deducted monthly; every other figure in this tool is gross of charges.
+      Sustainability is the share of paths paying the income in full for every year. The central forecast is the median end value, the range is the
+      5th to the 95th percentile quoted as a 90% chance, and the worst 5% figure uses that same 5th percentile.
+      ${IN.shock==="on"?`<b>A stressed start is applied, so these are scenario results, not probabilities:</b> the first three years of every run lose
+      the worst any fund at that ESMA level has lost over three years, spread evenly rather than replayed, after which ordinary months resume.
+      Those falls are index derived ◆.`:""}
+      Figures marked ◆ rest on months before a fund's live pricing date, which are index derived. Every chance quoted is the model's own and is not a guarantee.</p></div>
     <div class="pd-disc" style="--ink:#0D1B2A">${document.querySelector(".disc").innerHTML.replace("<h3>","<h4>").replace("</h3>","</h4>")}</div>
   </div>`;
 }
@@ -2909,7 +2923,7 @@ function buildIncomeEmail(){
     ["90% chance of ending between",x=>x.range],["In the worst 5% of outcomes",x=>x.worst],
     ["If returns are 1% a year lower",x=>x.sens1],["If returns are 2% a year lower",x=>x.sens2],
     ["Income that clears 90%",x=>x.safe]];
-  if(IN.shock==="on") defs.push(["Survives a bad first 3 years",x=>x.stress]);
+  if(IN.shock==="on") defs.push(["Stressed start applied",x=>x.stress]);
   defs.push(["Calibrated on",x=>x.calib]);
   defs.forEach(([l,g],i)=>h+=line(l,g,i));
   h+=`</table>

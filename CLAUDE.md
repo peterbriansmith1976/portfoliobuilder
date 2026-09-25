@@ -371,10 +371,23 @@ none of the other tabs do. Screen only, hidden in print, and it carries the warn
 - **Percentiles are 5/95 throughout** (card, chart band and the runs-out figure), a true 90% range, chosen
   over 10/90 at the user's request for prudence and to match the builder's projection chart. Note that
   10/90 is the PRIIPs KID convention, so this tab is deliberately more conservative than a fund KID.
-- **The sequencing stress is a scenario, not a probability**, and is labelled as one: every run starts with
-  the worst three years a fund of that ESMA band has had (`I_STRESS`, Fixed ESG 20/60/80 and Global Equity
-  ESG Passive, one family so the levels are measured alike; those falls are index derived). Only ESMA 3 to 6
-  have a proxy; anything else gets no stress and says so.
+- **The sequencing stress restates the whole card** (25 Sep 2026). It first only added a footnote block while
+  the headline stayed unstressed, and the user reported the switch as doing nothing: a control whose result
+  does not move the figures reads as broken. Now `drop` is applied to the main run, both sensitivities, the
+  solved income, the chart and the year table, and each card carries a badge: "Scenario, not a probability:
+  the first 3 years lose X% evenly... Every figure below is the share of runs that start that way." The old
+  "Survives a bad first 3 years" line was the same statistic as sustainability counted over stressed paths,
+  under a second name, which is why it confused.
+- **The stressed months are the band's total fall spread evenly over 36 months, not the period replayed.**
+  Months 37 onwards are ordinary GBM draws. Say "spread evenly", never "the worst three years it has had",
+  which implies a replay. Measured: replaying the ESMA 5 proxy's actual worst window gives 63% where the even
+  decline gives 59%, because that window rose 4.3% in its first year before collapsing, so the even decline is
+  the harsher and simpler assumption. `I_STRESS` proxies are Fixed ESG 20/60/80 and Global Equity ESG Passive,
+  one family so the levels are measured alike, and their falls are index derived. Only ESMA 3 to 6 have a
+  proxy; anything else runs unstressed and the badge says so.
+- **Print carries its own condensed notes**, not the screen's methodology: reusing it pushed the stressed
+  three-selection sheet to 1014px, over the one-page limit. With the shorter version every combination tested
+  measures 896 to 965px (one and three selections, stress on and off, 40 years, inflation linked).
 - **Verified:** the other four tabs byte-identical (both builders, both explorer tables and notes, print and
   email); the tab reproduces the reviewed prototype's figures exactly for the same inputs; a constant-return
   series matches closed-form arithmetic to the cent for fixed and inflation-linked income, and the depletion
