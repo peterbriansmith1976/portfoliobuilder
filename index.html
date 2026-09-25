@@ -2683,8 +2683,8 @@ function renderIncome(){
   if(!DATA.funds.length) return;
   const opts=iOptions();
   // a selection naming a portfolio that has since gone invalid falls back to nothing
+  // opens with nothing selected, at the user's request: the adviser picks what they want to test
   IN.sel=IN.sel.map(v=>opts.some(o=>o.v===v)?v:"");
-  if(!IN.sel.some(Boolean)){ const first=opts[0]; if(first) IN.sel[0]=first.v; }
   document.getElementById("iPicks").innerHTML=IN.sel.map((v,i)=>{
     const groups=[...new Set(opts.map(o=>o.g))];
     return `<div class="ctrl"><label for="iSel${i}">Selection ${i+1}</label><select class="edit" id="iSel${i}" style="min-width:250px">`+
@@ -2772,6 +2772,11 @@ function renderIncome(){
   }
   document.getElementById("iTbl").innerHTML=h;
 
+  // with nothing selected the chart, table and notes would render as empty boxes with headings
+  ["iChart","iTbl","iMethod"].forEach(id=>{
+    const card=document.getElementById(id).closest(".card");
+    if(card) card.style.display = runs.length ? "" : "none";
+  });
   document.getElementById("iMethod").innerHTML=
     `Each projected month is an independent random draw from a distribution fitted to the selection's own history, the same engine as the builder's projection chart:
      2,000 paths, monthly steps, fixed seed. Income is taken monthly${o.infl?` and rises by ${fmtP(o.infl)} a year`:" and stays level in euro"}.

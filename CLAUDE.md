@@ -355,6 +355,10 @@ none of the other tabs do. Screen only, hidden in print, and it carries the warn
   230px. The container now uses `inc-cards` alone, `repeat(auto-fit,minmax(290px,330px))` with
   `justify-content:start`: left aligned, not centred, so the first card sits on the page's left edge like
   everything else and does not slide sideways when a second selection is added.
+- **It opens with nothing selected** (user's request, 25 Sep 2026): three "None" selections and the line
+  "Choose a fund or a portfolio to model an income". The chart, year table and notes cards are hidden until
+  something is chosen, or they render as empty boxes with headings, and print and email no-op rather than
+  producing a blank document.
 - **`#income` needs its own page width.** `main.grid` and `#explorer` each carry
   `max-width:1240px;margin:0 auto`, and the income tab was missing it, so on a wide monitor the plan card
   ran the full width of the screen while every other tab sat in the 1240px column.
