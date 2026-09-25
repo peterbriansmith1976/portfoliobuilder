@@ -353,7 +353,11 @@ none of the other tabs do. Screen only, hidden in print, and it carries the warn
 - **`.cards` is the builder's five-column summary row.** The income grid carried both `cards` and
   `inc-cards` and was silently overridden by it: one selection stretched across the page, three squeezed to
   230px. The container now uses `inc-cards` alone, `repeat(auto-fit,minmax(290px,330px))` with
-  `justify-content:center`, so one, two or three cards are equal width and centred.
+  `justify-content:start`: left aligned, not centred, so the first card sits on the page's left edge like
+  everything else and does not slide sideways when a second selection is added.
+- **`#income` needs its own page width.** `main.grid` and `#explorer` each carry
+  `max-width:1240px;margin:0 auto`, and the income tab was missing it, so on a wide monitor the plan card
+  ran the full width of the screen while every other tab sat in the 1240px column.
 - **Print and email** (24 Sep 2026) build from one `iBundle()`, so the sheet and the pasted email cannot
   disagree. Print is one A4 page in every combination tested (one to three selections, stress on or off,
   40 years, inflation linked: 972 to 991px against the 1000px limit); the chart gives back 50px of height
