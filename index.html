@@ -531,7 +531,7 @@ table.proj.compact td:first-child,table.proj.compact th:first-child{white-space:
     </div>
 
     <div class="card">
-      <div class="card-head"><h2><span class="sec-icon"><svg width="19" height="19" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="2" y1="17" x2="18" y2="17"/><rect x="4" y="11" width="3" height="6" fill="currentColor" stroke="none"/><rect x="8.5" y="7" width="3" height="10" fill="currentColor" stroke="none"/><rect x="13" y="3" width="3" height="14" fill="currentColor" stroke="none"/></svg></span>3 · Model portfolio results</h2><div style="display:flex;gap:8px"><button class="btn btn-quiet" id="copyEmailBtn" disabled>Copy for email</button><button class="btn btn-primary" id="printBtn" disabled>Print / save PDF</button></div></div>
+      <div class="card-head"><h2><span class="sec-icon"><svg width="19" height="19" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="2" y1="17" x2="18" y2="17"/><rect x="4" y="11" width="3" height="6" fill="currentColor" stroke="none"/><rect x="8.5" y="7" width="3" height="10" fill="currentColor" stroke="none"/><rect x="13" y="3" width="3" height="14" fill="currentColor" stroke="none"/></svg></span>3 · Model portfolio results</h2><div style="display:flex;gap:8px"><button class="btn btn-quiet" id="copyWordBtn" disabled>Copy for Word</button><button class="btn btn-quiet" id="copyEmailBtn" disabled>Copy for email</button><button class="btn btn-primary" id="printBtn" disabled>Print / save PDF</button></div></div>
       <div class="card-body">
         <div class="controls" style="margin-bottom:0">
           <div class="ctrl"><label>Analysis window</label>
@@ -657,7 +657,7 @@ table.proj.compact td:first-child,table.proj.compact th:first-child{white-space:
 
 <main id="explorer" style="display:none">
   <div class="card" id="xTableCard">
-    <div class="card-head"><h2><span class="sec-icon"><svg width="19" height="19" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="3.5" width="14" height="13" rx="2"/><line x1="3" y1="8" x2="17" y2="8"/><line x1="3" y1="12.2" x2="17" y2="12.2"/><line x1="8.5" y1="8" x2="8.5" y2="16.5"/></svg></span><span id="xTitle">Aviva Fund Explorer</span></h2><div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><span class="count" id="xCount"></span><button class="btn btn-quiet" id="xClear" type="button">Clear ticks</button><button class="btn btn-primary" id="xCompareBtn" type="button" disabled>Compare</button></div></div>
+    <div class="card-head"><h2><span class="sec-icon"><svg width="19" height="19" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="3.5" width="14" height="13" rx="2"/><line x1="3" y1="8" x2="17" y2="8"/><line x1="3" y1="12.2" x2="17" y2="12.2"/><line x1="8.5" y1="8" x2="8.5" y2="16.5"/></svg></span><span id="xTitle">Aviva Fund Explorer</span></h2><div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><span class="count" id="xCount"></span><button class="btn btn-quiet" id="xWordBtn" type="button">Copy for Word</button><button class="btn btn-quiet" id="xTableBtn" type="button">Copy table</button><button class="btn btn-quiet" id="xClear" type="button">Clear ticks</button><button class="btn btn-primary" id="xCompareBtn" type="button" disabled>Compare</button></div></div>
     <div class="card-body">
       <div class="xcontrols">
         <div class="ctrl"><label>Asset class</label><div class="xchips" id="xCats"></div></div>
@@ -672,7 +672,7 @@ table.proj.compact td:first-child,table.proj.compact th:first-child{white-space:
     </div>
   </div>
   <div class="card" id="xCompare" style="display:none">
-    <div class="card-head"><h2><span class="sec-icon"><svg width="19" height="19" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3,14 7.5,9.5 11,12 17,5"/><line x1="3" y1="17" x2="17" y2="17"/></svg></span>Compare funds</h2><button class="btn btn-quiet" id="xBack" type="button">Back to all funds</button></div>
+    <div class="card-head"><h2><span class="sec-icon"><svg width="19" height="19" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3,14 7.5,9.5 11,12 17,5"/><line x1="3" y1="17" x2="17" y2="17"/></svg></span>Compare funds</h2><div style="display:flex;gap:8px"><button class="btn btn-quiet" id="xWordBtn2" type="button">Copy for Word</button><button class="btn btn-quiet" id="xBack" type="button">Back to all funds</button></div></div>
     <div class="card-body">
       <div class="xcontrols">
         <div class="ctrl"><label>Period</label><div class="wbtns" id="xWins"></div></div>
@@ -688,7 +688,7 @@ table.proj.compact td:first-child,table.proj.compact th:first-child{white-space:
       <div id="xGrowth"></div>
       <div class="subhead">Drawdown (gross of AMC)</div>
       <div id="xDD"></div>
-      <div class="subhead">Calendar year returns (gross of AMC)</div>
+      <div class="subhead" style="display:flex;align-items:center;gap:10px">Calendar year returns (gross of AMC)<button class="btn btn-quiet" id="xCalBtn" type="button">Copy table</button></div>
       <table class="proj compact" id="xCal"></table>
       <div class="note" id="xCmpNote"></div>
       <div class="subhead">What's inside</div>
@@ -1899,6 +1899,7 @@ function renderAll(){
   const ok=keys.length>0;
   document.getElementById("printBtn").disabled=!ok;
   document.getElementById("copyEmailBtn").disabled=!ok;
+  document.getElementById("copyWordBtn").disabled=!ok;
   document.getElementById("resultsEmpty").style.display=ok?"none":"block";
   document.getElementById("resultsInner").style.display=ok?"block":"none";
   if(!ok){
@@ -2936,6 +2937,490 @@ function buildIncomeEmail(){
   return h+`</div>`;
 }
 
+
+/* ---------- Copy for Word ---------------------------------------------------------------
+   One paste: tables arrive as real Word tables, charts as pictures. The clipboard carries
+   text/html for Word and Excel and tab-separated text/plain for everything else.
+
+   Three things make this less obvious than it looks.
+
+   1. Copied HTML leaves this document's cascade, exactly like print and email, so it cannot
+      use var(). That is why the print document is the source: it is already composed light
+      only and in literal hex, and reusing it means the pasted report and the printed PDF
+      cannot disagree.
+   2. An SVG loaded as an image ignores @font-face, so a chart rasterised whole comes out in
+      a serif fallback. Measured: "Growth of EUR 100,000" sets 159px in Nunito Sans and 145px
+      as serif, and waiting for the font to load does not change it. So the shapes are
+      rasterised from the SVG and the text is painted onto the canvas, where this document's
+      own font applies. Verified at 157px, i.e. the real face.
+   3. Word does not do flex or grid. Containers that use them are stacked, except the key
+      figures row and an A/B pair, which become one-row tables.
+*/
+const WD_FONT="'Nunito Sans',Calibri,Arial,sans-serif";
+const WD_W=640;                     // chart width in the pasted document, near Word's text width
+/* The print document is set for A4 at 703px, so its sizes are px values for that page and cannot be
+   carried through as they are: unscaled they read as fine print, and a flat multiplier produced nine
+   different sizes running up to 22.5pt, which reads as a poster rather than a document. Print sizes
+   are therefore mapped onto a fixed ladder of six, so the pasted report has a real type scale: 6.5pt
+   for notes and tracking, 7pt for table headers and labels, 8pt for body and table text, 9pt for
+   section headings, 11pt for a key figure, 14pt for the document title. Keep it to six. */
+const WD_LADDER=[[7.2,6.5],[8.2,7],[9.5,8],[12,9],[18,11],[Infinity,14]];
+const wdSize=px=>{ const v=parseFloat(px)||8; return (WD_LADDER.find(r=>v<=r[0])[1])+"pt"; };
+const wdPt=px=>(parseFloat(px)*0.75).toFixed(1)+"pt";   // padding and tracking, true to the print page
+
+function wdRuns(t){                 // a <text> may hold plain text and tspans with their own fill
+  const out=[];
+  t.childNodes.forEach(n=>{
+    if(n.nodeType===3){ if(n.nodeValue!=="") out.push({s:n.nodeValue, fill:null}); }
+    else if(n.nodeName==="tspan") out.push({s:n.textContent, fill:n.getAttribute("fill")});
+  });
+  return out.length?out:[{s:t.textContent, fill:null}];
+}
+function wdOffset(el, root){        // accumulated translate() of the ancestors, so a nested chart lands right
+  let dx=0, dy=0, n=el.parentNode;
+  while(n && n!==root && n.getAttribute){
+    const m=/translate\(\s*(-?[\d.]+)(?:[ ,]+(-?[\d.]+))?\s*\)/.exec(n.getAttribute("transform")||"");
+    if(m){ dx+=+m[1]; dy+=+(m[2]||0); }
+    n=n.parentNode;
+  }
+  return {dx,dy};
+}
+function wdHarvest(svgEl){          // pull the text out, so the image carries shapes only
+  const items=[];
+  svgEl.querySelectorAll("text").forEach(t=>{
+    const g=(a,d)=>t.getAttribute(a)!==null?t.getAttribute(a):d;
+    const m=/rotate\(\s*(-?[\d.]+)[ ,]+(-?[\d.]+)[ ,]+(-?[\d.]+)\s*\)/.exec(g("transform","")||"");
+    const o=wdOffset(t, svgEl);
+    /* Value labels carry their halo as a stroke painted under the fill (paint-order="stroke"), which
+       is what keeps them readable where a label sits on its own line. Repainting with fill alone lost
+       it, and on the drawdown chart the lines ran straight through the digits. */
+    const po=g("paint-order",""), stroke=g("stroke","none");
+    items.push({x:+g("x",0)+o.dx, y:+g("y",0)+o.dy, size:+g("font-size",10), weight:g("font-weight","400"),
+                fill:g("fill","#0D1B2A"), anchor:g("text-anchor","start"),
+                baseline:g("dominant-baseline",""),
+                halo: (po.indexOf("stroke")===0 && stroke && stroke!=="none") ? {c:stroke, w:+g("stroke-width",3)} : null,
+                rot:m?{a:+m[1],cx:+m[2]+o.dx,cy:+m[3]+o.dy}:null,
+                runs:wdRuns(t)});
+    t.parentNode.removeChild(t);
+  });
+  return items;
+}
+function wdPaint(ctx, items, scale){
+  items.forEach(it=>{
+    ctx.save();
+    ctx.font=`${it.weight} ${(it.size*scale).toFixed(2)}px ${WD_FONT}`;
+    ctx.textBaseline = (it.baseline==="central"||it.baseline==="middle") ? "middle" : "alphabetic";
+    ctx.textAlign="left";
+    const total=it.runs.reduce((a,r)=>a+ctx.measureText(r.s).width,0);
+    let ox = it.anchor==="middle" ? -total/2 : it.anchor==="end" ? -total : 0;
+    if(it.rot){ ctx.translate(it.rot.cx*scale, it.rot.cy*scale); ctx.rotate(it.rot.a*Math.PI/180); }
+    else ctx.translate(it.x*scale, it.y*scale);
+    if(it.halo){                                     // the stroke goes down first, as paint-order says
+      ctx.strokeStyle=it.halo.c; ctx.lineWidth=it.halo.w*scale; ctx.lineJoin="round";
+      let hx=ox; it.runs.forEach(r=>{ ctx.strokeText(r.s, hx, 0); hx+=ctx.measureText(r.s).width; });
+    }
+    it.runs.forEach(r=>{ ctx.fillStyle=r.fill||it.fill; ctx.fillText(r.s, ox, 0); ox+=ctx.measureText(r.s).width; });
+    ctx.restore();
+  });
+}
+async function wdPNG(svgEl, outW){
+  const clone=svgEl.cloneNode(true);
+  const vb=(clone.getAttribute("viewBox")||"").split(/[ ,]+/).map(Number);
+  const W=+clone.getAttribute("width")||vb[2]||760, H=+clone.getAttribute("height")||vb[3]||240;
+  const items=wdHarvest(clone);
+  const xml=new XMLSerializer().serializeToString(clone);
+  const url=URL.createObjectURL(new Blob([xml],{type:"image/svg+xml;charset=utf-8"}));
+  const img=new Image();
+  try{ await new Promise((res,rej)=>{ img.onload=res; img.onerror=rej; img.src=url; }); }
+  finally{ /* revoked below */ }
+  const scale=(outW/W)*2;                               // 2x over the printed size, so it stays sharp
+  const c=document.createElement("canvas");
+  c.width=Math.round(W*scale); c.height=Math.round(H*scale);
+  const ctx=c.getContext("2d");
+  ctx.fillStyle="#FFFFFF"; ctx.fillRect(0,0,c.width,c.height);
+  ctx.drawImage(img,0,0,c.width,c.height);
+  URL.revokeObjectURL(url);
+  wdPaint(ctx, items, scale);
+  return {uri:c.toDataURL("image/png"), w:Math.round(outW), h:Math.round(H*outW/W)};
+}
+
+/* Styles are read off the rendered print document rather than mapped by hand, so a change to
+   the .pd-* CSS travels here on its own. Only what Word understands is carried. */
+const WD_KEEP=["font-weight","font-style","color","text-align","background-color"];
+function wdStyle(el, extra){
+  const cs=getComputedStyle(el); const out=[];
+  out.push(`font-size:${wdSize(cs.fontSize)}`);
+  WD_KEEP.forEach(p=>{ const v=cs.getPropertyValue(p);
+    if(v && v!=="normal" && v!=="none" && v!=="rgba(0, 0, 0, 0)" && !(p==="font-weight"&&v==="400")) out.push(`${p}:${v}`); });
+  const ls=cs.letterSpacing;      // tracked uppercase labels keep their tracking, scaled with the type
+  if(ls && ls!=="normal") out.push(`letter-spacing:${wdPt(ls)}`);
+  const bb=cs.borderBottomWidth;
+  if(bb && parseFloat(bb)>0) out.push(`border-bottom:${bb} ${cs.borderBottomStyle} ${cs.borderBottomColor}`);
+  return out.concat(extra||[]).join(";");
+}
+function wdTable(tbl,pngs){
+  /* A header row inside <thead> is repeated by Word at the top of each page a table runs onto, and
+     page-break-inside on a row stops it being cut in half. Without both, a table that breaks leaves
+     its second half with no headings. */
+  let h=`<table style="border-collapse:collapse;font-family:${WD_FONT};width:100%">`;
+  const rows=[...tbl.rows];
+  const headEnd=rows.findIndex(r=>![...r.cells].every(c=>c.tagName==="TH"));
+  const nHead=headEnd===-1?rows.length:headEnd;
+  rows.forEach((r,ri)=>{
+    if(ri===0 && nHead) h+="<thead>";
+    if(ri===nHead && nHead) h+="</thead><tbody>";
+    h+=`<tr style="page-break-inside:avoid">`;
+    [...r.cells].forEach(c=>{
+      const tag=c.tagName==="TH"?"th":"td";
+      const cs=getComputedStyle(c);
+      const pad=`padding:${wdPt(cs.paddingTop)} ${wdPt(cs.paddingRight)} ${wdPt(cs.paddingBottom)} ${wdPt(cs.paddingLeft)}`;
+      const span=c.colSpan>1?` colspan="${c.colSpan}"`:"";
+      // walked rather than flattened: a cell may hold a name and a sub-label on separate lines
+      const inner=[...c.childNodes].map(n=>wdWalk(n,pngs)).join("")||"&nbsp;";
+      h+=`<${tag}${span} style="${wdStyle(c,[pad,"vertical-align:bottom"])}">${inner}</${tag}>`;
+    });
+    h+="</tr>";
+  });
+  if(nHead && nHead>=rows.length) h+="</thead>"; else if(nHead) h+="</tbody>";
+  return h+"</table>"+WD_GAP;
+}
+const WD_GAP=`<p style="margin:0;font-size:8pt;line-height:8pt">&nbsp;</p>`;   // Word ignores margins on a table
+const wdEsc=s=>String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+
+function wdWalk(el, pngs){
+  if(el.nodeType===3){                               // Word ignores text-transform, so apply it here
+    let t=el.nodeValue;
+    if(!t.trim()) return "";
+    const tt=el.parentElement?getComputedStyle(el.parentElement).textTransform:"none";
+    if(tt==="uppercase") t=t.toUpperCase();
+    else if(tt==="lowercase") t=t.toLowerCase();
+    return wdEsc(t);
+  }
+  if(el.nodeType!==1) return "";
+  if(el.classList && (el.classList.contains("pd-dia")||el.classList.contains("simd"))) return "";
+  const tag=el.tagName.toLowerCase();
+  if(tag==="svg"){ const p=pngs.get(el);
+    if(!p) return "";
+    const img=`<img src="${p.uri}" width="${p.w}" height="${p.h}" style="width:${p.w}px;height:${p.h}px;vertical-align:middle"/>`;
+    // a chart gets a paragraph of its own; a mark or a swatch stays inline where it sits
+    return p.w>=250 ? `<p style="margin:8pt 0 10pt">${img}</p>` : img; }
+  if(tag==="img"){                                   // the SLATE LABS wordmark, already a base64 PNG
+    const r=el.getBoundingClientRect();
+    return `<img src="${el.getAttribute("src")}" width="${Math.round(r.width)||120}" height="${Math.round(r.height)||12}" style="vertical-align:middle"/>`;
+  }
+  if(tag==="table") return wdTable(el,pngs);
+  const kids=()=>[...el.childNodes].map(n=>wdWalk(n,pngs)).join("");
+  const cls=el.className&&el.className.baseVal!==undefined?el.className.baseVal:(el.className||"");
+
+  if(/\bpd-esma-l\b/.test(cls)||/\bpd-legend\b/.test(cls)){   // "Lower risk ... Higher risk" on one line
+    const cells=[...el.children].map((c,i,a)=>`<td width="${Math.floor(100/a.length)}%" style="text-align:${i===0?"left":i===a.length-1?"right":"center"}">${wdWalk(c,pngs)}</td>`).join("");
+    // the scale strip is 300px, so its labels sit under it rather than spanning the page
+    const w=/\bpd-esma-l\b/.test(cls)?"300px":"100%";
+    return `<table style="border-collapse:collapse;width:${w};font-family:${WD_FONT}"><tr>${cells}</tr></table>`+WD_GAP;
+  }
+  if(/\bpd-band\b/.test(cls)){
+    /* Brand band, flattened to one row of cells: the mark, the SLATE LABS wordmark, then the caption.
+       The two images were running into each other in both bands when they shared a paragraph, and a
+       nested table inside a band cell is the fragile way to separate them. A cell is the one
+       horizontal gap Word will not collapse. */
+    const parts=[];
+    [...el.children].forEach(c=>{
+      const k=(c.className&&c.className.baseVal!==undefined?c.className.baseVal:(c.className||""));
+      if(/\bbm\b/.test(k)) [...c.children].forEach(g=>parts.push({el:g, mark:true}));
+      else parts.push({el:c, mark:false});
+    });
+    const cells=parts.map((p,i)=>`<td style="vertical-align:middle;white-space:nowrap;`
+      +`text-align:${p.mark?"left":"right"};${i?"padding-left:8pt":""}${p.mark?"":";width:100%"}">`
+      +`${wdWalk(p.el,pngs)}</td>`).join("");
+    return `<table style="border-collapse:collapse;width:100%;font-family:${WD_FONT};border-bottom:1px solid #C9D0D8"><tr>${cells}</tr></table>`+WD_GAP;
+  }
+  if(/\bpd-titlerow\b/.test(cls)){                   // product tile left, eyebrow and title right
+    const cells=[...el.children].map((c,i)=>`<td style="vertical-align:middle;${i?"":"padding-right:8pt;width:1%"}">${wdWalk(c,pngs)}</td>`).join("");
+    return `<table style="border-collapse:collapse;font-family:${WD_FONT}"><tr>${cells}</tr></table>`+WD_GAP;
+  }
+  if(/\bpd-ac\b/.test(cls)){                          // asset mix: doughnut left, table right
+    const cells=[...el.children].map((c,i)=>`<td style="vertical-align:top;${i?"":"padding-right:10pt;width:1%;white-space:nowrap"}">${wdWalk(c,pngs)}</td>`).join("");
+    return `<table style="border-collapse:collapse;width:100%;font-family:${WD_FONT}"><tr>${cells}</tr></table>`;
+  }
+  if(/\bpd-kpis\b/.test(cls)||/\bpd-ab\b/.test(cls)){   // keep these side by side, as one-row tables
+    // bottom-aligned, so the figures sit on one baseline even where a label wraps to two lines
+    const cells=[...el.children].map(c=>`<td style="vertical-align:bottom;padding:0 6pt 0 0;width:${Math.floor(100/el.children.length)}%">${wdWalk(c,pngs)}</td>`).join("");
+    return `<table style="border-collapse:collapse;width:100%;font-family:${WD_FONT}"><tr>${cells}</tr></table>`;
+  }
+  const disp=getComputedStyle(el).display;
+  const block = disp==="block"||disp==="flex"||disp==="grid"||tag==="div"||tag==="p"||/^h[1-6]$/.test(tag);
+  const inner=kids();
+  if(!inner.trim()) return "";
+  if(!block) return `<span style="${wdStyle(el)}">${inner}</span>`;
+  const top=/\bpd-h\b/.test(cls)?"12pt":/\bpd-sec\b/.test(cls)?"8pt":"0";
+  /* The fixed legal text takes a page of its own. The break goes on one empty paragraph before the
+     block, never on the block itself: Word hands a container's page-break-before to every paragraph
+     inside it, so setting it on .pd-disc put each of the eight disclaimer paragraphs on its own page. */
+  const brk=/\bpd-disc\b/.test(cls)?`<p style="margin:0;font-size:1pt;line-height:1pt;page-break-before:always">&nbsp;</p>`:"";
+  /* Word honours margins on <p> and throws them away on <div>: 174 of 179 paragraphs came back
+     with spacing after=0 while the content sat on top of itself. So anything holding only inline
+     content becomes a paragraph, and a div survives only where it must wrap a table or a block. */
+  const hasBlock=/<(table|div|p)[\s>]/i.test(inner);
+  return hasBlock
+    ? brk+`<div style="${wdStyle(el)};margin-top:${top}">${inner}</div>`
+    : brk+`<p style="${wdStyle(el)};margin-top:${top};margin-bottom:5pt">${inner}</p>`;
+}
+
+/* The converter is shared. Anything composed in the print document's own .pd-* idiom goes through
+   this, so the builder's report and the explorer's come out with one set of rules and one look. */
+async function wordFromHTML(html){
+  const pd=document.getElementById("printdoc");
+  pd.style.cssText="display:block;position:absolute;left:-10000px;top:0;width:703px;visibility:hidden";
+  pd.innerHTML=html;
+  if(document.fonts) await document.fonts.ready;       // metrics before the font loads are wrong
+  const pngs=new Map();
+  for(const s of [...pd.querySelectorAll("svg")]){
+    const r=s.getBoundingClientRect();
+    const nat=Math.round(r.width||+s.getAttribute("width")||WD_W);
+    // the ESMA scale carries no class of its own; it is the strip followed by the Lower/Higher labels
+    const vb=(s.getAttribute("viewBox")||"").split(/[ ,]+/).map(Number);
+    const esma = (s.nextElementSibling && s.nextElementSibling.classList.contains("pd-esma-l"))
+              || (vb[2] && vb[3] && vb[2]/vb[3] > 8);
+    // charts take the full width; the ESMA scale is a 269x22 strip and at full width its seven
+    // boxes dwarf everything around them, so it keeps close to its printed size; the doughnut is
+    // sized to sit beside its table; marks and swatches keep their own size
+    const w = esma ? 300 : nat>=250 ? WD_W : nat>=80 ? Math.round(nat*1.6) : nat;
+    try{ pngs.set(s, await wdPNG(s, w)); }catch(e){ /* a chart that will not draw is left out */ }
+  }
+  const body=[...pd.children].map(n=>wdWalk(n,pngs)).join("");
+  pd.style.cssText=""; pd.innerHTML="";
+  return `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">`
+    +`<head><meta charset="utf-8"></head>`
+    +`<body style="font-family:${WD_FONT};color:#0D1B2A;font-size:10pt;line-height:1.25">${body}</body></html>`;
+}
+
+const buildWordDoc=()=>wordFromHTML(buildPrintDoc(layoutPrintDoc()));   // same composition and order as the PDF
+
+/* Tab-separated, so a paste into anything that is not Word still lands in columns. */
+function wdPlain(root){
+  const lines=[];
+  root.querySelectorAll("table").forEach(t=>{
+    [...t.rows].forEach(r=>{
+      lines.push([...r.cells].map(c=>{
+        const copy=c.cloneNode(true); copy.querySelectorAll(".pd-dia,.simd").forEach(n=>n.remove());
+        return (copy.textContent||"").replace(/◆/g,"").replace(/\s+/g," ").trim();
+      }).join("\t"));
+    });
+    lines.push("");
+  });
+  return lines.join("\n");
+}
+
+async function wdCopy(html, plain, btn, label){
+  const orig=label!==undefined?label:(btn?btn.textContent:null);   // the caller has already written "Building..."
+  try{
+    await navigator.clipboard.write([new ClipboardItem({
+      "text/html": new Blob([html],{type:"text/html"}),
+      "text/plain": new Blob([plain||""],{type:"text/plain"})
+    })]);
+    if(btn){ btn.textContent="Copied!"; setTimeout(()=>{btn.textContent=orig;},1500); }
+  }catch(e){
+    if(btn){ btn.textContent="Copy failed"; setTimeout(()=>{btn.textContent=orig;},2000); }
+    console.error("copy for Word failed",e);
+  }
+}
+
+
+/* ---------- Copy for Word: the fund explorer ---------------------------------------------
+   The explorer has no print document of its own (it is screen only, by decision), so this
+   composes one in the same .pd-* idiom and hands it to the shared converter. That is what keeps
+   the explorer's Word output looking like the builder's, and it sidesteps the two traps of
+   exporting from the screen: the table's computed styles are the dark theme, and the compare
+   charts resolve their colours through var(), which stops resolving once an SVG is detached.
+   Here the composition is light by construction and the charts are re-drawn with PRINT.
+*/
+const pdSq=c=>`<svg class="pd-sq" width="8" height="8"><rect width="8" height="8" rx="2" fill="${c}"/></svg>`;
+const XPD_TILE=`<svg width="30" height="30" viewBox="0 0 30 30"><rect width="30" height="30" rx="8" fill="#1A4FD6"/><rect x="7" y="18" width="9" height="3" rx="1.5" fill="#FFFFFF"/><rect x="7" y="13.5" width="13" height="3" rx="1.5" fill="#FFFFFF"/><rect x="7" y="9" width="17" height="3" rx="1.5" fill="#FFFFFF"/></svg>`;
+
+/* A table as it stands on screen, re-emitted in the print idiom. Reading the rendered table is
+   deliberate: the figures are the exact strings on screen, and the filters, sort and end month
+   are already applied, so there is no second copy of that logic to drift. */
+function xPdTable(tbl, drop){
+  drop=drop||[];
+  let h="";
+  [...tbl.rows].forEach(r=>{
+    h+="<tr>"+[...r.cells].filter((c,i)=>!drop.includes(i)).map(c=>{
+      const tag=c.tagName==="TH"?"th":"td";
+      const clone=c.cloneNode(true);
+      clone.querySelectorAll("input,button").forEach(n=>n.remove());
+      let t=(clone.textContent||"").replace(/[▲▼]/g,"").replace(/\s+/g," ").trim();
+      const sim=t.includes("◆"); t=t.replace(/◆/g,"").trim();
+      const neg=c.classList.contains("neg")||c.classList.contains("up");
+      const span=c.colSpan>1?` colspan="${c.colSpan}"`:"";
+      return `<${tag}${span}${neg?' class="neg"':''}>${esc(t)}${sim?'<span class="pd-dia">◆</span>':''}</${tag}>`;
+    }).join("")+"</tr>";
+  });
+  return `<table class="pd-table">${h}</table>`;
+}
+
+/* Charts in a pasted document are read at about 6.3 inches, where the print theme's 8px axis labels
+   come out at roughly 7pt and are too small to read comfortably. The export draws them on a shorter
+   canvas with larger type, so the same inch of paper carries fewer, bigger labels. */
+/* Chart type is made bigger by drawing on a smaller canvas, not by raising the font sizes. A chart
+   is read at about 6.3in either way, so a 430-unit canvas is scaled up by 1.4 and the print theme's
+   8px axis labels land at about 8pt, next to 8pt body text. Raising the sizes on a 703-unit canvas
+   was tried and clips: the charts' padding is set for the print sizes, so larger labels run off the
+   left edge and the date axis is cut off. Scale the canvas, never the type. */
+const WD_CW=430;
+const WDCHART={...PRINT};
+
+/* The legend is drawn into the chart's own image, so the whole graph is one object in Word: click it
+   once and you have the lot. It is prefixed as a band above the plot and the chart is nested under a
+   translate, which is why wdHarvest has to be transform aware. */
+function xChartLegend(items, svg, W, H){
+  const ROW=15, c=document.createElement("canvas").getContext("2d");
+  c.font="700 9px 'Nunito Sans', sans-serif";
+  let leg="", x=0, row=0;
+  items.forEach(it=>{
+    const w=12+c.measureText(it.label).width+16;
+    if(x>0 && x+w>W){ x=0; row++; }          // fund names are long; the legend wraps rather than running off
+    const y=row*ROW+ROW/2;
+    leg+=`<rect x="${x.toFixed(1)}" y="${(y-4).toFixed(1)}" width="8" height="8" rx="2.5" fill="${it.color}"/>`
+       +`<text x="${(x+12).toFixed(1)}" y="${(y+3.2).toFixed(1)}" font-size="9" font-weight="700" fill="#0D1B2A">${esc(it.label)}</text>`;
+    x += w;
+  });
+  const LH=(row+1)*ROW+5;
+  const inner=svg.replace(/^\s*<svg[^>]*>/,"").replace(/<\/svg>\s*$/,"");
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H+LH}" viewBox="0 0 ${W} ${H+LH}" font-family="Nunito Sans">`
+    +`<rect width="${W}" height="${H+LH}" fill="#FFFFFF"/>${leg}<g transform="translate(0,${LH})">${inner}</g></svg>`;
+}
+
+/* The compare screen, recomputed through the same pure helpers renderCompare uses, so the figures
+   cannot differ, and drawn with the print theme at print width. */
+function xComparePD(){
+  const fs=X.sel.map(n=>xFunds().find(f=>f.name===n)).filter(Boolean);
+  if(!fs.length) return "";
+  const {a,b,clamped}=xWindow(fs), n=b-a+1, W=703;
+  const series=fs.map(f=>{ const g=xRets(f,a,b)||[]; return {g, sim:g.map((_,j)=>a+j<f.liveIdx), from:a, to:b}; });
+  const lines=series.map((s2,i)=>({s:s2, color:SEG_FIXED[i], label:xName(fs[i].name)}));
+  const xa=xAmtVal();
+  const legItems=fs.map((f,i)=>({color:SEG_FIXED[i], label:xName(f.name)}));
+  const lbl=(X_WINS.find(w=>w[0]===X.cwin)||[])[1];
+  const winNote=`<p class="pd-note">Measured over <strong>${pLbl(a)} – ${pLbl(b)}</strong> (${n} month${n===1?"":"s"}), the same months for every selection.`+
+    (clamped?` ${lbl} requested: the selected funds' shared history starts ${pLbl(xWindow(fs).cs)}.`:"")+`</p>`;
+
+  const BAR_P=[["ytd","YTD"],["y1","1Y"],["y3","3Y p.a."],["y5","5Y p.a."],["y10","10Y p.a."]];
+  const bRows=fs.map((f,i)=>({color:SEG_FIXED[i], row:xRow(f,X.end)}));
+  const bUse=BAR_P.filter(([k])=>bRows.some(r=>r.row[k].v!==null));
+  const CW=WD_CW;
+  const bars=xBarChartSVG(bRows.map(r=>({color:r.color, vals:bUse.map(([k])=>r.row[k])})), bUse.map(p=>p[1]),
+                          WDCHART, CW, 170);
+
+  let h=`<div class="pd-h">Performance to ${pLbl(X.end)} · gross of AMC</div>${xChartLegend(legItems,bars,CW,170)}`;
+  h+=xPdTable(document.getElementById("xFig"));
+  h+=`<div class="pd-h">Growth of ${fmtE(xa)} · gross of AMC</div>${winNote}`
+    +xChartLegend(legItems, growthChartSVG(lines,{...WDCHART, amt:xa, plainStart:true, endStack:true, padR:134}, CW, 185), CW, 185);
+  h+=`<div class="pd-h">Drawdown · gross of AMC</div>`
+    +xChartLegend(legItems, drawdownChartSVG(lines,{...WDCHART, noPosAxis:true}, CW, 150), CW, 150);
+  h+=`<div class="pd-h">Calendar year returns · gross of AMC</div>`+xPdTable(document.getElementById("xCal"));
+  h+=`<p class="pd-note">${document.getElementById("xCmpNote").innerHTML}</p>`;
+
+  // What's inside: each card as a small table of its own, taking the tab that is open on screen
+  const cards=[...document.querySelectorAll("#xInside .xin")];
+  if(cards.length){
+    h+=`<div class="pd-h">What's inside</div><p class="pd-note">${document.getElementById("xInNote").innerHTML}</p>`;
+    const made=[];
+    cards.forEach(card=>{
+      const nm=card.querySelector(".xin-fn"), meta=card.querySelector(".xin-meta");
+      const facts=[...card.querySelectorAll(".xin-fact")].map(f=>{
+        const v=f.querySelector(".xin-fv"), l=f.querySelector(".xin-fl");
+        return v&&l ? `${esc(l.textContent.trim())} ${esc(v.textContent.trim())}` : ""; }).filter(Boolean).join(" · ");
+      const lbl=card.querySelector(".xin-lbl");
+      const rec=card.querySelector(".xin-rc");
+      made.push({head:`${esc(nm?nm.textContent.trim():"")}`
+        +`${meta?` · ${esc((meta.innerText||meta.textContent).replace(/\s+/g," ").trim())}`:""}${facts?` · ${facts}`:""}`
+        +`${lbl?` · ${esc(lbl.textContent.trim())}`:""}`,
+        rows:[...card.querySelectorAll(".xin-r")].map(r=>{
+          const l=r.querySelector(".n"), v=r.querySelector(".v");
+          return l&&v&&l.textContent.trim()?[l.textContent.trim(), v.textContent.trim()]:null; }).filter(Boolean),
+        rec:rec?rec.textContent.trim():""});
+    });
+    /* Two across as one flat table per pair: a table nested inside a layout cell is flattened by
+       Word (a pair came back as 5 rows by 3 columns with the nesting dissolved), so the pair is
+       built as a single table of label, value, gap, label, value. */
+    for(let i=0;i<made.length;i+=2){
+      const L=made[i], R=made[i+1];
+      const n=Math.max(L.rows.length, R?R.rows.length:0);
+      const cell=(c,cls)=>`<td${cls?` class="${cls}"`:""}>${c===undefined?"":esc(c)}</td>`;
+      let t=`<tr><th colspan="2">${L.head}</th><th></th><th colspan="2">${R?R.head:""}</th></tr>`;
+      for(let j=0;j<n;j++){
+        const a=L.rows[j]||[], b=(R&&R.rows[j])||[];
+        t+=`<tr>${cell(a[0])}${cell(a[1])}<td></td>${cell(b[0])}${cell(b[1])}</tr>`;
+      }
+      if(L.rec||(R&&R.rec)) t+=`<tr><td colspan="2">${esc(L.rec)}</td><td></td><td colspan="2">${esc(R?R.rec:"")}</td></tr>`;
+      h+=`<table class="pd-table">${t}</table>`;
+    }
+  }
+  return h;
+}
+
+function buildExplorerPrintDoc(){
+  const today=new Date().toLocaleDateString("en-IE",{day:"2-digit",month:"2-digit",year:"numeric"});
+  const cmp=X.view==="compare";
+  const name=MODE==="all"?"All Funds Explorer":"Aviva Fund Explorer";
+  const title=cmp?"Fund Comparison":name;
+  let h=`<div class="pd-page1">${PD_BAND(cmp?"Fund comparison":name, today)}
+  <div class="pd-titlerow">${XPD_TILE}<div><div class="pd-eyebrow">Portfolio Builder</div><div class="pd-title">${title}</div></div></div>
+  <p class="pd-sub">Performance data to ${pLbl(X.end)} · EUR · Returns gross of AMC</p>`;
+
+  if(cmp) h+=xComparePD();
+  else {
+    const filters=[X.cat!=="All"?`Asset class ${X.cat}`:"", X.esma?`ESMA ${X.esma}`:"",
+                   X.prov?`Provider ${X.prov}`:"", X.q.trim()?`Search "${X.q.trim()}"`:""].filter(Boolean);
+    h+=`<div class="pd-h">${document.getElementById("xCount").textContent}${filters.length?` · ${filters.join(" · ")}`:""}</div>`;
+    h+=xPdTable(document.getElementById("xtable"), [1]);        // the Add to column is a control, not data
+    h+=`<p class="pd-note">${document.getElementById("xNote").innerHTML}</p>`;
+  }
+  const disc=document.querySelector(".disc").innerHTML.replace("<h3>","<h4>").replace("</h3>","</h4>");
+  return h+`<div class="pd-disc" style="--ink:#0D1B2A">${disc}</div></div>`;
+}
+
+const buildExplorerWordDoc=()=>wordFromHTML(buildExplorerPrintDoc());
+
+async function xCopyWord(btn){
+  const orig=btn.textContent;
+  btn.textContent="Building...";
+  try{
+    const html=await buildExplorerWordDoc();
+    const tmp=document.createElement("div"); tmp.innerHTML=html;
+    await wdCopy(html, wdPlain(tmp), btn, orig);
+  }catch(e){ btn.textContent="Copy failed"; setTimeout(()=>{btn.textContent=orig;},2000); console.error(e); }
+}
+document.getElementById("xWordBtn").onclick=function(){ xCopyWord(this); };
+document.getElementById("xWordBtn2").onclick=function(){ xCopyWord(this); };
+
+/* One table on its own, for a spreadsheet. The whole-document copy is aimed at Word; pasted into
+   Excel it stacks everything down one sheet, which is no use when the table is the point. */
+async function xCopyTable(tblId, btn, drop){
+  const orig=btn.textContent;
+  const pd=document.getElementById("printdoc");
+  try{
+    pd.style.cssText="display:block;position:absolute;left:-10000px;top:0;width:703px;visibility:hidden";
+    pd.innerHTML=xPdTable(document.getElementById(tblId), drop||[]);
+    const html=`<html><head><meta charset="utf-8"></head><body style="font-family:${WD_FONT}">`
+      +wdWalk(pd.firstChild,new Map())+`</body></html>`;
+    const plain=wdPlain(pd);
+    pd.style.cssText=""; pd.innerHTML="";
+    await wdCopy(html, plain, btn, orig);
+  }catch(e){ pd.style.cssText=""; pd.innerHTML=""; btn.textContent="Copy failed"; setTimeout(()=>{btn.textContent=orig;},2000); console.error(e); }
+}
+document.getElementById("xTableBtn").onclick=function(){ xCopyTable("xtable", this, [1]); };
+document.getElementById("xCalBtn").onclick=function(){ xCopyTable("xCal", this); };
+
+document.getElementById("copyWordBtn").onclick=async function(){
+  const btn=this, orig=btn.textContent;
+  btn.textContent="Building...";
+  try{
+    const html=await buildWordDoc();
+    const tmp=document.createElement("div"); tmp.innerHTML=html;
+    await wdCopy(html, wdPlain(tmp), btn, orig);
+  }catch(e){ btn.textContent="Copy failed"; setTimeout(()=>{btn.textContent=orig;},2000); console.error(e); }
+};
 document.getElementById("iPrintBtn").onclick=async()=>{
   const pd=document.getElementById("printdoc");
   const html=buildIncomePrint(); if(!html) return;

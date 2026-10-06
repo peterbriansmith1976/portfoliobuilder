@@ -413,6 +413,130 @@ none of the other tabs do. Screen only, hidden in print, and it carries the warn
   year is exact.
 - A standalone `/income.html` existed for one day while this was agreed; it was removed when the tab landed.
 
+## Copy for Word
+
+A "Copy for Word" button beside "Copy for email" and "Print / save PDF" puts the whole results
+document on the clipboard: tables arrive as real Word tables, charts as pictures, from one paste.
+Built 6 Oct 2026 at the user's request, so sections can be lifted into their own client reports.
+The clipboard carries `text/html` for Word and Excel and tab-separated `text/plain` for everything
+else, and the destination picks.
+
+- **The print document is the source.** `buildWordDoc()` runs `layoutPrintDoc()` then
+  `buildPrintDoc(o)` and walks the composed result, so the pasted report and the printed PDF carry
+  the same content in the same order and cannot disagree. It also inherits print's light-only,
+  literal-hex composition, which is what keeps dark theme out of the paste, and the full warnings
+  block travels with it, so pasted figures are never orphaned from the disclaimer.
+- **Styles are read with `getComputedStyle`, not mapped by hand**, so a change to the `.pd-*` CSS
+  reaches the Word output on its own. Only properties Word understands are carried.
+- **An SVG loaded as an image ignores `@font-face`.** A chart rasterised whole comes out in a serif
+  fallback, and no amount of waiting or `document.fonts.ready` fixes it: measured, "Growth of
+  €100,000" sets 159px in Nunito Sans and 145px as the serif default. So `wdPNG()` rasterises the
+  **shapes** from the SVG and paints the **text** onto the canvas, where this document's own font
+  applies. Verified at 157px, the real face. Do not "simplify" this back to a single drawImage.
+- **Type is mapped onto a ladder, not scaled.** The print document's sizes are px values for A4 at
+  703px and cannot travel as they are: unscaled they read as fine print, and a flat 1.5x multiplier
+  produced nine sizes running to 22.5pt, which the user rejected as a poster rather than a document.
+  `WD_LADDER` maps print px onto **six** sizes: 6.5pt notes and tracking, 7pt table headers and
+  labels, 8pt body and table text, 9pt section headings, 11pt a key figure, 14pt the title. A real
+  document uses five or six sizes; keep it that way. Padding and letter-spacing stay true to the
+  print page (px x 0.75). Key figures are bottom-aligned so values sit on one baseline where a label
+  wraps, the asset mix doughnut sits beside its table as in print rather than stacked above dead
+  space, and the ESMA scale's "Lower risk / Higher risk" spans the full width.
+- **Word ignores `text-transform`.** The tracked uppercase labels arrived in sentence case ("Key
+  figures · 5-year basis") where print shows them uppercase, because the uppercasing is CSS and Word
+  imports the underlying text. The export uppercases the text itself and no longer emits the
+  property. Found by unpacking a .docx the user saved; `word/document.xml` is the fastest way to see
+  what Word actually made of a paste, including the real point sizes and image widths.
+- **Word honours margins on `<p>` and throws them away on `<div>`.** A whole export came back with
+  `spacing after="0"` on 174 of its 179 paragraphs, everything stacked on itself, because every block
+  was a div; the only spacing that survived was on the chart paragraphs, which were already `<p>`.
+  Anything holding inline content only is now a paragraph with explicit `margin-top`/`margin-bottom`,
+  and a div survives only where it has to wrap a table or another block. Word also takes no margin on
+  a table, so `WD_GAP`, a small empty paragraph, follows each one.
+- **The brand band is one flat row of cells**: mark, SLATE LABS wordmark, caption. Sharing a
+  paragraph ran the two images into each other in both bands, and separating them with a nested table
+  inside a band cell is the fragile way to fix it. A table cell is the one horizontal gap Word will
+  not collapse, so `.bm` is flattened into the band's own row rather than nested.
+- **The ESMA scale is a 269x22 strip and must not be drawn at full width**, where its seven boxes
+  dwarf the page. It carries no class of its own, so it is identified by the `.pd-esma-l` labels that
+  follow it, with an aspect-ratio fallback, and drawn at 300px with its Lower/Higher labels
+  constrained to the same width rather than spanning the page.
+- **Word does not do flex or grid.** `.pd-kpis`, `.pd-ab`, `.pd-band`, `.pd-titlerow`,
+  `.pd-ac`, `.pd-legend` and `.pd-esma-l` become one-row tables, so the product tile sits beside the
+  title and the doughnut beside its table as print has them; everything else stacks. Charts are drawn at 640px, near Word's text width,
+  and rasterised at 2x so they stay sharp when scaled. Marks, swatches and the doughnut keep their
+  own size and stay inline; anything 250px or wider gets a paragraph of its own.
+- **Cells are walked, not flattened.** `textContent` ran a fund name straight into its asset class
+  ("Aviva Multi-Asset ESG Active 4Multi-Asset"), so cell contents go through the same walker and
+  keep their sub-labels on their own line. The zero-width ◆ spans (`.pd-dia`, `.simd`) are dropped
+  before they can wreck a number; name cells keep their full-size ◆ as on screen.
+- **Cost stays out in All Funds mode**, because print already does: verified no cost figure reaches
+  any table cell there. The disclaimer's own "Where a portfolio cost is shown" sentence remains, as
+  fixed legal text.
+- **Verified:** every one of the 202 table cells in the print document appears in the pasted
+  document; `buildPrintDoc` and `buildEmailSummaryHTML` hash identically to the pre-change build for
+  a single portfolio and for A and B, as do the layout options and the explorer; three scenarios
+  (1 fund, 5 funds, 5 + 5) build with no SVG and no `var()` surviving, 235KB to 371KB and 180ms to
+  886ms; and the user confirmed a real paste into Word keeps both the tables and the pictures.
+- Clipboard writes need a user gesture and a focused document, so a scripted `.click()` fails with
+  `NotAllowedError`. That is correct behaviour, and the button reports "Copy failed" rather than
+  failing silently.
+### The fund explorer's own export
+
+Built the same day, at the user's request, covering the table and the whole compare screen.
+
+- **The explorer has no print document**, being screen only by decision, so `buildExplorerPrintDoc()`
+  composes one in the same `.pd-*` idiom and hands it to `wordFromHTML()`, the shared converter that
+  the builder's export also goes through. That is what keeps the two outputs looking alike, and it
+  sidesteps the two traps of exporting from the screen: the table's computed styles are the dark
+  theme, and the compare charts resolve their colours through `var()`, which stops resolving the
+  moment an SVG is detached. The composition is light by construction and the charts are re-drawn
+  with `PRINT`.
+- **Tables are read from the rendered DOM** (`xPdTable`), so the figures are the exact strings on
+  screen and the filters, sort and end month are already applied: no second copy of that logic to
+  drift. The tick box and the Add to column are controls, not data, and are dropped.
+- **The compare charts are recomputed through the same pure helpers** `renderCompare` uses
+  (`xWindow`, `xRets`, `xRow`, `xAmtVal`), so the figures cannot differ from the screen. Colours come
+  from `SEG_FIXED` rather than `SEG`, which is `var()` based.
+- **Everything on the compare screen travels**, at the user's request: legend, performance bar chart
+  and table, growth, drawdown, calendar years, the notes and the What's inside cards, each card
+  flattened to a small table taking whichever tab is open on screen.
+- **Chart type is enlarged by shrinking the canvas, never by raising the font sizes.** A chart is read
+  at about 6.3in whatever its canvas, so the export draws on 430 units and lets Word scale it up by
+  1.4, landing the print theme's 8px axis labels near 8pt beside 8pt body text. Raising the sizes on
+  a 703-unit canvas was tried first and clips: the charts' padding is set for the print sizes, so
+  larger euro labels run off the left edge and the date axis is cut off.
+- **The legend is drawn inside each chart's own image** (`xChartLegend`), at the user's request, so
+  the whole graph is one object in Word. It wraps onto further lines rather than running off the
+  edge, which three long fund names do. This is why `wdHarvest` had to become transform aware: the
+  chart is nested under a `translate` once a legend band sits above it, and the harvester was reading
+  raw x/y and ignoring ancestor transforms.
+- **The bar chart turns its value labels upright with three or more selections**, and that is correct
+  rather than a fault: across five periods at 6.3in a flat "-5.5%" is wider than its bar at any
+  readable size. The chart decides this by measuring; do not force it flat.
+- **Tables repeat their header row and rows do not split.** The header row goes in `<thead>`, which
+  Word repeats at the top of each page a table runs onto, and every data row carries
+  `page-break-inside:avoid`. Layout rows (the asset mix doughnut beside its table, the key figures
+  strip) deliberately do not: forcing a layout row onto one page is not wanted.
+- **The warnings block starts its own page**, and the break goes on one empty paragraph **before** the
+  block, never on the block itself: Word hands a container's `page-break-before` to every paragraph
+  inside it, so setting it on `.pd-disc` put each of the eight disclaimer paragraphs on its own page.
+  Nine breaks in a document is the symptom; count them in `document.xml` (`w:pageBreakBefore`).
+- **What's inside is two cards across as one flat table**, not two nested ones. Word dissolves a table
+  nested inside a layout cell, and a pair came back as 5 rows by 3 columns with the nesting gone, so
+  the pair is built as a single table of label, value, gap, label, value.
+- **Chart value labels carry their halo as a stroke under the fill** (`paint-order="stroke"`), which is
+  what keeps them readable where a label sits on its own line. The rasteriser strips text and repaints
+  it, so it has to replay the stroke first or the halo is lost: without it the drawdown chart's lines
+  ran straight through the digits. `wdPaint` strokes then fills, in that order.
+- **Two per-table Excel buttons** sit beside it, on the explorer table and on calendar years, because
+  a whole-document paste into Excel stacks everything down one sheet. Verified: 14 consistent
+  columns, 38 rows, tab-separated plain text as the fallback.
+- **Verified:** print, email, the builder's Word export, the explorer table and its note, and the
+  compare screen's performance table, calendar and What's inside cards all hash identically to the
+  build before the explorer export existed. Console clean.
+- The income tab is excluded by the user's decision.
+
 ## Asset mix
 
 The allocation-weighted asset mix of each portfolio, at **portfolio level only**: a doughnut of
