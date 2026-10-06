@@ -111,6 +111,13 @@ update the data, use the pipeline below.
 A launchd agent (`cloud.portfoliobuilder.refresh`) runs `refresh_daily.sh` daily at 14:30.
 On most days it exits in about a second having done nothing. It **never publishes**.
 
+**It waits for the network before it concludes anything.** launchd fires the job when the Mac wakes, which
+at 14:30 is often before wifi has associated, and a DNS failure then is not news about the data. The script
+tries the public price endpoint five times over two minutes first. A day on which nothing could be checked
+increments `work/silent_days` and stays quiet; three consecutive such days notify, and so does every third
+day after that, because the thing worth knowing is not one offline afternoon but a watch that has stopped
+running. Any day that does check clears the counter.
+
 **The project lives at `~/portfoliobuilder`, deliberately not in `~/Documents`.** macOS blocks
 background agents from Documents, Desktop and Downloads, so the scheduled job could not read its
 own data there. Moving it was chosen over granting Full Disk Access to `/bin/bash`, which would
@@ -147,6 +154,12 @@ Keychain access from launchd works fine; only the folder was the problem.
   (1e-9), while the Aviva series came from the workbook's higher-precision prices (2e-4, the monthly overlap
   check's own tolerance). Verified: 1,152 figures reproduce with nothing flagged, and a deliberately altered
   month is caught and named.
+  **Exit 0 nothing moved, 1 a figure moved, 2 the check could not be made**, and `refresh_daily.sh` keeps
+  those apart. Before 6 Oct 2026 it caught only `FundFocusError`, `KeyError` and `ValueError`, so any
+  connectivity failure died in a traceback and the caller read every non-zero exit as a restatement: seven
+  runs between 24 Sep and 5 Oct announced that published history had moved when the Mac had simply been
+  offline at 14:30. An alert that cries wolf is an alert nobody reads. `month_ready.py` exits 2 the same way.
+  All four outcomes tested, including a real restatement (exit 1) and a real clean run (exit 0).
 - `fetch_others.py` — the other providers' funds, staged to `work/others.staged.json`. Runs after
   `fetch_inside.py` and can never block prices; `promote.sh` copies it to `data/others.json` only when its
   as-at equals the Aviva month, otherwise it is held back.
@@ -210,10 +223,16 @@ Stewardship Ethical Equity before 2010, max 6e-4, old prices quoted to few decim
   printed about 5% below the 31/08 price and recovered the next day (Active I: 138.70, 131.60, 138.00). That
   stamp is August's month end, so the published August return for those five reads about -4.8% instead of
   about +0.3%, and their 5Y volatility about 0.4pp high. Found 22 Sep 2026 by checking a figure that looked
-  wrong; it is the only such event in 15 months of daily prices across all 59 funds. A spike check (a
-  month-end price that falls sharply and recovers the next business day) is not yet implemented. When the
-  provider corrects the price, the "published months must not change" guard will stop the run: that
-  correction is a deliberate override, not a reason to weaken the guard.
+  wrong; it is the only such event in 15 months of daily prices across all 59 funds.
+  **CSS restated it on or before 6 Oct 2026**, and everything downstream behaved as designed: the 01/09/2026
+  stamp now reads 138.70 for Active I, with no dip and no recovery, `fetch_others.py` stopped on "1
+  already-published month(s) changed value, first at 2026-08" and staged nothing, and the watch named the
+  five funds and nothing else. Restated August runs +0.31% to +1.36% against the published -4.82% to -3.73%,
+  which puts the five back in line with the unaffected MyFolio Market funds (+0.43% to +1.82%) and matches
+  the +0.3% predicted for Active I on 22 Sep. September then reads -1.78% to -0.12% rather than the +3.52% to
+  +5.16% a bad denominator gave. Taking it needs `correct_month.py 2026-08 --force`: the move is 5.09pp to
+  5.13pp and the 5pp guard is doing its job, so **say why in the commit** rather than treating `--force` as
+  routine. The guard is not the thing to weaken; the evidence is what clears it.
 - **Longboat publishes net of AMC; the dashboard stores gross.** Comparing the wrong basis
   manufactures a ~4.6pp error that looks like a real fault.
 - **Stamping is D+1.** A price stamped date D is the price for D-1, so the stamp on the 1st of
