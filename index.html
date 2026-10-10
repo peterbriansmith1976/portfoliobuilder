@@ -110,6 +110,52 @@ main.grid{max-width:1240px;margin:0 auto;padding:0 20px 30px;display:grid;grid-t
 .provs[hidden]{display:none}
 /* Full tab names on a desktop, short ones on a phone: five full names wrapped to four lines each.
    The bar also wraps below that width, since even the short set needs about 400px in a 335px space. */
+#lists{max-width:1240px;margin:0 auto;padding:0 20px 30px}
+.lband .card-head h2{display:flex;align-items:baseline;gap:9px}
+.ledit{font-family:inherit;font-size:12.5px;padding:5px 8px;border:1px solid var(--hair);border-radius:6px;background:var(--raised);color:var(--ink);max-width:260px}
+.ltbl td.lrm,.ltbl th.lrm{text-align:right;padding-left:2px;padding-right:4px;white-space:nowrap;width:62px}
+.lrmb,.lmvb{border:0;background:transparent;color:var(--muted);cursor:pointer;font-size:12px;font-family:inherit;padding:2px 4px;border-radius:5px}
+.lrmb:hover,.lrmb:focus-visible{color:var(--neg);background:var(--raised)}
+.lmvb{font-size:9px}
+.lmvb:hover,.lmvb:focus-visible{color:var(--signal);background:var(--raised)}
+.lmvb:disabled{opacity:.25;cursor:default;background:transparent;color:var(--muted)}
+/* Dragging a row is the way to reorder, but a drag needs a mouse or a pen: on a touch screen the
+   same gesture is a scroll. So the arrows stay as the fallback, out of sight until the row is
+   hovered or holds focus, and always there on a device that cannot hover. */
+.lrow .lmvb{visibility:hidden}
+.lrow:hover .lmvb,.lrow:focus-within .lmvb{visibility:visible}
+@media (hover:none){ .lrow .lmvb{visibility:visible} }
+.lrow{cursor:grab}
+.lrow.lfixed{cursor:default}
+.lrow.lfixed .lgrip{visibility:hidden}
+.ltbl th.lsort{cursor:pointer;user-select:none}
+.ltbl th.lsort:hover,.ltbl th.lsort:focus-visible{color:var(--ink)}
+.ltbl th.lsort.sorted{color:var(--signal)}
+.lman{font-size:11.5px!important;padding:4px 10px!important}
+/* the grip takes first place, so the alignment rules that keyed off :first-child move along one */
+.ltbl th.lgrip,.ltbl td.lgrip{width:18px;padding-left:4px;padding-right:0;text-align:center;vertical-align:middle;white-space:nowrap}
+.ltbl th:nth-child(2),.ltbl td:nth-child(2){text-align:left;white-space:normal}
+.lrow .lgrip{color:var(--hair)}
+.lrow:hover .lgrip{color:var(--signal)}
+.lrow .lgrip svg{display:block;margin:0 auto}
+.lrow.ldrag{cursor:grabbing;background:var(--raised);outline:1px solid var(--signal);outline-offset:-1px}
+.lbody.ldragging{user-select:none}
+td.loff{color:var(--neg)}
+.loffm{font-weight:900;color:var(--neg)}
+.lpick{border:1px solid var(--hair);border-radius:10px;background:var(--raised);padding:10px 12px;margin-bottom:12px}
+.lpick[hidden]{display:none}
+.lpick-top{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:8px}
+.lpick-top input[type=search]{flex:1;min-width:180px;padding:7px 10px;border:1px solid var(--hair);border-radius:6px;font-family:inherit;font-size:13px;background:var(--surface);color:var(--ink)}
+.lpick-only{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:var(--muted);white-space:nowrap}
+.lpick-list{max-height:280px;overflow:auto;border-top:1px solid var(--hair);border-bottom:1px solid var(--hair);padding:6px 0}
+.lpick-g{font-size:10px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);margin:8px 0 3px}
+.lpick-g:first-child{margin-top:0}
+.lpick-o{display:flex;align-items:center;gap:8px;padding:3px 4px;border-radius:6px;font-size:13px;cursor:pointer}
+.lpick-o:hover{background:var(--surface)}
+.lpick-o .m{color:var(--muted);font-size:11.5px;margin-left:auto;white-space:nowrap}
+.lpick-foot{display:flex;gap:9px;align-items:center;margin-top:9px}
+.lpick-n{font-size:12.5px;color:var(--muted);margin-right:auto}
+.lpick-none{font-size:12.5px;color:var(--muted);padding:8px 2px}
 .apptab .tshort{display:none}
 @media(max-width:760px){
   .apptab .tfull{display:none}
@@ -478,6 +524,7 @@ table.proj.compact td:first-child,table.proj.compact th:first-child{white-space:
   <button class="apptab" role="tab" data-tab="explorer" aria-selected="false"><span class="tfull">Aviva Fund Explorer</span><span class="tshort">Explorer</span></button>
   <button class="apptab" role="tab" data-tab="all" aria-selected="false"><span class="tfull">All Funds Portfolio Builder</span><span class="tshort">All Builder</span></button>
   <button class="apptab" role="tab" data-tab="allx" aria-selected="false"><span class="tfull">All Funds Explorer</span><span class="tshort">All Explorer</span></button>
+  <button class="apptab" role="tab" data-tab="lists" aria-selected="false"><span class="tfull">My Fund Lists</span><span class="tshort">Lists</span></button>
   <button class="apptab" role="tab" data-tab="income" aria-selected="false"><span class="tfull">Income Sustainability</span><span class="tshort">Income</span></button>
 </div></nav>
 
@@ -653,6 +700,73 @@ table.proj.compact td:first-child,table.proj.compact th:first-child{white-space:
     <div class="card-body"><p class="hint" id="iMethod"></p></div>
   </div>
   <div id="iDisc"></div>
+</main>
+
+<main id="lists" style="display:none">
+  <div class="card">
+    <div class="card-head"><h2><span class="sec-icon"><svg width="19" height="19" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4.5h12M4 9h12M4 13.5h8"/><circle cx="16" cy="14" r="2.5"/></svg></span>My Fund Lists</h2>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <label for="lEnd" class="lbl">Performance to</label><select id="lEnd" class="ledit" aria-label="Performance to"></select>
+        <button class="btn btn-quiet" id="lWordBtn" type="button">Copy for Word</button>
+        <button class="btn btn-quiet" id="lExport" type="button">Save to file</button>
+        <button class="btn btn-quiet" id="lImport" type="button">Load from file</button>
+        <input type="file" id="lFile" accept="application/json,.json" style="display:none">
+      </div></div>
+    <div class="card-body">
+      <p class="hint" id="lIntro">Your own selection of funds for each ESMA band, chosen by you and kept in this browser. Nothing here is a recommendation and nothing is pre-filled. Drag a row to reorder it within its band. Figures are the same as the fund explorer's, gross of AMC.</p>
+      <p class="hint" id="lWarn" style="display:none"></p>
+    </div>
+  </div>
+
+  <div class="card lband" data-band="3">
+    <div class="card-head"><h2>ESMA 3<span class="count" id="lCount3"></span></h2>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <button class="btn btn-quiet" id="lAdd3" type="button" aria-expanded="false">Add funds</button>
+        <button class="btn btn-quiet lman" id="lMan3" type="button" style="display:none"></button><button class="btn btn-quiet" id="lCopy3" type="button">Copy table</button>
+      </div></div>
+    <div class="card-body">
+      <div class="lpick" id="lPick3" hidden></div>
+      <div class="xscroll"><table class="proj compact ltbl" id="lTable3"></table></div>
+      <div class="hint" id="lEmpty3" style="display:none">No funds chosen yet. Press Add funds to choose them.</div>
+    </div>
+  </div>
+  <div class="card lband" data-band="4">
+    <div class="card-head"><h2>ESMA 4<span class="count" id="lCount4"></span></h2>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <button class="btn btn-quiet" id="lAdd4" type="button" aria-expanded="false">Add funds</button>
+        <button class="btn btn-quiet lman" id="lMan4" type="button" style="display:none"></button><button class="btn btn-quiet" id="lCopy4" type="button">Copy table</button>
+      </div></div>
+    <div class="card-body">
+      <div class="lpick" id="lPick4" hidden></div>
+      <div class="xscroll"><table class="proj compact ltbl" id="lTable4"></table></div>
+      <div class="hint" id="lEmpty4" style="display:none">No funds chosen yet. Press Add funds to choose them.</div>
+    </div>
+  </div>
+  <div class="card lband" data-band="5">
+    <div class="card-head"><h2>ESMA 5<span class="count" id="lCount5"></span></h2>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <button class="btn btn-quiet" id="lAdd5" type="button" aria-expanded="false">Add funds</button>
+        <button class="btn btn-quiet lman" id="lMan5" type="button" style="display:none"></button><button class="btn btn-quiet" id="lCopy5" type="button">Copy table</button>
+      </div></div>
+    <div class="card-body">
+      <div class="lpick" id="lPick5" hidden></div>
+      <div class="xscroll"><table class="proj compact ltbl" id="lTable5"></table></div>
+      <div class="hint" id="lEmpty5" style="display:none">No funds chosen yet. Press Add funds to choose them.</div>
+    </div>
+  </div>
+  <div class="card lband" data-band="6">
+    <div class="card-head"><h2>ESMA 6<span class="count" id="lCount6"></span></h2>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <button class="btn btn-quiet" id="lAdd6" type="button" aria-expanded="false">Add funds</button>
+        <button class="btn btn-quiet lman" id="lMan6" type="button" style="display:none"></button><button class="btn btn-quiet" id="lCopy6" type="button">Copy table</button>
+      </div></div>
+    <div class="card-body">
+      <div class="lpick" id="lPick6" hidden></div>
+      <div class="xscroll"><table class="proj compact ltbl" id="lTable6"></table></div>
+      <div class="hint" id="lEmpty6" style="display:none">No funds chosen yet. Press Add funds to choose them.</div>
+    </div>
+  </div>
+  <div id="lDisc"></div>
 </main>
 
 <main id="explorer" style="display:none">
@@ -2494,10 +2608,10 @@ function applyMode(){
   pb.title=eb.title="";
 }
 function showTab(t){
-  const x=t==="explorer"||t==="allx", inc=t==="income";
+  const x=t==="explorer"||t==="allx", inc=t==="income", lst=t==="lists";
   /* The income tab reads both builders, so it does not own a mode. Leave MODE and state as the last
      builder or explorer left them, or its portfolio lookups would silently switch universe. */
-  if(!inc) MODE= t==="all"||t==="allx" ? "all" : "aviva";
+  if(!inc && !lst) MODE= t==="all"||t==="allx" ? "all" : "aviva";   // the lists tab reads every fund, so it owns no mode either
   state= MODE==="all" ? STATE_ALL : STATE_AVIVA;
   X= MODE==="all" ? X_ALL : X_AVIVA;
   document.getElementById("xTitle").textContent= MODE==="all" ? "All Funds Explorer" : "Aviva Fund Explorer";
@@ -2505,13 +2619,15 @@ function showTab(t){
   document.getElementById("xfilter").value=X.q;
   applyMode();
   if(DATA.funds.length) renderAll();
-  document.querySelector("main.grid").style.display=(x||inc)?"none":"";
+  document.querySelector("main.grid").style.display=(x||inc||lst)?"none":"";
   document.getElementById("explorer").style.display=x?"":"none";
   document.getElementById("income").style.display=inc?"":"none";
-  (inc?document.getElementById("iDisc"):x?document.getElementById("xDisc"):DISC_HOME).appendChild(DISC_WRAP);   // one disclaimer, shown on whichever tab is open
+  document.getElementById("lists").style.display=lst?"":"none";
+  (lst?document.getElementById("lDisc"):inc?document.getElementById("iDisc"):x?document.getElementById("xDisc"):DISC_HOME).appendChild(DISC_WRAP);   // one disclaimer, shown on whichever tab is open
   document.querySelectorAll(".apptab").forEach(b=>{ const on=b.dataset.tab===t; b.classList.toggle("on",on); b.setAttribute("aria-selected",String(on)); });
   try{ localStorage.setItem("apb-tab",t); }catch(e){}
   if(x) renderExplorer();
+  else if(lst) renderLists();
   else if(inc) renderIncome();
   else equaliseBBRows();   // rows rendered while this tab was hidden measured 0 tall and got no equal height
 }
@@ -3381,6 +3497,344 @@ function buildExplorerPrintDoc(){
 }
 
 const buildExplorerWordDoc=()=>wordFromHTML(buildExplorerPrintDoc());
+
+
+/* ---------- My Fund Lists -------------------------------------------------------------
+   Four tables, ESMA 3 to 6, each holding the funds the user has chosen for that band. Built
+   10 Oct 2026 at the user's request so a hand-picked shortlist per risk band can be kept and
+   copied out, which no filter can express.
+
+   It sits close to a line the project does not cross: preset portfolios and risk profile target
+   selectors were rejected because the tool computes and displays, it does not recommend. What keeps
+   this the right side of it is that the tool chooses nothing. The tab **always opens empty**, ships
+   no starter list, and the heading and the copied output name it as the user's own selection. Do not
+   pre-fill it, do not rank anything in it, and do not let it feed the builder.
+
+   Membership is free: any fund can go in any band, because an adviser may hold a 5 inside a band 4
+   plan. A fund whose published rating differs from the band it sits in is marked in the row and
+   named in the copy, since a table headed ESMA 4 quietly holding a 6 would mislead the moment it
+   reached a client document. Flag, never silently correct, and never block.
+*/
+const L_KEY="apb-lists-v1", L_BANDS=[3,4,5,6];
+let LISTS={3:[],4:[],5:[],6:[]}, L={end:null, sort:{3:null,4:null,5:null,6:null}};
+/* Sorting is a view, never a rewrite: the order within a band is the user's own work, set by
+   dragging, and a stray click on a heading must not destroy it. A sorted band turns dragging off
+   and offers Manual order to come back. The sort is held in memory only, so a reload returns to
+   the order they arranged. */
+const lSortVal=(row,k)=> k==="prov" ? provOf(row.f).toLowerCase() : xSortVal(row,k);
+function lOrdered(b){
+  const fs=LISTS[b].map(n=>ALLF.find(x=>x.name===n)).filter(Boolean);
+  const srt=L.sort[b];
+  if(!srt) return fs;
+  return fs.map(f=>xRow(f,L.end))
+    .sort((a,c)=>{ const va=lSortVal(a,srt.k), vc=lSortVal(c,srt.k);
+      if(va===null&&vc===null) return 0; if(va===null) return 1; if(vc===null) return -1;   // blanks last
+      return (va<vc?-1:va>vc?1:0)*srt.dir; })
+    .map(r=>r.f);
+}
+function lSortBy(b,k){
+  const cur=L.sort[b];
+  L.sort[b] = cur && cur.k===k ? (cur.dir===1 ? {k,dir:-1} : null) : {k,dir:1};   // asc, desc, back to manual
+  renderLists();
+}
+
+function lLoad(){
+  try{
+    const r=JSON.parse(localStorage.getItem(L_KEY)||"null");
+    if(r && r.v===1 && r.bands) L_BANDS.forEach(b=>{ LISTS[b]=Array.isArray(r.bands[b])?r.bands[b].slice():[]; });
+  }catch(e){}                                    // storage is unavailable in some contexts; start empty
+}
+function lSave(){
+  try{ localStorage.setItem(L_KEY, JSON.stringify({v:1, saved:new Date().toISOString(), bands:LISTS})); }
+  catch(e){ lNote("Could not save to this browser. Use Save to file to keep this list."); }
+}
+function lNote(msg){
+  const el=document.getElementById("lWarn");
+  el.style.display=msg?"":"none"; el.innerHTML=msg||"";
+}
+
+const L_COLS=[["name","Fund"],["prov","Provider"],["cat","Asset class"],["esma","ESMA"],
+  ["m1","1M"],["m3","3M"],["ytd","YTD"],["y1","1Y"],["y2","2Y p.a."],["y3","3Y p.a."],
+  ["y5","5Y p.a."],["y10","10Y p.a."],["vol","Vol 5Y"],["mdd","Max DD 5Y"]];
+
+function renderLists(){
+  if(!ALLF.length) return;
+  const E=END();
+  if(L.end===null || L.end>E) L.end=E;
+  const sel=document.getElementById("lEnd");
+  if(sel.dataset.asof!==DATA.asOf+"|"+ALLF.length){
+    const first=Math.min(...ALLF.map(f=>f.startIdx)), opts=[];
+    for(let i=E;i>=first;i--) opts.push(`<option value="${i}">${pLbl(i)}</option>`);
+    sel.innerHTML=opts.join(""); sel.dataset.asof=DATA.asOf+"|"+ALLF.length;
+  }
+  sel.value=String(L.end);
+
+  const gone=[], moved=[];
+  L_BANDS.forEach(b=>{
+    // a saved list names funds: one that has left the universe is dropped and said out loud
+    const keep=[];
+    LISTS[b].forEach(n=>{ const f=ALLF.find(x=>x.name===n); if(f) keep.push(n); else gone.push(n); });
+    if(keep.length!==LISTS[b].length) LISTS[b]=keep;
+  });
+  if(gone.length) lSave();
+
+  L_BANDS.forEach(b=>{
+    const fs=lOrdered(b), srt=L.sort[b];
+    const cell=o=>{ const v=o.v===null?null:(Math.abs(o.v)<0.0005?0:o.v);
+      return `<td class="${v!==null&&v<0?"neg":""}">${v===null?"—":fmtP(v)+(o.sim?`<span class="simd">◆</span>`:"")}</td>`; };
+    const th=c=>{ const on=srt&&srt.k===c[0];
+      return `<th data-k="${c[0]}" tabindex="0" class="lsort${on?" sorted":""}" aria-sort="${on?(srt.dir===1?"ascending":"descending"):"none"}">${c[1]}${on?(srt.dir===1?" ▲":" ▼"):""}</th>`; };
+    let h=`<thead><tr><th class="lgrip"></th>`+L_COLS.map(th).join("")+`<th class="lrm"></th></tr></thead><tbody class="lbody">`;
+    fs.forEach((f,i)=>{
+      const r=xRow(f,L.end), off=f.esma!=null && f.esma!==b;
+      if(off) moved.push(`${xName(f.name)} is rated ${f.esma}, listed under ${b}`);
+      /* The grip is the affordance: a row you can pick up has to say so, and saying it only on hover
+         means you must hover to learn that hovering does anything. Faint always, brighter on hover. */
+      h+=`<tr class="lrow${srt?" lfixed":""}" data-fund="${esc(f.name)}"><td class="lgrip" title="Drag to reorder" aria-hidden="true">`
+        +`<svg width="9" height="14" viewBox="0 0 9 14" fill="currentColor"><circle cx="2" cy="3" r="1.3"/><circle cx="7" cy="3" r="1.3"/><circle cx="2" cy="7" r="1.3"/><circle cx="7" cy="7" r="1.3"/><circle cx="2" cy="11" r="1.3"/><circle cx="7" cy="11" r="1.3"/></svg></td>`
+        +`<td title="${esc(fullName(f.name))}">${esc(xName(f.name))}${f.simulated?' <span class="simmark">◆</span>':""}</td>`
+        +`<td>${esc(provOf(f))}</td><td>${f.category}</td>`
+        +`<td${esmaTitle(f)} class="${off?"loff":""}">${esmaTxt(f,"—")}${off?' <span class="loffm" title="Published rating differs from this band">!</span>':""}</td>`
+        +["m1","m3","ytd","y1","y2","y3","y5","y10","vol"].map(k=>cell(r[k])).join("")+cell(r.mdd)
+        +`<td class="lrm">`
+        +`<button type="button" class="lmvb" data-band="${b}" data-fund="${esc(f.name)}" data-dir="-1" ${i===0||srt?"disabled":""} title="Move ${esc(xName(f.name))} up" aria-label="Move ${esc(xName(f.name))} up">▲</button>`
+        +`<button type="button" class="lmvb" data-band="${b}" data-fund="${esc(f.name)}" data-dir="1" ${i===fs.length-1||srt?"disabled":""} title="Move ${esc(xName(f.name))} down" aria-label="Move ${esc(xName(f.name))} down">▼</button>`
+        +`<button type="button" class="lrmb" data-band="${b}" data-fund="${esc(f.name)}" title="Remove ${esc(xName(f.name))} from ESMA ${b}" aria-label="Remove ${esc(xName(f.name))} from ESMA ${b}">✕</button>`
+        +`</td></tr>`;
+    });
+    document.getElementById(`lTable${b}`).innerHTML=h+`</tbody>`;
+    document.getElementById(`lTable${b}`).style.display=fs.length?"":"none";
+    document.getElementById(`lEmpty${b}`).style.display=fs.length?"none":"";
+    document.getElementById(`lCount${b}`).textContent=fs.length?`${fs.length} fund${fs.length>1?"s":""}`:"";
+    const man=document.getElementById(`lMan${b}`);
+    man.style.display=srt?"":"none";
+    man.textContent=`Sorted by ${(L_COLS.find(c=>c[0]===srt?.k)||[,""])[1]} · Manual order`;
+    document.getElementById(`lCopy${b}`).disabled=!fs.length;
+
+    if(!document.getElementById(`lPick${b}`).hidden) lPickRender(b);
+  });
+
+  const bits=[];
+  if(gone.length) bits.push(`<strong>${gone.length} fund${gone.length>1?"s":""} removed</strong> from your lists: no longer in the data (${gone.map(esc).join(", ")}).`);
+  if(moved.length) bits.push(`<strong>${moved.length} fund${moved.length>1?"s sit":" sits"} in a band other than its published rating</strong>: ${moved.join("; ")}. Marked with ! in the table and named in anything you copy.`);
+  lNote(bits.join(" "));
+}
+
+/* A multi-select panel rather than a dropdown: at 96 funds, picking a shortlist one at a time and
+   waiting for a re-render between each is the wrong shape. Search, tick what you want, add them in
+   one go. "Only funds rated N" defaults on, since that is the common case, and unticking it is how
+   the band stays free to hold anything. */
+function lPickRender(b){
+  const box=document.getElementById(`lPick${b}`);
+  const q=(box.dataset.q||"").trim().toLowerCase();
+  const only=box.dataset.only!=="0";
+  const chosen=new Set((box.dataset.sel||"").split("\u0000").filter(Boolean));
+  const held=new Set(LISTS[b]);
+  const avail=ALLF.filter(f=>!held.has(f.name) && (!only||f.esma===b) && (!q||f.name.toLowerCase().includes(q)));
+  let list="";
+  CAT_ORDER.forEach(c=>{
+    const in_=avail.filter(f=>f.category===c);
+    if(!in_.length) return;
+    list+=`<div class="lpick-g">${c}</div>`+in_.map(f=>
+      `<label class="lpick-o"><input type="checkbox" data-fund="${esc(f.name)}"${chosen.has(f.name)?" checked":""}>`
+      +`<span>${esc(xName(f.name))}</span><span class="m">${esc(provOf(f))} · ESMA ${f.esma??"—"}</span></label>`).join("");
+  });
+  if(!list) list=`<div class="lpick-none">No funds match${only?` with a published rating of ${b}`:""}${q?` for "${esc(q)}"`:""}.</div>`;
+  box.innerHTML=`<div class="lpick-top">
+      <input type="search" placeholder="Search ${ALLF.length} funds…" aria-label="Search funds" value="${esc(box.dataset.q||"")}">
+      <label class="lpick-only"><input type="checkbox" class="lonly"${only?" checked":""}> Only funds rated ${b}</label>
+    </div>
+    <div class="lpick-list">${list}</div>
+    <div class="lpick-foot"><span class="lpick-n">${chosen.size} selected</span>
+      <button type="button" class="btn btn-primary ladd"${chosen.size?"":" disabled"}>Add ${chosen.size||""}</button>
+      <button type="button" class="btn btn-quiet lcancel">Close</button></div>`;
+}
+/* Reorder by dragging the row. Pointer events rather than HTML5 drag and drop: the latter gives no
+   touch support at all and an unusable drag image for a table row. The rows are moved in the DOM as
+   the pointer passes their midpoints, which is its own feedback and needs no insertion marker, and
+   the order is written back to LISTS on release. A drag that never moves 4px is a click, so the
+   remove and arrow buttons still work. */
+function lDragBind(b){
+  const tbl=document.getElementById(`lTable${b}`);
+  let row=null, startY=0, live=false;
+  const body=()=>tbl.tBodies[0];
+  const end=commit=>{
+    if(row){ row.classList.remove("ldrag"); body().classList.remove("ldragging"); }
+    if(live && commit){
+      const order=[...body().querySelectorAll("tr")].map(r=>r.dataset.fund);
+      if(order.join("\u0000")!==LISTS[b].join("\u0000")){ LISTS[b]=order; lSave(); renderLists(); }
+    } else if(live){ renderLists(); }         // cancelled: put the rows back where they were
+    row=null; live=false;
+  };
+  tbl.addEventListener("pointerdown", e=>{
+    if(L.sort[b]) return;                      // a sorted band shows a view, not the order being edited
+    if(e.pointerType==="touch") return;        // a drag and a scroll are the same gesture there
+    if(e.button!==0 || e.target.closest("button")) return;
+    const tr=e.target.closest("tbody tr"); if(!tr) return;
+    row=tr; startY=e.clientY; live=false;
+    try{ tbl.setPointerCapture(e.pointerId); }catch(err){}
+  });
+  tbl.addEventListener("pointermove", e=>{
+    if(!row) return;
+    if(!live){
+      if(Math.abs(e.clientY-startY)<4) return;  // still a click
+      live=true; row.classList.add("ldrag"); body().classList.add("ldragging");
+    }
+    e.preventDefault();
+    let after=null;
+    [...body().querySelectorAll("tr")].forEach(r=>{
+      if(r===row) return;
+      const box=r.getBoundingClientRect();
+      if(e.clientY > box.top + box.height/2) after=r;
+    });
+    if(after) after.after(row); else body().prepend(row);
+  });
+  tbl.addEventListener("pointerup", ()=>end(true));
+  tbl.addEventListener("pointercancel", ()=>end(false));
+  tbl.addEventListener("lostpointercapture", ()=>{ if(row) end(true); });
+}
+
+function lPickToggle(b){
+  const box=document.getElementById(`lPick${b}`), btn=document.getElementById(`lAdd${b}`);
+  const open=box.hidden;
+  if(open){ box.dataset.q=""; box.dataset.sel=""; if(box.dataset.only===undefined) box.dataset.only="1"; lPickRender(b); }
+  box.hidden=!open;
+  btn.setAttribute("aria-expanded", String(open));
+  if(open) box.querySelector("input[type=search]").focus();
+}
+function lPickBind(b){
+  const box=document.getElementById(`lPick${b}`);
+  box.addEventListener("input", e=>{
+    if(e.target.type==="search"){ box.dataset.q=e.target.value; lPickRender(b);
+      const el=box.querySelector("input[type=search]"); el.focus(); el.setSelectionRange(el.value.length,el.value.length); return; }
+    if(e.target.classList.contains("lonly")){ box.dataset.only=e.target.checked?"1":"0"; lPickRender(b); return; }
+    if(e.target.dataset.fund){
+      const set=new Set((box.dataset.sel||"").split("\u0000").filter(Boolean));
+      e.target.checked?set.add(e.target.dataset.fund):set.delete(e.target.dataset.fund);
+      box.dataset.sel=[...set].join("\u0000");
+      box.querySelector(".lpick-n").textContent=`${set.size} selected`;
+      const add=box.querySelector(".ladd"); add.disabled=!set.size; add.textContent=`Add ${set.size||""}`.trim();
+    }
+  });
+  box.addEventListener("click", e=>{
+    if(e.target.closest(".lcancel")){ lPickToggle(b); return; }
+    if(e.target.closest(".ladd")){
+      const names=(box.dataset.sel||"").split("\u0000").filter(Boolean);
+      names.forEach(n=>{ if(!LISTS[b].includes(n)) LISTS[b].push(n); });
+      box.dataset.sel=""; lSave(); renderLists(); lPickRender(b);
+    }
+  });
+  box.addEventListener("keydown", e=>{ if(e.key==="Escape") lPickToggle(b); });
+}
+
+function lAddFund(b, name){
+  if(!name || LISTS[b].includes(name)) return;
+  LISTS[b].push(name); lSave(); renderLists();
+}
+/* Order within a band is the user's: the list is theirs to arrange, and the tables, the Word document
+   and the Excel copy all read it in the order shown. */
+function lMove(b, name, dir){
+  const i=LISTS[b].indexOf(name), j=i+dir;
+  if(i<0 || j<0 || j>=LISTS[b].length) return;
+  [LISTS[b][i], LISTS[b][j]]=[LISTS[b][j], LISTS[b][i]];
+  lSave(); renderLists();
+  const sel=`#lTable${b} .lmvb[data-fund="${CSS.escape(name)}"][data-dir="${dir}"]`;
+  const btn=document.querySelector(sel);        // keep the keyboard on the button that was just used
+  if(btn && !btn.disabled) btn.focus();
+}
+function lRemove(b, name){
+  LISTS[b]=LISTS[b].filter(n=>n!==name); lSave(); renderLists();
+}
+
+/* The file is the real backup: browser storage is per machine, per browser, and goes when site data
+   is cleared. Everything stays local either way, which keeps the data licence where it is. */
+function lExport(){
+  const blob=new Blob([JSON.stringify({v:1, saved:new Date().toISOString(), asOf:DATA.asOf, bands:LISTS}, null, 2)],
+                      {type:"application/json"});
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  a.download=`fund-lists-${new Date().toISOString().slice(0,10)}.json`;
+  a.click(); URL.revokeObjectURL(a.href);
+}
+function lImport(file){
+  const r=new FileReader();
+  r.onload=()=>{
+    try{
+      const d=JSON.parse(r.result);
+      if(!d || d.v!==1 || !d.bands) throw new Error("not a fund list file");
+      L_BANDS.forEach(b=>{ LISTS[b]=Array.isArray(d.bands[b])?d.bands[b].filter(n=>typeof n==="string"):[]; });
+      lSave(); renderLists();
+    }catch(e){ lNote(`Could not read that file: ${esc(e.message)}. Your lists are unchanged.`); }
+  };
+  r.onerror=()=>lNote("Could not read that file. Your lists are unchanged.");
+  r.readAsText(file);
+}
+
+/* Composed in the print document's .pd-* idiom and handed to the shared converter, as the explorer's
+   export is, so all three Word documents come out with one set of rules. */
+function buildListsPrintDoc(){
+  const today=new Date().toLocaleDateString("en-IE",{day:"2-digit",month:"2-digit",year:"numeric"});
+  let h=`<div class="pd-page1">${PD_BAND("My fund lists", today)}
+  <div class="pd-titlerow">${XPD_TILE}<div><div class="pd-eyebrow">Portfolio Builder</div><div class="pd-title">My Fund Lists</div></div></div>
+  <p class="pd-sub">Performance data to ${pLbl(L.end)} · EUR · Returns gross of AMC</p>
+  <p class="pd-note">A selection of funds chosen by the user for each ESMA band. Not a recommendation and not a fund panel: the tool selects nothing.</p>`;
+  let any=false, off=[];
+  L_BANDS.forEach(b=>{
+    const fs=lOrdered(b);                      // what is on screen, sorted view included
+    if(!fs.length) return;
+    any=true;
+    h+=`<div class="pd-h">ESMA ${b} · ${fs.length} fund${fs.length>1?"s":""}</div>`;
+    let t=`<tr>`+L_COLS.map(c=>`<th>${c[1]}</th>`).join("")+`</tr>`;
+    fs.forEach(f=>{
+      const r=xRow(f,L.end), bad=f.esma!=null && f.esma!==b;
+      if(bad) off.push(`${xName(f.name)} (rated ${f.esma}, listed under ${b})`);
+      const c=o=>{ const v=o.v===null?null:(Math.abs(o.v)<0.0005?0:o.v);
+        return `<td class="${v!==null&&v<0?"neg":""}">${v===null?"—":fmtP(v)+(o.sim?`<span class="pd-dia">◆</span>`:"")}</td>`; };
+      t+=`<tr><td>${esc(xName(f.name))}${f.simulated?" ◆":""}</td><td>${esc(provOf(f))}</td><td>${f.category}</td>`
+        +`<td>${esmaTxt(f,"—")}${bad?" !":""}</td>`
+        +["m1","m3","ytd","y1","y2","y3","y5","y10","vol"].map(k=>c(r[k])).join("")+c(r.mdd)+`</tr>`;
+    });
+    h+=`<table class="pd-table">${t}</table>`;
+  });
+  if(!any) return "";
+  if(off.length) h+=`<p class="pd-note">! ${off.join("; ")}. The band is the user's choice; the rating shown is the published one.</p>`;
+  h+=`<p class="pd-note">Returns are gross of AMC to ${pLbl(L.end)}. 1M to 1Y are cumulative; 2Y and longer are per year. Vol 5Y is annualised volatility and Max DD 5Y the largest fall from a peak, both over the 5 years to the end date. ◆ includes simulated history. — where the history does not cover the period.</p>`;
+  const disc=document.querySelector(".disc").innerHTML.replace("<h3>","<h4>").replace("</h3>","</h4>");
+  return h+`<div class="pd-disc" style="--ink:#0D1B2A">${disc}</div></div>`;
+}
+const buildListsWordDoc=()=>{ const h=buildListsPrintDoc(); return h?wordFromHTML(h):Promise.resolve(""); };
+
+
+L_BANDS.forEach(b=>{
+  document.getElementById(`lAdd${b}`).onclick=()=>lPickToggle(b);
+  lPickBind(b);
+  lDragBind(b);
+  const lt=document.getElementById(`lTable${b}`);
+  lt.addEventListener("click",e=>{ const h=e.target.closest("th.lsort"); if(h) lSortBy(b,h.dataset.k); });
+  lt.addEventListener("keydown",e=>{ const h=e.target.closest("th.lsort");
+    if(h && (e.key==="Enter"||e.key===" ")){ e.preventDefault(); lSortBy(b,h.dataset.k); } });
+  document.getElementById(`lMan${b}`).onclick=()=>{ L.sort[b]=null; renderLists(); };
+  document.getElementById(`lCopy${b}`).onclick=function(){ xCopyTable(`lTable${b}`, this, [0, L_COLS.length+1]); };
+  document.getElementById(`lTable${b}`).addEventListener("click",e=>{
+    const mv=e.target.closest(".lmvb");
+    if(mv){ lMove(+mv.dataset.band, mv.dataset.fund, +mv.dataset.dir); return; }
+    const btn=e.target.closest(".lrmb"); if(btn) lRemove(+btn.dataset.band, btn.dataset.fund); });
+});
+document.getElementById("lEnd").onchange=function(){ L.end=+this.value; renderLists(); };
+document.getElementById("lWordBtn").onclick=async function(){
+  const orig=this.textContent, btn=this;
+  btn.textContent="Building...";
+  try{
+    const html=await buildListsWordDoc();
+    if(!html){ btn.textContent="Nothing to copy"; setTimeout(()=>{btn.textContent=orig;},1800); return; }
+    const tmp=document.createElement("div"); tmp.innerHTML=html;
+    await wdCopy(html, wdPlain(tmp), btn, orig);
+  }catch(e){ btn.textContent="Copy failed"; setTimeout(()=>{btn.textContent=orig;},2000); console.error(e); }
+};
+document.getElementById("lExport").onclick=lExport;
+document.getElementById("lImport").onclick=()=>document.getElementById("lFile").click();
+document.getElementById("lFile").onchange=function(){ if(this.files[0]) lImport(this.files[0]); this.value=""; };
+lLoad();
 
 async function xCopyWord(btn){
   const orig=btn.textContent;

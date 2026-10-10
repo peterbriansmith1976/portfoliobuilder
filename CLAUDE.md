@@ -348,7 +348,7 @@ public.
 
 ## Income sustainability tab
 
-A fifth tab beside All Funds Explorer, built 23/24 Sep 2026. It answers whether an income lasts, which
+The last tab, built 23/24 Sep 2026 (fifth until My Fund Lists was put before it on 10 Oct at the user's request). It answers whether an income lasts, which
 none of the other tabs do. Screen only, hidden in print, and it carries the warnings block like the others.
 
 - **Selections are any fund and any valid portfolio from either builder**, up to three, labelled
@@ -536,6 +536,76 @@ Built the same day, at the user's request, covering the table and the whole comp
   compare screen's performance table, calendar and What's inside cards all hash identically to the
   build before the explorer export existed. Console clean.
 - The income tab is excluded by the user's decision.
+
+## My Fund Lists tab
+
+A tab between All Funds Explorer and Income Sustainability, built 10 Oct 2026 at the user's request: four tables, ESMA 3 to 6, each holding the funds
+**the user has chosen** for that band. It answers something no filter can, a hand-picked shortlist per
+risk band, kept between visits and copied out as a document.
+
+- **It sits next to a line the project does not cross.** Preset portfolios and risk profile target
+  selectors were rejected because the tool computes and displays, it does not recommend, and a curated
+  set of funds per band is in substance a preferred fund panel. What keeps this the right side of it is
+  that **the tool chooses nothing**: the tab always opens empty, ships no starter list, and the heading
+  and the copied output name it as the user's own selection, "not a recommendation and not a fund
+  panel: the tool selects nothing". Raised with the user before building and confirmed by them. Do not
+  pre-fill it, do not rank anything in it, and do not let it feed the builder's figures.
+- **Membership is free, mismatches are flagged.** Any fund can go in any band, since an adviser may
+  hold a 5 inside a band 4 plan. A fund whose published rating differs from its band is marked `!` in
+  the row, listed in the warning line, and named in the Word copy. Flag, never silently correct, never
+  block: a table headed ESMA 4 quietly holding a 6 would mislead the moment it reached a client.
+- **Funds are added through a multi-select panel, not a dropdown.** At 96 funds, picking one at a
+  time and waiting for a re-render between each is the wrong shape; the user asked for multiple. The
+  panel has a search, a checkbox per fund showing its provider and published rating, a running count
+  and one Add. **"Only funds rated N" defaults on**, since curating that band is the common case, and
+  unticking it is how the band stays free to hold anything. Funds already in the band are not offered.
+  The panel stays open after an add, with the selection cleared, so a list can be built in one sitting.
+- **Universe is all 96 funds** (`ALLF`), regardless of `MODE`, with a Provider column and no Fee vs
+  standard column, following the All Funds rule. Portfolios do not appear; these are fund lists. Like
+  the income tab it **owns no mode**, so `showTab()` leaves `MODE` alone for it.
+- **Figures come from `xRow(f, L.end)`**, the explorer's own row builder, so a fund reads identically on
+  both tabs. Verified cell by cell: every figure for every listed fund matches the All Funds Explorer at
+  the same end month, 0 differences.
+- **Saved in `localStorage` under `apb-lists-v1`**, wrapped in try/catch, with Save to file and Load
+  from file as JSON. The file is the real backup: browser storage is per machine, per browser, and goes
+  when site data is cleared. Everything stays local, which keeps the data licence where it is. The
+  About page's privacy section says all of this, and says plainly that the lists are not a record.
+- **Order within a band is the user's: drag the row.** `lDragBind` uses pointer events rather than
+  HTML5 drag and drop, which gives no touch support and an unusable drag image for a table row. Rows
+  are moved in the DOM as the pointer passes their midpoints, which is its own feedback and needs no
+  insertion marker, and the order is written back to `LISTS[b]` on release. **A drag that never travels
+  4px is a click**, so the remove button still works.
+  **A drag needs a mouse or a pen**: on a touch screen the same gesture is a scroll, and `pointerdown`
+  returns early for `pointerType==="touch"`. So the up and down buttons (`lMove`) remain as the
+  fallback, `visibility:hidden` until the row is hovered or holds focus and always visible under
+  `@media (hover:none)`. That is what keeps the table clean while leaving keyboard and tablet users a
+  way to reorder. Do not delete the arrows in favour of dragging alone.
+  **Every row carries a grip** at its left, six dots in SVG, faint by default and signal blue on hover,
+  with the title "Drag to reorder". A row you can pick up has to say so, and saying it only on hover
+  means you must hover to learn that hovering does anything. The whole row stays draggable; the grip is
+  a hint, not a handle you must hit.
+  The grip takes first place in the row, so the `.proj` rules that keyed off `:first-child` move along
+  one: `.ltbl` re-applies left alignment to the second cell and the Excel copy drops columns
+  `[0, L_COLS.length+1]` rather than just the last. Forget either and the fund names right-align with
+  the figures, or the grip column lands in the spreadsheet.
+- **Every column heading sorts its own band, and sorting is a view, never a rewrite.** The order is
+  the user's work; a stray click on a heading must not destroy it. `L.sort[b]` cycles ascending,
+  descending, back to manual, blanks always last as in the explorer, and it is held **in memory only**
+  so a reload returns to the arranged order. A sorted band hides its grips, disables the arrows and
+  shows a "Sorted by X · Manual order" button to come back. `lOrdered(b)` is the one place display
+  order is decided, and the screen table, the Word document and the Excel copy all go through it:
+  the Word builder read `LISTS[b]` directly at first and ignored the sort, which is the mistake to
+  watch for if another export is added.
+- **A saved list names funds.** On load, a fund that has left the universe is dropped and named in the
+  warning line rather than disappearing quietly, the same principle as `applyData()`'s pruning.
+- **Copy for Word** builds the whole tab as one document through `buildListsPrintDoc()` and the shared
+  `wordFromHTML()`, so it comes out under the same rules as the other two exports; empty bands are left
+  out. **Copy table** per band reuses `xCopyTable` for Excel.
+- **Verified:** all five existing tabs, print, email and the builder's Word export hash identically to
+  the build before this tab existed. Console clean. Lists survive a reload, a removal persists, and a
+  deliberate mismatch is caught and named in both the screen warning and the document.
+- **Not built, and not to be added without asking:** several named list sets (the storage shape allows
+  it without a migration), reordering within a band, and bands outside 3 to 6.
 
 ## Asset mix
 
