@@ -156,6 +156,24 @@ td.loff{color:var(--neg)}
 .lpick-foot{display:flex;gap:9px;align-items:center;margin-top:9px}
 .lpick-n{font-size:12.5px;color:var(--muted);margin-right:auto}
 .lpick-none{font-size:12.5px;color:var(--muted);padding:8px 2px}
+.ppanel{border:1px solid var(--hair);border-radius:10px;background:var(--raised);padding:10px 12px;margin-bottom:10px}
+.ppanel[hidden]{display:none}
+.ppanel h4{font-size:10px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);margin:0 0 7px}
+.psave{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
+.psave input{flex:1;min-width:150px;padding:6px 9px;border:1px solid var(--hair);border-radius:6px;font-family:inherit;font-size:13px;background:var(--surface);color:var(--ink)}
+.plist{border-top:1px solid var(--hair);margin-top:2px}
+/* section 1 is a narrow column, so each row wraps: the name takes its own line and the meta and
+   buttons sit under it. On one line the name was being squeezed out of existence. */
+.pitem{display:flex;gap:6px 8px;align-items:center;flex-wrap:wrap;padding:7px 2px;border-bottom:1px solid var(--hair);font-size:12.5px}
+.pitem .pn{flex:1 1 100%;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pitem .pm{color:var(--muted);font-size:11.5px;margin-right:auto;white-space:normal}
+.pacts{display:flex;gap:4px;flex:0 0 auto}
+.pitem button{border:1px solid var(--hair);min-width:26px;background:transparent;color:var(--muted);cursor:pointer;font-family:inherit;font-size:11px;font-weight:800;padding:3px 8px;border-radius:5px}
+.pitem button:hover,.pitem button:focus-visible{color:var(--signal);border-color:var(--signal)}
+.pitem button.pdel:hover,.pitem button.pdel:focus-visible{color:var(--neg);border-color:var(--neg)}
+.pnone{font-size:12.5px;color:var(--muted);padding:8px 2px}
+.pfoot{display:flex;gap:8px;margin-top:9px}
+.pmsg{font-size:12px;color:var(--muted);margin-top:8px}
 .apptab .tshort{display:none}
 @media(max-width:760px){
   .apptab .tfull{display:none}
@@ -531,8 +549,10 @@ table.proj.compact td:first-child,table.proj.compact th:first-child{white-space:
 <main class="grid">
   <section>
     <div class="card">
-      <div class="card-head"><h2><span class="sec-icon"><svg width="19" height="19" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="3" y1="6" x2="17" y2="6"/><circle cx="8" cy="6" r="2" fill="currentColor" stroke="none"/><line x1="3" y1="10" x2="17" y2="10"/><circle cx="13" cy="10" r="2" fill="currentColor" stroke="none"/><line x1="3" y1="14" x2="17" y2="14"/><circle cx="6" cy="14" r="2" fill="currentColor" stroke="none"/></svg></span>1 · Choose funds</h2><span class="count"><span class="editchip" id="editchip">Portfolio A</span> <span id="selcount">0/5</span></span></div>
+      <div class="card-head"><h2><span class="sec-icon"><svg width="19" height="19" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="3" y1="6" x2="17" y2="6"/><circle cx="8" cy="6" r="2" fill="currentColor" stroke="none"/><line x1="3" y1="10" x2="17" y2="10"/><circle cx="13" cy="10" r="2" fill="currentColor" stroke="none"/><line x1="3" y1="14" x2="17" y2="14"/><circle cx="6" cy="14" r="2" fill="currentColor" stroke="none"/></svg></span>1 · Choose funds</h2><span class="count"><span class="editchip" id="editchip">Portfolio A</span> <span id="selcount">0/5</span></span>
+        <button class="btn btn-quiet" id="pBtn" type="button" aria-expanded="false">Saved</button></div>
       <div class="card-body">
+        <div class="ppanel" id="pPanel" hidden></div>
         <input id="filter" placeholder="Filter funds…" aria-label="Filter funds">
         <div class="provs" id="provs" hidden></div>
         <div class="tabs" id="tabs"></div>
@@ -3835,6 +3855,163 @@ document.getElementById("lExport").onclick=lExport;
 document.getElementById("lImport").onclick=()=>document.getElementById("lFile").click();
 document.getElementById("lFile").onchange=function(){ if(this.files[0]) lImport(this.files[0]); this.value=""; };
 lLoad();
+
+
+/* ---------- Saved portfolios ----------------------------------------------------------
+   Save the portfolio you have built under a name, open it back into A or B later. Built
+   10 Oct 2026 at the user's request.
+
+   **Only the funds and their allocations are saved**, by the user's decision: not the investment
+   amount, the standard cost, the contributions or the window. A save is the composition, and the
+   figures beside it are whatever today's data and today's inputs make them. Do not quietly start
+   restoring the inputs as well.
+
+   A single portfolio is saved, never a pair, so it can be opened into A or into B. Saving A and B
+   together would lock them into the slots they happened to be in, and comparing a saved portfolio
+   against a new one is the main reason to have this at all.
+
+   These are the user's own portfolios. **Preset portfolios were rejected** as implying a
+   recommendation, and the distinction holds only while the tool ships none of its own: nothing
+   pre-filled, nothing suggested, no starter set. Do not add one.
+*/
+const P_KEY="apb-portfolios-v1";
+let SAVES=[];
+
+function pLoad(){
+  try{
+    const r=JSON.parse(localStorage.getItem(P_KEY)||"null");
+    if(r && r.v===1 && Array.isArray(r.items)) SAVES=r.items.filter(x=>x && typeof x.name==="string" && Array.isArray(x.sel));
+  }catch(e){}
+}
+function pStore(){
+  try{ localStorage.setItem(P_KEY, JSON.stringify({v:1, saved:new Date().toISOString(), items:SAVES})); return true; }
+  catch(e){ return false; }
+}
+function pMsg(t){ const el=document.getElementById("pMsg"); if(el){ el.innerHTML=t||""; el.style.display=t?"":"none"; } }
+
+const pUniverse=m=> m==="all" ? ALLF : DATA.funds;
+const pDate=iso=>{ try{ return new Date(iso).toLocaleDateString("en-IE",{day:"2-digit",month:"short"}); }catch(e){ return ""; } };   // the column is narrow; the year adds nothing
+
+function pRender(){
+  const box=document.getElementById("pPanel");
+  if(box.hidden) return;
+  const k=state.act, cur=state.P[k], n=cur.sel.length, tot=weights(k);
+  const items=SAVES.map((it,i)=>{
+    const miss=it.sel.filter(nm=>!pUniverse(it.mode).some(f=>f.name===nm)).length;
+    return `<div class="pitem"><span class="pn">${esc(it.name)}</span>`
+      +`<span class="pm">${it.sel.length} fund${it.sel.length===1?"":"s"} · ${it.mode==="all"?"All Funds":"Aviva"} · ${pDate(it.saved)}${miss?` · <span style="color:var(--neg)">${miss} missing</span>`:""}</span>`
+      +`<span class="pacts">`
+      +`<button type="button" data-i="${i}" data-k="A" title="Open ${esc(it.name)} into Portfolio A">A</button>`
+      +`<button type="button" data-i="${i}" data-k="B" title="Open ${esc(it.name)} into Portfolio B">B</button>`
+      +`<button type="button" class="pdel" data-i="${i}" data-del="1" title="Delete ${esc(it.name)}">✕</button></span></div>`;
+  }).join("");
+  box.innerHTML=`<h4>Saved portfolios</h4>
+    <div class="psave">
+      <input id="pName" type="text" placeholder="Name this portfolio" aria-label="Name this portfolio" maxlength="60" value="${esc(box.dataset.name||"")}">
+      <button class="btn btn-primary" id="pDo" type="button"${n?"":" disabled"}>Save Portfolio ${k}</button>
+      <span class="pm">${n?`${n} fund${n===1?"":"s"}, ${fmtN(tot)}%`:"nothing selected"}</span>
+    </div>
+    <div class="plist">${items||`<div class="pnone">Nothing saved yet.</div>`}</div>
+    <div class="pfoot"><button class="btn btn-quiet" id="pExport" type="button"${SAVES.length?"":" disabled"}>Save to file</button>
+      <button class="btn btn-quiet" id="pImportBtn" type="button">Load from file</button>
+      <input type="file" id="pFile" accept="application/json,.json" style="display:none"></div>
+    <div class="pmsg" id="pMsg" style="display:none"></div>`;
+  document.getElementById("pBtn").textContent=SAVES.length?`Saved (${SAVES.length})`:"Saved";
+}
+function pToggle(){
+  const box=document.getElementById("pPanel"), btn=document.getElementById("pBtn");
+  box.hidden=!box.hidden;
+  btn.setAttribute("aria-expanded", String(!box.hidden));
+  if(!box.hidden){ pRender(); const f=document.getElementById("pName"); if(f) f.focus(); }
+}
+
+function pSaveCurrent(){
+  const box=document.getElementById("pPanel");
+  const name=(document.getElementById("pName").value||"").trim();
+  if(!name){ pMsg("Give it a name first."); return; }
+  const k=state.act, cur=state.P[k];
+  if(!cur.sel.length){ pMsg("Portfolio "+k+" has no funds."); return; }
+  const at=SAVES.findIndex(x=>x.name.toLowerCase()===name.toLowerCase());
+  if(at>=0 && !confirm(`"${SAVES[at].name}" already exists. Replace it?`)) return;
+  const item={name, mode:MODE, sel:cur.sel.slice(),
+              alloc:Object.fromEntries(cur.sel.map(n=>[n, +cur.alloc[n]||0])),
+              saved:new Date().toISOString()};
+  if(at>=0) SAVES[at]=item; else SAVES.push(item);
+  box.dataset.name="";
+  const ok=pStore();
+  pRender();                                       // rebuilds the panel, so the message comes after it
+  pMsg(ok ? `Saved "${esc(name)}".` : "Could not save to this browser. Use Save to file instead.");
+}
+
+/* Opening is where a save meets data that has moved: a fund it names may have left the universe.
+   Say which, and say what the allocations now total, rather than quietly rebalancing. */
+function pOpen(i, k){
+  const it=SAVES[i]; if(!it) return;
+  const tab = it.mode==="all" ? "all" : "builder";
+  if(MODE!==it.mode) showTab(tab);                 // its own builder: the other one has not got these funds
+  const uni=pUniverse(it.mode);
+  const keep=it.sel.filter(n=>uni.some(f=>f.name===n)), gone=it.sel.filter(n=>!keep.includes(n));
+  const st=MODE==="all" ? STATE_ALL : STATE_AVIVA;
+  st.P[k].sel=keep.slice();
+  st.P[k].alloc=Object.fromEntries(keep.map(n=>[n, +it.alloc[n]||0]));
+  st.act=k;
+  renderAll();
+  const tot=weights(k);
+  let m=`Opened "${esc(it.name)}" into Portfolio ${k}.`;
+  if(gone.length) m+=` <strong>${gone.length} fund${gone.length===1?"":"s"} no longer in the data</strong> and ${gone.length===1?"was":"were"} dropped: ${gone.map(esc).join(", ")}.`;
+  if(Math.abs(tot-100)>0.005) m+=` Allocations total ${fmtN(tot)}%, so the portfolio is not complete.`;
+  pRender(); pMsg(m);
+}
+function pDelete(i){
+  const it=SAVES[i]; if(!it) return;
+  if(!confirm(`Delete "${it.name}"?`)) return;
+  SAVES.splice(i,1); pStore(); pRender(); pMsg(`Deleted "${esc(it.name)}".`);
+}
+
+/* A separate file from the fund lists, by the user's decision: each file is one obvious thing. */
+function pExport(){
+  const blob=new Blob([JSON.stringify({v:1, saved:new Date().toISOString(), items:SAVES}, null, 2)],{type:"application/json"});
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  a.download=`portfolios-${new Date().toISOString().slice(0,10)}.json`;
+  a.click(); URL.revokeObjectURL(a.href);
+}
+function pImport(file){
+  const r=new FileReader();
+  r.onload=()=>{
+    try{
+      const d=JSON.parse(r.result);
+      if(!d || d.v!==1 || !Array.isArray(d.items)) throw new Error("not a portfolios file");
+      const good=d.items.filter(x=>x && typeof x.name==="string" && Array.isArray(x.sel) && x.alloc);
+      if(!good.length) throw new Error("no portfolios in it");
+      SAVES=good; pStore(); pRender(); pMsg(`Loaded ${good.length} portfolio${good.length===1?"":"s"}.`);
+    }catch(e){ pRender(); pMsg(`Could not read that file: ${esc(e.message)}. Nothing changed.`); }
+  };
+  r.onerror=()=>pMsg("Could not read that file. Nothing changed.");
+  r.readAsText(file);
+}
+
+
+document.getElementById("pBtn").onclick=pToggle;
+document.getElementById("pPanel").addEventListener("input",e=>{
+  if(e.target.id==="pName") document.getElementById("pPanel").dataset.name=e.target.value;   // survives a re-render
+});
+document.getElementById("pPanel").addEventListener("keydown",e=>{
+  if(e.target.id==="pName" && e.key==="Enter"){ e.preventDefault(); pSaveCurrent(); }
+});
+document.getElementById("pPanel").addEventListener("click",e=>{
+  const b=e.target.closest("button"); if(!b) return;
+  if(b.id==="pDo") return pSaveCurrent();
+  if(b.id==="pExport") return pExport();
+  if(b.id==="pImportBtn") return document.getElementById("pFile").click();
+  if(b.dataset.del) return pDelete(+b.dataset.i);
+  if(b.dataset.k) return pOpen(+b.dataset.i, b.dataset.k);
+});
+document.getElementById("pPanel").addEventListener("change",e=>{
+  if(e.target.id==="pFile" && e.target.files[0]){ pImport(e.target.files[0]); e.target.value=""; }
+});
+pLoad();
+document.getElementById("pBtn").textContent=SAVES.length?`Saved (${SAVES.length})`:"Saved";
 
 async function xCopyWord(btn){
   const orig=btn.textContent;

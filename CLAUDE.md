@@ -537,6 +537,41 @@ Built the same day, at the user's request, covering the table and the whole comp
   build before the explorer export existed. Console clean.
 - The income tab is excluded by the user's decision.
 
+## Saved portfolios
+
+Save the portfolio you have built under a name and open it back into A or B later, from a Saved
+control in section 1 of either builder. Built 10 Oct 2026 at the user's request.
+
+- **Only the funds and their allocations are saved**, by the user's decision: not the investment
+  amount, the standard cost, the contributions or the window. A save is the composition, and the
+  figures beside it are whatever today's data and today's inputs make them. Do not quietly start
+  restoring the inputs too.
+- **A single portfolio, never a pair**, so it can be opened into A or into B. Saving A and B together
+  would lock them into the slots they happened to be in, and comparing a saved portfolio against a new
+  one is the main reason to have this.
+- **A save carries its mode**, and opening it switches to its own builder: an All Funds portfolio
+  cannot open in the Aviva builder, where half its funds do not exist, so it takes you to that tab
+  rather than silently dropping holdings.
+- **Opening is where a save meets data that has moved.** A fund it names may have left the universe:
+  it is dropped, named in the message, and the message says what the allocations now total, rather
+  than quietly rebalancing. The list also marks a save with "n missing" before you open it.
+- **These are the user's own portfolios**, which is what keeps them clear of the **preset portfolios**
+  that were rejected as implying a recommendation. The distinction holds only while the tool ships
+  none of its own: nothing pre-filled, nothing suggested, no starter set. Do not add one.
+- **Stored under `apb-portfolios-v1`**, separate from the fund lists and with its own Save to file and
+  Load from file, by the user's decision that each file should be one obvious thing. The About page's
+  privacy section covers both and says plainly that neither is a record.
+- **The panel lives in section 1, which is a narrow column**, so each row wraps: name on its own line,
+  then the meta and the A / B / ✕ buttons. On one line the name was squeezed out of existence.
+- **`pRender()` rebuilds the panel, so `pMsg()` must come after it**, or the confirmation is wiped by
+  the re-render that follows. That bug was in the first cut of the save path.
+- **Verified:** save, open into A and into B with the other left untouched, cross-mode open switching
+  tabs, a save naming a fund that no longer exists (dropped, named, total reported), delete, file
+  export and import round-tripping, and survival across a reload. Every other tab, print, email, the
+  builder's Word export and the lists tab hash identically to the build before this existed.
+- **Not built, and not to be added without asking:** a note or client reference on a save, and one
+  combined file for portfolios and lists.
+
 ## My Fund Lists tab
 
 A tab between All Funds Explorer and Income Sustainability, built 10 Oct 2026 at the user's request: four tables, ESMA 3 to 6, each holding the funds
