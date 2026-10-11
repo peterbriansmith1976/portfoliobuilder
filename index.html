@@ -1008,31 +1008,71 @@ function iFit(rets){
    the hand-set ESMA ratings, and are named on every card, in the projection note and in the
    methodology rather than buried. */
 const I_KNOTS=[[0.035,0.035],[0.075,0.050],[0.125,0.065],[0.200,0.075]];   // [annual volatility, long-run return]
+/* Fixed Income and Cash sit on their own, lower and flatter scale (set by the owner, 11 Oct 2026).
+   Volatility is a fair proxy for expected return among growth assets and a bad one for bonds,
+   because a bond fund's volatility is duration, not a risk premium: taking more interest-rate risk
+   does not pay the way taking more equity risk does. On the single scale Aviva Long Bond, 10.9%
+   volatility and -2.36% over ten years, was anchored at 6.02%, the same assumption as a balanced
+   managed fund. Measured over ten years the Fixed Income funds returned about 0.8% a year against
+   about 6.7% for Multi-Asset funds of the same volatility.
+   Equity and Multi-Asset are deliberately not split further: equity funds all sit between 12.5% and
+   19.6% volatility and multi-asset between 2.3% and 13.3%, and within those the one scale already
+   separates them correctly. Alternative is five funds and a mixed bag (gold, Concept K, AIMS), so it
+   stays on the growth scale; that is a judgement, recorded rather than hidden. */
+const I_FI_KNOTS=[[0.010,0.020],[0.110,0.035]];
 const I_TAU=0.015;        // how much funds at the same risk level genuinely differ, a year
-function iAnchor(sdA){
-  if(sdA<=I_KNOTS[0][0]) return I_KNOTS[0][1];
-  for(let i=1;i<I_KNOTS.length;i++){
-    const [v0,r0]=I_KNOTS[i-1], [v1,r1]=I_KNOTS[i];
+function iAnchor(sdA, cls){
+  const K = cls==="Fixed Income" ? I_FI_KNOTS : I_KNOTS;
+  if(sdA<=K[0][0]) return K[0][1];
+  for(let i=1;i<K.length;i++){
+    const [v0,r0]=K[i-1], [v1,r1]=K[i];
     if(sdA<=v1) return r0+(r1-r0)*(sdA-v0)/(v1-v0);
   }
-  return I_KNOTS[I_KNOTS.length-1][1];
+  return K[K.length-1][1];
+}
+/* One holding's own anchor, from its own volatility over the same months and its own asset class. */
+function holdAnchor(f, from, to){
+  const r=[];
+  for(let i=Math.max(f.startIdx, from); i<=to; i++){ const x=fundRet(f,i); if(x!==null) r.push(x); }
+  return r.length>=12 ? iAnchor(iFit(r).sd*Math.sqrt(12), f.category) : null;
+}
+/* A portfolio has no asset class of its own, only a blended volatility, and reading its anchor off
+   that volatility is wrong twice over. A bond-heavy portfolio is assumed to earn an equity-like
+   return: 100% Aviva Long Bond came out at 4.67%. And diversification lowers volatility, which on a
+   volatility scale lowers the assumed return, so the tool quietly assumed a diversified portfolio
+   would earn LESS than the same holdings held apart: 0.56pp less on a 60/40 of Global Equity ESG
+   Passive and Long Bond, whose own volatility is 10.6% against its holdings' weighted 12.4%.
+   So a selection's anchor is the allocation-weighted blend of its holdings' own anchors. Weights
+   that cannot be priced are dropped and the rest renormalised; with no holdings at all it falls back
+   to the selection's own volatility on the growth scale. */
+function blendAnchor(holds, from, to, sdA){
+  let tw=0, a=0;
+  (holds||[]).forEach(h=>{
+    const x=holdAnchor(h.f, from, to);
+    if(x===null || !(h.w>0)) return;
+    a += h.w*x; tw += h.w;
+  });
+  return tw>0 ? a/tw : iAnchor(sdA, null);
 }
 /* The weight a fund's own record earns: tau^2/(tau^2+se^2), its own precision against how much
    funds at that risk level genuinely differ. mu and se arrive as monthly log figures and are both
    converted to annual rates before they are compared, or the weight collapses to nil and every
    selection lands on the bare anchor. */
-function iShrink(f){
+function iShrink(f, anchor){
   const pa=Math.exp(f.mu*12)-1;
   const seA=Math.exp((f.mu+f.se)*12)-Math.exp(f.mu*12);   // both as annual rates, not one of each
-  const sdA=f.sd*Math.sqrt(12), anchor=iAnchor(sdA);
+  const sdA=f.sd*Math.sqrt(12);
+  if(anchor==null) anchor=iAnchor(sdA, null);             // no holdings known: the selection's own volatility
   const w=I_TAU*I_TAU/(I_TAU*I_TAU+seA*seA);
   const blend=w*pa+(1-w)*anchor;
   return {...f, mu:Math.log(1+blend)/12, pa, seA, sdA, anchor, w, blend};
 }
 
 /* ---------- Monte Carlo with cashflows ---------- */
-function simulate(rets, amt, contrib, wd){
-  const f = iShrink(iFit(rets));      // measured, then pulled toward the long-run anchor for its volatility
+function simulate(rets, amt, contrib, wd, holds, from, to){
+  const ft = iFit(rets);
+  // measured, then pulled toward the anchor blended from this portfolio's own holdings
+  const f = iShrink(ft, holds ? blendAnchor(holds, from, to, ft.sd*Math.sqrt(12)) : null);
   const mu = f.mu, sd = f.sd;
   const rnd = mulberry32(20260630), N=2000, T=240;
   const vals=[]; for(let t=0;t<T;t++) vals.push(new Float64Array(N));
@@ -1052,7 +1092,7 @@ function simulate(rets, amt, contrib, wd){
     return {p5:v[Math.floor(.05*(N-1))],p25:v[Math.floor(.25*(N-1))],p50:v[Math.floor(.5*(N-1))],
             p75:v[Math.floor(.75*(N-1))],p95:v[Math.floor(.95*(N-1))],
             depleted:vals[t-1].reduce((s,x)=>s+(x<=0?1:0),0)/N};};
-  return {at, muA: f.blend, measA: f.pa, anchor: f.anchor, w: f.w, sdA: f.sdA};
+  return {at, muA: f.blend, measA: f.pa, anchor: f.anchor, w: f.w, sdA: f.sdA, holds: (holds||[]).length};
 }
 
 /* ---------- picker ---------- */
@@ -1739,7 +1779,9 @@ function renderProjection(keys,win){
   const contrib=numVal("contrib");
   const wd=numVal("wd");
   const sims={};
-  keys.forEach(k=>{ sims[k]=simulate(series(k,win[0],win[1]).g, amt, contrib, wd); });
+  keys.forEach(k=>{ const tot=weights(k)/100;
+    const holds=selFunds(k).map(f=>({f, w:(+state.P[k].alloc[f.name]||0)/100/tot}));
+    sims[k]=simulate(series(k,win[0],win[1]).g, amt, contrib, wd, holds, win[0], win[1]); });
   const A=sims[keys[0]];
   // fan chart on primary portfolio
   const W=760,H=260,P={t:14,b:28,l:82,r:16},ih=H-P.t-P.b,iw=W-P.l-P.r;
@@ -1794,9 +1836,9 @@ function renderProjection(keys,win){
   document.getElementById("projTable").innerHTML=head+rows;
   let note=`Geometric Brownian motion, 2,000 paths, monthly steps, fixed seed, calibrated per portfolio to the selected window's gross series`;
   note+=keys.map(k=>` (${k}: measured ${fmtP(sims[k].measA)} a year, projected at ${fmtP(sims[k].muA)}, volatility ${fmtP(sims[k].sdA)})`).join(",")+`. `;
-  note+=`<strong>The measured average is not projected as it stands.</strong> A window of this length pins a portfolio's annual average only to within a few percentage points, so it is shrunk toward a long-run assumption for a portfolio of that volatility: `
+  note+=`<strong>The measured average is not projected as it stands.</strong> A window of this length pins a portfolio's annual average only to within a few percentage points, so it is shrunk toward a long-run assumption blended from each holding's own volatility and asset class: `
     +keys.map(k=>`${keys.length===2?k+" ":""}${fmtP(sims[k].anchor)}, leaving ${fmtP(sims[k].w,0)} of the weight on its own record`).join(", ")
-    +`. Those assumptions are <strong>Slate Labs' own</strong>, not published figures, and the Income Sustainability tab projects on exactly the same basis. `;
+    +`. Bonds and cash sit on a lower scale than growth assets, since their volatility is duration rather than a risk premium. Those assumptions are <strong>Slate Labs' own</strong>, not published figures, and the Income Sustainability tab projects on exactly the same basis. `;
   if(contrib>0||wd>0) note+=`Cashflows applied monthly: ${contrib>0?`contribution ${fmtE(contrib)}`:""}${contrib>0&&wd>0?", ":""}${wd>0?`withdrawal ${fmtE(wd)}`:""}. `;
   if(wd>0){
     keys.forEach(k=>{ const d20=sims[k].at(240).depleted;
@@ -2849,11 +2891,12 @@ function iPortfolio(mode,k){
   try{
     if(valid(k) && !selFunds(k).some(f=>!f)){
       const fs=selFunds(k), cs=Math.max(...fs.map(f=>f.startIdx)), E=END();
-      const ser=series(k,cs,E);
+      const ser=series(k,cs,E), tot=weights(k)/100;
       if(ser) S={name:`Portfolio ${k}`,
                  sub:(mode==="all"?"All Funds builder":"Aviva builder")+" · "+fs.map(f=>short(f.name)).join(", "),
                  rets:ser.g, end:E, sim:Math.max(0, Math.max(...fs.map(f=>f.liveIdx))-cs+1),
-                 esma:srri(vol(ser.g.slice(-60)))};
+                 esma:srri(vol(ser.g.slice(-60))),
+                 holds:fs.map(f=>({f, w:(+state.P[k].alloc[f.name]||0)/100/tot}))};
     }
   } finally { MODE=m0; state=s0; }
   return S;
@@ -2863,7 +2906,8 @@ function iSeries(v){
   if(v.startsWith("P:")){ const [,m,k]=v.split(":"); return iPortfolio(m,k); }
   const f=ALLF.find(x=>x.name===v.slice(2)); if(!f) return null;
   return {name:xName(f.name), sub:f.category+" · "+provOf(f), rets:f.returns.slice(),
-          end:f.startIdx+f.returns.length-1, sim:Math.max(0,f.liveIdx-f.startIdx), esma:f.esma};
+          end:f.startIdx+f.returns.length-1, sim:Math.max(0,f.liveIdx-f.startIdx), esma:f.esma,
+          holds:[{f, w:1}]};
 }
 
 
@@ -2978,8 +3022,10 @@ function renderIncome(){
           const live=r.cal.length-simIn;
           return `Calibrated on ${r.cal.length} months to ${pLbl(r.S.end)}: ${live} live${simIn?`, ${simIn} index derived<span class="simd">◆</span>`:""} ·
             measured ${fmtP(r.f.pa)} p.a. <span style="color:var(--faint)">give or take ${fmtP(r.f.seA,1)}</span>`
-            +` · <strong>projected at ${fmtP(r.f.blend)}</strong>, ${fmtP(r.f.w,0)} of the fund's own record and the rest the
-               ${fmtP(r.f.anchor)} long-run assumption for a fund at its ${fmtP(r.f.sdA)} volatility, set by Slate Labs`
+            +` · <strong>projected at ${fmtP(r.f.blend)}</strong>, ${fmtP(r.f.w,0)} of its own record and the rest the
+               ${fmtP(r.f.anchor)} long-run assumption${(r.S.holds||[]).length>1
+                 ? `, blended from its ${r.S.holds.length} holdings' own volatility and asset class`
+                 : ` for ${esc(((r.S.holds||[])[0]||{}).f ? r.S.holds[0].f.category : "a fund")} at ${fmtP(r.f.sdA)} volatility`}, set by Slate Labs`
             +` · charges ${fmtP(o.fee,2)} deducted`;})()}</div>
       </div></div>`;}).join("") || `<p class="empty" style="padding:14px 0">Choose a fund or a portfolio to model an income.</p>`;
 
@@ -3024,10 +3070,13 @@ function renderIncome(){
      quite different periods, so a fund whose record happened to start after 2008 looked far stronger than one whose record included it; the difference was the window, not the fund.
      <strong>The average return is an estimate from that sample, not a known number.</strong> Ten years of monthly data on a fund at 11% volatility pins the annual average only to within about 4 percentage points
      either way, which the calibration line reports as "give or take", and three comparable funds measured over the same decade are not distinguishable from one another.
-     <strong>So the measured average is not projected as it stands.</strong> It is shrunk toward a long-run assumption for a fund of that volatility, weighted by how precisely the fund's own average is measured against
-     how much funds at the same risk level genuinely differ, which at these sample sizes leaves roughly a tenth of the weight on the fund's own record. The long-run assumptions are
-     ${I_KNOTS.map(([v,r])=>`${fmtP(r)} at ${fmtP(v)} volatility`).join(", ")}, interpolated in between and held outside that range, nominal and gross of charges, and they are <strong>Slate Labs' own assumptions</strong>, not published figures.
-     They are set against volatility rather than the ESMA band so that two funds either side of a band boundary are not projected far apart on the strength of a rating.
+     <strong>So the measured average is not projected as it stands.</strong> It is shrunk toward a long-run assumption for a fund of that asset class and volatility, weighted by how precisely the fund's own average is measured against
+     how much funds at the same risk level genuinely differ, which at these sample sizes leaves roughly a tenth of the weight on the fund's own record. For equities, multi-asset and alternatives the assumptions are
+     ${I_KNOTS.map(([v,r])=>`${fmtP(r)} at ${fmtP(v)} volatility`).join(", ")}; <strong>bonds and cash sit on their own lower scale</strong>,
+     ${I_FI_KNOTS.map(([v,r])=>`${fmtP(r)} at ${fmtP(v)} volatility`).join(" and ")}, because a bond fund's volatility is duration rather than a risk premium and does not earn the same return.
+     Both are interpolated in between and held outside that range, nominal and gross of charges, and they are <strong>Slate Labs' own assumptions</strong>, not published figures.
+     They are set against volatility and asset class rather than the ESMA band so that two funds either side of a band boundary are not projected far apart on the strength of a rating.
+     A portfolio's assumption is the allocation-weighted blend of its holdings' own, not a figure read off the portfolio's own volatility, which would assume a bond-heavy portfolio earns an equity-like return and would quietly penalise diversification.
      Without this the tab projected the last ten years forward for thirty, which for these funds meant 10% to 11% a year indefinitely. Volatility is used as measured.
      The uncertainty in the average is not simulated: carrying it into the paths means assuming the true average is fixed but unknown and then holding each draw for thirty years, which puts a fund at 18% a year
      for three decades in the upper tail. The two rows above, 1% and 2% a year lower, are where that uncertainty is expressed instead.
@@ -3092,7 +3141,9 @@ function iRuns(o){
   const runs=IN.sel.map(v=>{ const S=iSeries(v); if(!S||S.rets.length<24) return null;
     const cal=S.rets.slice(-win.n);
     const band=S.esma||srri(vol(S.rets.slice(-60))), st=I_STRESS[band];
-    const f=iShrink(iFit(cal));                // measured, then pulled toward the long-run anchor for its volatility
+    const ft=iFit(cal);
+    // the same months the series was fitted over, so the anchor and the measurement describe one period
+    const f=iShrink(ft, blendAnchor(S.holds, S.end-win.n+1, S.end, ft.sd*Math.sqrt(12)));
     /* The stress restates the whole illustration rather than adding a footnote: every figure on the
        card, the chart and the table is computed on paths that start with that fall. A selection with
        no proxy runs unstressed and says so. */
@@ -3135,7 +3186,11 @@ function iRowsFor(r, o, perLbl){
       const live=r.cal.length-simIn;
       return `${r.cal.length} months to ${pLbl(r.S.end)}: ${live} live${simIn?`, ${simIn} index derived ◆`:""}, `+
         `measured ${fmtP(r.f.pa)} p.a. give or take ${fmtP(r.f.seA,1)}, `+
-        `projected at ${fmtP(r.f.blend)} (${fmtP(r.f.w,0)} of the fund's own record, the rest the ${fmtP(r.f.anchor)} long-run assumption for a fund at its ${fmtP(r.f.sdA)} volatility, set by Slate Labs)`; })()
+        `projected at ${fmtP(r.f.blend)} (${fmtP(r.f.w,0)} of its own record, the rest the ${fmtP(r.f.anchor)} long-run assumption`+
+        ((r.S.holds||[]).length>1
+          ? ` blended from its ${r.S.holds.length} holdings' own volatility and asset class`
+          : ` for ${((r.S.holds||[])[0]||{}).f ? r.S.holds[0].f.category : "a fund"} at ${fmtP(r.f.sdA)} volatility`)+
+        `, set by Slate Labs)`; })()
   };
 }
 function buildIncomePrint(){

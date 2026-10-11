@@ -475,10 +475,37 @@ none of the other tabs do. Screen only, hidden in print, and it carries the warn
   Interpolating keeps the same four assumptions: that pair now sits 0.17pp apart (€700,000 against
   €770,000, same safe income) and the three band 5 funds separate on their own risk, 6.88 / 6.68 /
   6.87. It also drops the dependence on a rating that is variously published, calculated, taken from
-  a name or set by the user. **Known cost**: the anchor sees volatility only, so a bond fund and a
-  multi-asset fund at the same volatility get the same anchor. Aviva Bond, measured 3.09% at 6.8%
-  volatility, is shrunk **up** to 3.89%. Shrinkage pulls both ways by design, but do not assume the
-  knots, which were set against multi-asset funds, describe a bond fund equally well.
+  a name or set by the user. Shrinkage pulls both ways by design: a measured return
+  below the anchor is pulled up.
+- **Bonds and cash sit on their own, lower and flatter scale** (`I_FI_KNOTS`, set by the user
+  11 Oct 2026): **2.0% at 1% volatility to 3.5% at 11%**, against the growth scale's 3.5% to 7.5%.
+  `iAnchor(sdA, cls)` picks the scale from the fund's asset class. **Why**: volatility is a fair proxy
+  for expected return among growth assets and a bad one for bonds, because a bond fund's volatility is
+  duration, not a risk premium. On the single scale Aviva Long Bond, 10.9% volatility and -2.36% over
+  ten years, was anchored at **6.02%**, the same assumption as a balanced managed fund. Measured over
+  ten years the Fixed Income funds returned about 0.8% a year against about 6.7% for Multi-Asset funds
+  of the same volatility. Five of the 96 funds are Fixed Income (Cash is categorised there too) and
+  only those five move. **Equity and Multi-Asset are deliberately not split further**: equity funds all
+  sit between 12.5% and 19.6% volatility and multi-asset between 2.3% and 13.3%, so within those the
+  one scale already separates them. Alternative is five funds and a mixed bag (gold, Concept K, AIMS)
+  and stays on the growth scale, which is a judgement, recorded rather than hidden.
+- **A selection's anchor is the allocation-weighted blend of its holdings' own anchors**
+  (`holdAnchor`, `blendAnchor`), each read off that holding's own volatility over the same months and
+  its own asset class. A portfolio has no asset class, only a blended volatility, and reading the
+  anchor off that volatility was wrong twice over. **A bond-heavy portfolio was assumed to earn an
+  equity-like return**: 100% Aviva Long Bond projected at 4.67%. And **diversification lowered the
+  assumed return**, because it lowers volatility and so moves the portfolio down the scale: a 60/40 of
+  Global Equity ESG Passive and Long Bond has its own volatility of 10.6% against its holdings'
+  weighted 12.4%, costing it **0.56pp** of assumed return for being diversified, which is backwards.
+  The blend never reads the portfolio's own volatility, so that is structurally gone rather than
+  reduced. `simulate()` takes `holds, from, to`; `iSeries`/`iPortfolio` carry `holds`. With no
+  holdings known it falls back to the selection's own volatility on the growth scale.
+  **Verified**: both scales reproduce their knots and clamp at both ends; the blend matches an
+  independent weighted calculation to 1e-12; the builder and the income tab return the identical
+  anchor and projection for the same portfolio over the same 209 months (5.2165% and 6.2364%); a pure
+  growth fund's figures are unchanged to six decimals; and print, email, the Word export, the summary
+  cards, building blocks, the projection table, both explorer tables and the compare screen all hash
+  identically. Only the projection note and the income card wording changed, both deliberately.
 - **Both projection engines go through `iFit` and `iShrink`**, which live beside `simulate()` rather
   than in the income section. The builder's projection chart was left unshrunk for one day and the
   same portfolio read **€2,461,675** on the builder and **€1,969,724** on the income tab, two clicks
