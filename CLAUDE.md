@@ -1420,6 +1420,17 @@ Confirm understanding and methodology before implementing, rather than presentin
 afterwards. Say when an approach is wrong instead of going along with it. Skip preamble.
 No em dashes. Verify numeric changes against an independent calculation before declaring done.
 
+**"Console clean" is only meaningful in a fresh browser tab.** The browser pane's console buffer is
+**cumulative across navigations within a tab and capped at 480 messages**, so once anything has
+errored, every later read reports "the last N of 480" and reads like a fresh fault on whatever page
+is open. On 11 Oct 2026 that cost a long detour: 480 SVG "NaN" errors were taken for a live bug in
+the fund explorer's compare screen, then "confirmed" by clicking Compare in the same saturated tab,
+and a task was raised to fix it. In a new tab the whole thing vanished. Verified clean there through
+the real click path (explorer tab, tick three funds, Compare) and through print, the builder's Word
+export, the explorer's Word export and direct `renderExplorer()` manipulation. There was no defect.
+The number **480 means the buffer is full**, not that 480 things went wrong. Open a new tab before
+checking, and treat a round, unchanging error count as a saturated buffer until proven otherwise.
+
 ## Data governance
 
 Pricing data is licensed from MoneyMate / Longboat Analytics. Keep source workbooks local.
