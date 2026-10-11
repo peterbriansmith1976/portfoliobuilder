@@ -1018,8 +1018,22 @@ const I_KNOTS=[[0.035,0.035],[0.075,0.050],[0.125,0.065],[0.200,0.075]];   // [a
    Equity and Multi-Asset are deliberately not split further: equity funds all sit between 12.5% and
    19.6% volatility and multi-asset between 2.3% and 13.3%, and within those the one scale already
    separates them correctly. Alternative is five funds and a mixed bag (gold, Concept K, AIMS), so it
-   stays on the growth scale; that is a judgement, recorded rather than hidden. */
-const I_FI_KNOTS=[[0.010,0.020],[0.110,0.035]];
+   stays on the growth scale; that is a judgement, recorded rather than hidden.
+
+   The two bond numbers are set against the funds' own published redemption yields, which for a bond
+   fund is the best single predictor of long-run return. As at 31/07/2026 those are Cash 2.38%
+   (duration 0.13), Corporate Bond 4.03% (4.54), Bond 3.68% (9.67), Long Bond 4.02% (13.52). The
+   scale fits Cash to 0.02pp, Bond to 0.19pp and Long Bond to 0.04pp.
+
+   KNOWN RESIDUAL, do not treat as a bug to quietly fix: Corporate Bond is understated by about 1pp,
+   because yield is NOT monotone in volatility. Corporate yields 4.03% at 4.9% volatility while the
+   government fund yields 3.68% at 7.8%: short duration, but a credit spread. No straight line
+   through volatility can fit that (correlation 0.81, best fit still off 0.66pp; duration as the axis
+   is worse at 0.75 and 0.74pp). Credit is a dimension volatility cannot see. The real fix is to
+   anchor each bond fund on its own published yield, which `data/inside.json` already carries for 4
+   of the 5, but that would make a projection depend on a payload this file guarantees nothing else
+   depends on. Offered and deferred by the user, 11 Oct 2026. */
+const I_FI_KNOTS=[[0.010,0.024],[0.110,0.040]];
 const I_TAU=0.015;        // how much funds at the same risk level genuinely differ, a year
 function iAnchor(sdA, cls){
   const K = cls==="Fixed Income" ? I_FI_KNOTS : I_KNOTS;

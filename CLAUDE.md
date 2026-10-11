@@ -478,7 +478,23 @@ none of the other tabs do. Screen only, hidden in print, and it carries the warn
   a name or set by the user. Shrinkage pulls both ways by design: a measured return
   below the anchor is pulled up.
 - **Bonds and cash sit on their own, lower and flatter scale** (`I_FI_KNOTS`, set by the user
-  11 Oct 2026): **2.0% at 1% volatility to 3.5% at 11%**, against the growth scale's 3.5% to 7.5%.
+  11 Oct 2026): **2.4% at 1% volatility to 4.0% at 11%**, against the growth scale's 3.5% to 7.5%.
+  They were first set at 2.0% and 3.5% from judgement, and Claude then described them in a summary as
+  reflecting today's yields, which was an overclaim: nothing had been checked. Checked against the
+  funds' **own published redemption yields** in `data/inside.json` (31/07/2026) they sat 0.38pp to
+  1.44pp **below** every one, so the user raised them. For a bond fund the redemption yield is the best
+  single predictor of long-run return, so this is the right thing to anchor against. Fit after
+  raising: Cash 2.40 against 2.38 (+0.02pp), Bond 3.49 against 3.68 (-0.19pp), Long Bond 3.98 against
+  4.02 (-0.04pp).
+  **Known residual, not a bug to quietly fix:** Corporate Bond is understated by about 1pp, because
+  yield is **not monotone in volatility**. It yields 4.03% at 4.9% volatility while the government
+  fund yields 3.68% at 7.8%: short duration, but a credit spread. No straight line through volatility
+  fits that (correlation 0.81, best fit still off 0.66pp; duration as the axis is worse, 0.75 and
+  0.74pp). Credit is a dimension volatility cannot see. The real fix is to anchor each bond fund on
+  its own published yield, which `inside.json` already carries for 4 of the 5, but that would make a
+  projection depend on a payload this file guarantees nothing else depends on. Offered and deferred
+  by the user, 11 Oct 2026. **Revisit the two numbers when rates move**, and check them against
+  `inside.json` rather than against judgement.
   `iAnchor(sdA, cls)` picks the scale from the fund's asset class. **Why**: volatility is a fair proxy
   for expected return among growth assets and a bad one for bonds, because a bond fund's volatility is
   duration, not a risk premium. On the single scale Aviva Long Bond, 10.9% volatility and -2.36% over
