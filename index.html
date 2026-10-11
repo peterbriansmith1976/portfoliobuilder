@@ -113,6 +113,9 @@ main.grid{max-width:1240px;margin:0 auto;padding:0 20px 30px;display:grid;grid-t
 #lists{max-width:1240px;margin:0 auto;padding:0 20px 30px}
 .lband .card-head h2{display:flex;align-items:baseline;gap:9px}
 .ledit{font-family:inherit;font-size:12.5px;padding:5px 8px;border:1px solid var(--hair);border-radius:6px;background:var(--raised);color:var(--ink);max-width:260px}
+.lviews{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:0 0 11px;padding:0 0 11px;border-bottom:1px solid var(--hair)}
+.lviews #lView{min-width:210px;max-width:320px}
+.lviews .lvsep{flex:1}
 .ltbl td.lrm,.ltbl th.lrm{text-align:right;padding-left:2px;padding-right:4px;white-space:nowrap;width:62px}
 .lrmb,.lmvb{border:0;background:transparent;color:var(--muted);cursor:pointer;font-size:12px;font-family:inherit;padding:2px 4px;border-radius:5px}
 .lrmb:hover,.lrmb:focus-visible{color:var(--neg);background:var(--raised)}
@@ -692,10 +695,12 @@ table.proj.compact td:first-child,table.proj.compact th:first-child{white-space:
         <div class="ctrl"><label for="iInfl">Inflation % p.a.</label><input id="iInfl" type="number" value="0" step="0.5" min="0" max="10" disabled style="width:80px"></div>
         <div class="ctrl"><label for="iYrs">Years</label><input class="edit" id="iYrs" type="number" value="30" min="1" max="40" style="width:70px"></div>
         <div class="ctrl"><label for="iFee">Total charges % p.a.</label><input class="edit" id="iFee" type="number" value="1.00" step="0.05" min="0" max="5" style="width:90px"></div>
+        <div class="ctrl"><label>Calibration</label><div class="xchips" id="iCal"></div></div>
         <div class="ctrl"><label>Sequencing stress</label><div class="xchips" id="iShock"></div></div>
       </div>
       <div class="xcontrols" id="iPicks" style="margin-top:2px"></div>
       <p class="hint" id="iWarn" style="display:none"></p>
+      <p class="hint" id="iCalNote" style="display:none"></p>
     </div>
   </div>
 
@@ -728,12 +733,21 @@ table.proj.compact td:first-child,table.proj.compact th:first-child{white-space:
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
         <label for="lEnd" class="lbl">Performance to</label><select id="lEnd" class="ledit" aria-label="Performance to"></select>
         <button class="btn btn-quiet" id="lWordBtn" type="button">Copy for Word</button>
-        <button class="btn btn-quiet" id="lExport" type="button">Save to file</button>
+        <button class="btn btn-quiet" id="lExport" type="button">Save view</button>
+        <button class="btn btn-quiet" id="lExportAll" type="button">Save all views</button>
         <button class="btn btn-quiet" id="lImport" type="button">Load from file</button>
         <input type="file" id="lFile" accept="application/json,.json" style="display:none">
       </div></div>
     <div class="card-body">
-      <p class="hint" id="lIntro">Your own selection of funds for each ESMA band, chosen by you and kept in this browser. Nothing here is a recommendation and nothing is pre-filled. Drag a row to reorder it within its band. Figures are the same as the fund explorer's, gross of AMC.</p>
+      <div class="lviews">
+        <label for="lView" class="lbl">View</label>
+        <select id="lView" class="ledit" aria-label="Fund list view"></select>
+        <button class="btn btn-quiet" id="lNew" type="button">New</button>
+        <button class="btn btn-quiet" id="lRename" type="button">Rename</button>
+        <button class="btn btn-quiet" id="lDup" type="button">Duplicate</button>
+        <button class="btn btn-quiet" id="lDel" type="button">Delete</button>
+      </div>
+      <p class="hint" id="lIntro">Your own selection of funds for each ESMA band, chosen by you and kept in this browser. Nothing here is a recommendation and nothing is pre-filled. Keep as many views as you like and switch between them above; each holds its own four bands. Drag a row to reorder it within its band. Figures are the same as the fund explorer's, gross of AMC.</p>
       <p class="hint" id="lWarn" style="display:none"></p>
     </div>
   </div>
@@ -950,11 +964,76 @@ function niceAxis(anchor,mn,mx){
 function mulberry32(s){return function(){s|=0;s=s+0x6D2B79F5|0;let t=Math.imul(s^s>>>15,1|s);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
 const svgOpen=(w,h)=>`<svg viewBox="0 0 ${w} ${h}" width="100%" role="img">`;
 
+/* ---------- fitting a return series, and the long-run anchors --------------
+   Both projection engines, the builder's chart and the income tab, go through these, so the two
+   tabs cannot assume different returns for the same portfolio. They did for one day, and the same
+   portfolio read €2,461,675 on one tab and €1,969,724 on the other with nothing on screen to
+   explain it.
+
+   `se` is the standard error of the monthly mean, reported on the income card as "give or take" so
+   the reader can see how little a ten-year sample pins the average down. It is deliberately NOT fed
+   into the paths. Drawing each path's drift from it is the textbook treatment and it was tried
+   (11 Oct 2026): it assumes the true drift is an unknown constant and then holds each draw for the
+   whole projection, so a 95th-percentile path became a fund returning 18.3% a year for thirty years
+   and the 90% range ran to €58,000,000 on a €500,000 pot. Arithmetically right, and not a world
+   anyone would defend. The income card's sensitivity rows, 1% and 2% a year lower, are where
+   estimation error belongs: same information, in a register an adviser can read. */
+function iFit(rets){
+  const lr=rets.map(r=>Math.log(1+r));
+  const n=lr.length;
+  const mu=lr.reduce((s,x)=>s+x,0)/n;
+  const sd=Math.sqrt(lr.reduce((s,x)=>s+(x-mu)*(x-mu),0)/(n-1));
+  return {mu, sd, n, se:sd/Math.sqrt(n)};
+}
+/* A measured average return is a sample mean, and ten years of monthly data pins a multi-asset
+   fund's annual average only to within about 4pp. Projected as it stands for twenty or thirty years
+   it extrapolates the sample rather than forecasting, so it is shrunk toward a long-run assumption
+   for a fund of that risk level.
+
+   The anchor is a function of the selection's OWN measured volatility, interpolated between four
+   points set by the owner (11 Oct 2026). It was keyed on the ESMA band first, for a day, and that
+   made the band boundary the biggest single driver of the answer: Zurich Prisma 4 at 8.9%
+   volatility and Irish Life Multi Asset Portfolio 5 at 9.4% projected 1.50pp apart and showed
+   central forecasts of €590,000 and €1,100,000, while three funds inside band 5 differing by 1.4pp
+   of volatility all projected at exactly 6.5%. A step function crushes the differences inside a
+   band and invents one at its edge. Interpolating keeps the same four assumptions and removes the
+   cliff: that pair now sits 0.17pp apart and the three separate on their own risk.
+
+   The knots sit at each band's volatility midpoint, so the four numbers still read as "an ESMA 3
+   fund" and so on. Outside the range the end value is held. At the bottom that costs nothing: a
+   low-volatility fund's own average is measured precisely and keeps almost all the weight, so Aviva
+   Cash at 0.5% volatility holds 99% of its own 0.91% and never sees the 3.5% anchor.
+
+   These are **Slate Labs' own assumptions**, nominal and gross of charges. They are judgement, like
+   the hand-set ESMA ratings, and are named on every card, in the projection note and in the
+   methodology rather than buried. */
+const I_KNOTS=[[0.035,0.035],[0.075,0.050],[0.125,0.065],[0.200,0.075]];   // [annual volatility, long-run return]
+const I_TAU=0.015;        // how much funds at the same risk level genuinely differ, a year
+function iAnchor(sdA){
+  if(sdA<=I_KNOTS[0][0]) return I_KNOTS[0][1];
+  for(let i=1;i<I_KNOTS.length;i++){
+    const [v0,r0]=I_KNOTS[i-1], [v1,r1]=I_KNOTS[i];
+    if(sdA<=v1) return r0+(r1-r0)*(sdA-v0)/(v1-v0);
+  }
+  return I_KNOTS[I_KNOTS.length-1][1];
+}
+/* The weight a fund's own record earns: tau^2/(tau^2+se^2), its own precision against how much
+   funds at that risk level genuinely differ. mu and se arrive as monthly log figures and are both
+   converted to annual rates before they are compared, or the weight collapses to nil and every
+   selection lands on the bare anchor. */
+function iShrink(f){
+  const pa=Math.exp(f.mu*12)-1;
+  const seA=Math.exp((f.mu+f.se)*12)-Math.exp(f.mu*12);   // both as annual rates, not one of each
+  const sdA=f.sd*Math.sqrt(12), anchor=iAnchor(sdA);
+  const w=I_TAU*I_TAU/(I_TAU*I_TAU+seA*seA);
+  const blend=w*pa+(1-w)*anchor;
+  return {...f, mu:Math.log(1+blend)/12, pa, seA, sdA, anchor, w, blend};
+}
+
 /* ---------- Monte Carlo with cashflows ---------- */
 function simulate(rets, amt, contrib, wd){
-  const lr = rets.map(r=>Math.log(1+r));
-  const mu = lr.reduce((s,x)=>s+x,0)/lr.length;
-  const sd = Math.sqrt(lr.reduce((s,x)=>s+(x-mu)*(x-mu),0)/(lr.length-1));
+  const f = iShrink(iFit(rets));      // measured, then pulled toward the long-run anchor for its volatility
+  const mu = f.mu, sd = f.sd;
   const rnd = mulberry32(20260630), N=2000, T=240;
   const vals=[]; for(let t=0;t<T;t++) vals.push(new Float64Array(N));
   for(let p=0;p<N;p++){
@@ -973,7 +1052,7 @@ function simulate(rets, amt, contrib, wd){
     return {p5:v[Math.floor(.05*(N-1))],p25:v[Math.floor(.25*(N-1))],p50:v[Math.floor(.5*(N-1))],
             p75:v[Math.floor(.75*(N-1))],p95:v[Math.floor(.95*(N-1))],
             depleted:vals[t-1].reduce((s,x)=>s+(x<=0?1:0),0)/N};};
-  return {at, muA: Math.exp(mu*12)-1, sdA: sd*Math.sqrt(12)};
+  return {at, muA: f.blend, measA: f.pa, anchor: f.anchor, w: f.w, sdA: f.sdA};
 }
 
 /* ---------- picker ---------- */
@@ -1714,7 +1793,10 @@ function renderProjection(keys,win){
   });
   document.getElementById("projTable").innerHTML=head+rows;
   let note=`Geometric Brownian motion, 2,000 paths, monthly steps, fixed seed, calibrated per portfolio to the selected window's gross series`;
-  note+=keys.map(k=>` (${k}: return ${fmtP(sims[k].muA)}, volatility ${fmtP(sims[k].sdA)})`).join(",")+`. `;
+  note+=keys.map(k=>` (${k}: measured ${fmtP(sims[k].measA)} a year, projected at ${fmtP(sims[k].muA)}, volatility ${fmtP(sims[k].sdA)})`).join(",")+`. `;
+  note+=`<strong>The measured average is not projected as it stands.</strong> A window of this length pins a portfolio's annual average only to within a few percentage points, so it is shrunk toward a long-run assumption for a portfolio of that volatility: `
+    +keys.map(k=>`${keys.length===2?k+" ":""}${fmtP(sims[k].anchor)}, leaving ${fmtP(sims[k].w,0)} of the weight on its own record`).join(", ")
+    +`. Those assumptions are <strong>Slate Labs' own</strong>, not published figures, and the Income Sustainability tab projects on exactly the same basis. `;
   if(contrib>0||wd>0) note+=`Cashflows applied monthly: ${contrib>0?`contribution ${fmtE(contrib)}`:""}${contrib>0&&wd>0?", ":""}${wd>0?`withdrawal ${fmtE(wd)}`:""}. `;
   if(wd>0){
     keys.forEach(k=>{ const d20=sims[k].at(240).depleted;
@@ -2661,7 +2743,7 @@ function showTab(t){
 
    Selections are any fund and any valid portfolio from either builder, so the tab reads across the
    whole tool rather than belonging to one side of it. */
-const IN={per:"y", type:"fixed", shock:"off", sel:["","",""], bands:[]};
+const IN={per:"y", type:"fixed", shock:"off", cal:"120", sel:["","",""], bands:[]};
 const I_N=2000, I_TMAX=40*12;
 let I_Z=null;
 function iDraws(){
@@ -2684,10 +2766,16 @@ const I_STRESS={
   5:{cum:-0.344, src:"Aviva Fixed ESG 80, 2006-09"},
   6:{cum:-0.428, src:"Aviva Global Equity ESG Passive, 2006-09"}};
 
-function iFit(rets){
-  const lr=rets.map(r=>Math.log(1+r));
-  const mu=lr.reduce((s,x)=>s+x,0)/lr.length;
-  return {mu, sd:Math.sqrt(lr.reduce((s,x)=>s+(x-mu)*(x-mu),0)/(lr.length-1))};
+/* iFit, iAnchor and iShrink live beside simulate(), because both projection engines use them. */
+/* The window every selection is calibrated over, decided in one place so the card text, the solver,
+   the sensitivities, the chart and the year table cannot disagree about what was measured.
+   IN.cal is a month count, or "max". The effective window is clamped to the shortest selection, the
+   same rule the compare screen uses, so three funds are never fitted over three different periods. */
+function iWindow(serieses){
+  const shortest=Math.min(...serieses.map(S=>S.rets.length));
+  const want=IN.cal==="max" ? Infinity : +IN.cal;
+  const n=Math.min(want, shortest);
+  return {n, clamped: want!==Infinity && shortest<want, shortest};
 }
 /* Sustainability alone, with no percentile arrays to build or sort: the income solver calls this
    fifteen times a selection, so it has to stay cheap. */
@@ -2779,6 +2867,14 @@ function iSeries(v){
 }
 
 
+/* Two significant figures. The central forecast was being quoted to the euro from a drift with a
+   standard error of about 3pp: four of those digits were decoration. */
+const iSig=v=>{ if(!isFinite(v)||v<=0) return 0;
+  const m=Math.pow(10, Math.floor(Math.log10(v))-1);
+  return Math.round(v/m)*m; };
+const iE=v=>fmtE(iSig(v));
+const iE100=v=>fmtE(Math.round(v/100)*100);
+
 function iClamp(id, lo, hi, money){
   const el=document.getElementById(id);
   let v=+String(el.value).replace(/,/g,"");
@@ -2843,17 +2939,7 @@ function renderIncome(){
   const wEl=document.getElementById("iWarn");
   wEl.textContent=warn.join(" "); wEl.style.display=warn.length?"block":"none";
 
-  const runs=IN.sel.map(v=>{ const S=iSeries(v); if(!S||S.rets.length<24) return null;
-    const f=iFit(S.rets), band=S.esma||srri(vol(S.rets.slice(-60))), st=I_STRESS[band];
-    /* The stress restates the whole illustration rather than adding a footnote: every figure on the
-       card, the chart and the table is computed on paths that start with that fall. A selection with no
-       proxy runs unstressed and says so. */
-    const drop = IN.shock==="on" && st ? st.cum : 0;
-    const base={...o, drop};
-    return {S, f, band, st, drop,
-      res:iRun(f, base),
-      sens:[0.01,0.02].map(d=>iSustain(f,{...base, shift:-d})),
-      safe:iSolve(f, base)}; }).filter(Boolean);
+  const {runs, win}=iRuns(o);
 
   const perLbl=IN.per==="m"?"a month":"a year";
   document.getElementById("iCards").innerHTML=runs.map((r,k)=>{
@@ -2874,20 +2960,27 @@ function renderIncome(){
           <div class="ic-meter"><i style="width:${Math.max(sus*100,0)}%;background:${col}"></i></div>
           <div class="ic-sub">of 2,000 runs pay ${fmtE(income)} ${perLbl} for ${years} years in full${r.drop?", each starting with that fall":""}</div></div>
         <div class="ic-mid"><div class="ic-lbl">Central forecast after ${years} years</div>
-          <div class="ic-v">${g.p50>1?fmtE(g.p50):"nothing left"}</div>
-          ${g.p50>1&&o.cpi?`<div class="ic-sub">${fmtE(g.p50*real)} inflation adjusted</div>`:""}</div>
+          <div class="ic-v">${g.p50>1?iE(g.p50):"nothing left"}</div>
+          ${g.p50>1&&o.cpi?`<div class="ic-sub">${iE(g.p50*real)} inflation adjusted</div>`:""}</div>
         ${g.p5>1?`<div class="ic-range"><div class="ic-lbl">90% chance of ending between</div>
-          <div class="pair2"><span class="ic-v">${fmtE(g.p5)}</span><span class="to">to</span><span class="ic-v">${fmtE(g.p95)}</span></div></div>`:""}
+          <div class="pair2"><span class="ic-v">${iE(g.p5)}</span><span class="to">to</span><span class="ic-v">${iE(g.p95)}</span></div>
+</div>`:""}
         <div class="ic-runs"><div class="ic-lbl">In the worst 5% of outcomes</div>${runsOut}</div>
         <div class="ic-mid"><div class="ic-lbl">Income that clears 90%</div>
-          <div class="ic-v">${fmtE(IN.per==="m"?r.safe/12:r.safe)} ${perLbl}</div>
+          <div class="ic-v">${iE100(IN.per==="m"?r.safe/12:r.safe)} ${perLbl}</div>
           <div class="ic-sub">${fmtP(r.safe/o.amt)} of the amount${r.safe<o.income?`, ${fmtE((IN.per==="m"?o.income/12:o.income)-(IN.per==="m"?r.safe/12:r.safe))} less than planned`:""}</div></div>
         <div class="ic-sens"><div class="ic-sens-h">If future returns average less than the past</div>
           <div class="ic-sens-r"><span>1% a year lower</span><b>${Math.round(r.sens[0]*100)}% sustainable</b></div>
           <div class="ic-sens-r"><span>2% a year lower</span><b>${Math.round(r.sens[1]*100)}% sustainable</b></div></div>
-        <div class="ic-calib">${(()=>{const live=r.S.rets.length-(r.S.sim||0);
-          return `Calibrated on ${r.S.rets.length} months to ${pLbl(r.S.end)}: ${live} live${r.S.sim?`, ${r.S.sim} index derived<span class="simd">◆</span>`:""} ·
-            return ${fmtP(Math.exp(r.f.mu*12)-1)} p.a. · volatility ${fmtP(r.f.sd*Math.sqrt(12))} · charges ${fmtP(o.fee,2)} deducted`;})()}</div>
+        <div class="ic-calib">${(()=>{
+          /* the live/index split of the months actually calibrated, not of the whole history */
+          const simIn=Math.max(0, Math.min(r.cal.length, (r.S.sim||0)-(r.S.rets.length-r.cal.length)));
+          const live=r.cal.length-simIn;
+          return `Calibrated on ${r.cal.length} months to ${pLbl(r.S.end)}: ${live} live${simIn?`, ${simIn} index derived<span class="simd">◆</span>`:""} ·
+            measured ${fmtP(r.f.pa)} p.a. <span style="color:var(--faint)">give or take ${fmtP(r.f.seA,1)}</span>`
+            +` · <strong>projected at ${fmtP(r.f.blend)}</strong>, ${fmtP(r.f.w,0)} of the fund's own record and the rest the
+               ${fmtP(r.f.anchor)} long-run assumption for a fund at its ${fmtP(r.f.sdA)} volatility, set by Slate Labs`
+            +` · charges ${fmtP(o.fee,2)} deducted`;})()}</div>
       </div></div>`;}).join("") || `<p class="empty" style="padding:14px 0">Choose a fund or a portfolio to model an income.</p>`;
 
   if(IN.bands.length!==runs.length) IN.bands=runs.map(()=>runs.length<=2);
@@ -2895,6 +2988,8 @@ function renderIncome(){
     `<button type="button" class="xchip${IN.bands[k]?" on":""}" data-band="${k}" aria-pressed="${IN.bands[k]}">
       <span class="sw" style="background:${SEG[k]}"></span>${esc(r.S.name)} <span style="color:var(--faint)">${IN.bands[k]?"range shown":"show range"}</span></button>`).join("");
   document.getElementById("iChart").innerHTML = runs.length ? iChartSVG(runs, years, IN.bands) : "";
+  const cEl=document.getElementById("iCalNote");
+  cEl.textContent=iCalNote(win); cEl.style.display=win.n?"":"none";
   document.getElementById("iChartNote").textContent = runs.length
     ? "The line is each selection's central forecast: an even chance of ending above it or below. A shown range is the same 90% range the cards quote, with 1 in 20 finishing below it and 1 in 20 above."
     : "";
@@ -2917,7 +3012,7 @@ function renderIncome(){
     if(card) card.style.display = runs.length ? "" : "none";
   });
   document.getElementById("iMethod").innerHTML=
-    `Each projected month is an independent random draw from a distribution fitted to the selection's own history, the same engine as the builder's projection chart:
+    `Each projected month is an independent random draw from a distribution fitted to the selection's own history, the same engine and the same long-run assumptions as the builder's projection chart:
      2,000 paths, monthly steps, fixed seed. Income is taken monthly${o.infl?` and rises by ${fmtP(o.infl)} a year`:" and stays level in euro"}.
      <strong>Charges of ${fmtP(fee,2)} a year are deducted monthly</strong>; every other figure in this tool is gross of charges, and this tab is the exception, since a sustainability figure computed gross would mislead.
      ${IN.shock==="on"?`<strong>A stressed start is applied, so every figure here is a scenario rather than a probability.</strong>
@@ -2925,6 +3020,18 @@ function renderIncome(){
      Spreading it evenly is the harsher of the two, since the money starts draining from a lower base at once: the ESMA 5 proxy's own worst three years actually gained 4.3% in year one before falling, which tests four points better than the even decline.
      The percentages are therefore the share of runs that begin that way, not of all futures, and they answer what happens if the bad years come first, not how likely that is.
      Those falls are index derived<span class="simd">◆</span> rather than live fund prices.`:""}
+     <strong>Every selection is fitted over the same months</strong>, ${I_CAL_LBL[IN.cal]} by default, clamped to the shortest selection. Fitting each one to its own history instead put comparable funds on
+     quite different periods, so a fund whose record happened to start after 2008 looked far stronger than one whose record included it; the difference was the window, not the fund.
+     <strong>The average return is an estimate from that sample, not a known number.</strong> Ten years of monthly data on a fund at 11% volatility pins the annual average only to within about 4 percentage points
+     either way, which the calibration line reports as "give or take", and three comparable funds measured over the same decade are not distinguishable from one another.
+     <strong>So the measured average is not projected as it stands.</strong> It is shrunk toward a long-run assumption for a fund of that volatility, weighted by how precisely the fund's own average is measured against
+     how much funds at the same risk level genuinely differ, which at these sample sizes leaves roughly a tenth of the weight on the fund's own record. The long-run assumptions are
+     ${I_KNOTS.map(([v,r])=>`${fmtP(r)} at ${fmtP(v)} volatility`).join(", ")}, interpolated in between and held outside that range, nominal and gross of charges, and they are <strong>Slate Labs' own assumptions</strong>, not published figures.
+     They are set against volatility rather than the ESMA band so that two funds either side of a band boundary are not projected far apart on the strength of a rating.
+     Without this the tab projected the last ten years forward for thirty, which for these funds meant 10% to 11% a year indefinitely. Volatility is used as measured.
+     The uncertainty in the average is not simulated: carrying it into the paths means assuming the true average is fixed but unknown and then holding each draw for thirty years, which puts a fund at 18% a year
+     for three decades in the upper tail. The two rows above, 1% and 2% a year lower, are where that uncertainty is expressed instead.
+     Figures are rounded to two significant figures, because the precision behind them does not go further.
      Sustainability is the share of paths that pay the income in full for every year, so it carries a sampling error of roughly a point, most of all near 50%.
      Central forecast is the median end value; the range is the 5th to the 95th percentile, quoted as a 90% chance; the income running out figure uses that same 5th percentile.
      Every chance quoted is the model's own and is not a guarantee.
@@ -2947,6 +3054,7 @@ iChips("iType","type",[["fixed","Fixed"],["infl","Inflation linked"]],()=>{
   el.disabled = IN.type!=="infl";
   if(IN.type==="infl" && +el.value===0) el.value=2; else if(IN.type!=="infl") el.value=0;
 });
+iChips("iCal","cal",[["60","5 years"],["120","10 years"],["max","Full history"]]);
 iChips("iShock","shock",[["off","None"],["on","Bad first 3 years"]]);
 ["iAmt","iInc","iYrs","iFee","iInfl"].forEach(id=>{
   const el=document.getElementById(id);
@@ -2973,13 +3081,36 @@ function iBundle(){
   const cpi=IN.type==="infl" ? iClamp("iInfl",0,10,false)/100 : 0;
   const income=IN.per==="m" ? incRaw*12 : incRaw;
   const o={amt, income, years, fee, infl:cpi, cpi};
+  const {runs, win}=iRuns(o);
+  return {o, runs, win, perLbl: IN.per==="m"?"a month":"a year"};
+}
+/* Both the screen and the print/email bundle build their runs here, so the sheet cannot be
+   calibrated differently from the card beside it. */
+function iRuns(o){
+  const picked=IN.sel.map(iSeries).filter(S=>S&&S.rets.length>=24);
+  const win=picked.length?iWindow(picked):{n:0,clamped:false,shortest:0};
   const runs=IN.sel.map(v=>{ const S=iSeries(v); if(!S||S.rets.length<24) return null;
-    const f=iFit(S.rets), band=S.esma||srri(vol(S.rets.slice(-60))), st=I_STRESS[band];
+    const cal=S.rets.slice(-win.n);
+    const band=S.esma||srri(vol(S.rets.slice(-60))), st=I_STRESS[band];
+    const f=iShrink(iFit(cal));                // measured, then pulled toward the long-run anchor for its volatility
+    /* The stress restates the whole illustration rather than adding a footnote: every figure on the
+       card, the chart and the table is computed on paths that start with that fall. A selection with
+       no proxy runs unstressed and says so. */
     const drop = IN.shock==="on" && st ? st.cum : 0;
     const base={...o, drop};
-    return {S, f, band, st, drop, res:iRun(f,base), sens:[0.01,0.02].map(d=>iSustain(f,{...base,shift:-d})),
+    return {S, f, band, st, drop, cal, res:iRun(f,base),
+            sens:[0.01,0.02].map(d=>iSustain(f,{...base,shift:-d})),
             safe:iSolve(f,base)}; }).filter(Boolean);
-  return {o, runs, perLbl: IN.per==="m"?"a month":"a year"};
+  return {runs, win};
+}
+const I_CAL_LBL={"60":"5 years","120":"10 years","max":"full history"};
+function iCalNote(win){
+  if(!win.n) return "";
+  const base=IN.cal==="max" ? `each selection's full common history, ${win.n} months`
+                            : `the ${I_CAL_LBL[IN.cal]} to ${pLbl(END())}`;
+  return win.clamped
+    ? `Calibrated over ${win.n} months, the same months for every selection: ${I_CAL_LBL[IN.cal]} requested, but the shortest selection only reaches back that far.`
+    : `Calibrated over ${base}, the same months for every selection.`;
 }
 function iPlanLine(o, perLbl){
   return `${fmtE(o.amt)} · income ${fmtE(IN.per==="m"?o.income/12:o.income)} ${perLbl}, `+
@@ -2991,20 +3122,24 @@ function iRowsFor(r, o, perLbl){
   const unpaidM=Math.round((o.years-r.res.lastedP05)*12);
   return {
     sustain:`${Math.round(r.res.sustain*100)}%`,
-    central: g.p50>1 ? fmtE(g.p50)+(o.cpi?` (${fmtE(g.p50*real)} inflation adjusted)`:"") : "nothing left",
-    range: g.p5>1 ? `${fmtE(g.p5)} to ${fmtE(g.p95)}` : "not shown: more than 5% of runs end with nothing",
+    central: g.p50>1 ? iE(g.p50)+(o.cpi?` (${iE(g.p50*real)} inflation adjusted)`:"") : "nothing left",
+    range: g.p5>1 ? `${iE(g.p5)} to ${iE(g.p95)}` : "not shown: more than 5% of runs end with nothing",
     worst: unpaidM<=0 ? `income lasts all ${o.years} years`
       : `income stops in year ${Math.floor(r.res.lastedP05)+1}, ${(unpaidM/12).toFixed(unpaidM%12?1:0)} years short`,
     sens1:`${Math.round(r.sens[0]*100)}%`, sens2:`${Math.round(r.sens[1]*100)}%`,
-    safe:`${fmtE(IN.per==="m"?r.safe/12:r.safe)} ${perLbl}`,
+    safe:`${iE100(IN.per==="m"?r.safe/12:r.safe)} ${perLbl}`,
     stress: r.drop ? `first 3 years lose ${fmtP(r.drop)} evenly, the worst an ESMA ${r.band} fund has had ◆; figures below are the share of runs starting that way` : "none: no proxy at this ESMA level",
-    calib:(()=>{ const live=r.S.rets.length-(r.S.sim||0);
-      return `${r.S.rets.length} months to ${pLbl(r.S.end)}: ${live} live${r.S.sim?`, ${r.S.sim} index derived ◆`:""}, `+
-        `return ${fmtP(Math.exp(r.f.mu*12)-1)} p.a., volatility ${fmtP(r.f.sd*Math.sqrt(12))}`; })()
+    calib:(()=>{
+      // the live/index split of the months actually calibrated, as on screen
+      const simIn=Math.max(0, Math.min(r.cal.length, (r.S.sim||0)-(r.S.rets.length-r.cal.length)));
+      const live=r.cal.length-simIn;
+      return `${r.cal.length} months to ${pLbl(r.S.end)}: ${live} live${simIn?`, ${simIn} index derived ◆`:""}, `+
+        `measured ${fmtP(r.f.pa)} p.a. give or take ${fmtP(r.f.seA,1)}, `+
+        `projected at ${fmtP(r.f.blend)} (${fmtP(r.f.w,0)} of the fund's own record, the rest the ${fmtP(r.f.anchor)} long-run assumption for a fund at its ${fmtP(r.f.sdA)} volatility, set by Slate Labs)`; })()
   };
 }
 function buildIncomePrint(){
-  const {o, runs, perLbl}=iBundle();
+  const {o, runs, perLbl, win}=iBundle();
   if(!runs.length) return "";
   const rows=runs.map(r=>iRowsFor(r,o,perLbl));
   const th=`<th></th>`+runs.map((r,k)=>`<th class="r">${esc(r.S.name)}</th>`).join("");
@@ -3015,6 +3150,7 @@ function buildIncomePrint(){
     ${PD_BAND("Income sustainability", new Date().toLocaleDateString("en-IE"))}
     <div class="pd-h1">Income sustainability</div>
     <p class="pd-sub">${iPlanLine(o, perLbl)} · prepared ${new Date().toLocaleDateString("en-IE")} · fund data to ${pLbl(runs[0].S.end)}</p>
+    <p class="pd-note">${iCalNote(win)}</p>
     <div class="pd-sec"><table class="pd-table pd-fixed"><thead><tr>${th}</tr></thead><tbody>
       ${line("Sustainability", x=>x.sustain)}
       ${line(`Central forecast after ${o.years} years`, x=>x.central)}
@@ -3041,7 +3177,7 @@ function buildIncomePrint(){
   </div>`;
 }
 function buildIncomeEmail(){
-  const {o, runs, perLbl}=iBundle();
+  const {o, runs, perLbl, win}=iBundle();
   if(!runs.length) return "";
   const FONT="'Nunito Sans',Arial,sans-serif";
   const NAVY="#0D1B2A", MUT="#66737F", BORDER="#E2E6EB", STRIPE="#F4F6F9";
@@ -3054,6 +3190,7 @@ function buildIncomeEmail(){
     <table border="0" cellpadding="0" cellspacing="0" style="width:100%;background:#ffffff;margin-bottom:12px;border-bottom:2px solid #1A4FD6"><tr>
       <td style="padding:0 0 8px;font-family:${FONT};font-size:15px;font-weight:bold;color:${NAVY}">Income sustainability</td></tr></table>
     <p style="font-size:10.5px;color:${MUT};font-family:${FONT};line-height:16px;margin:0 0 10px">${iPlanLine(o, perLbl)} · prepared ${new Date().toLocaleDateString("en-IE")} · fund data to ${pLbl(runs[0].S.end)}</p>
+    <p style="font-size:10px;color:${MUT};font-family:${FONT};line-height:15px;margin:0 0 10px">${iCalNote(win)}</p>
     <table border="0" cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse">
       <tr><th style="${th}">&nbsp;</th>${runs.map(r=>`<th style="${th}text-align:right">${esc(r.S.name)}</th>`).join("")}</tr>`;
   const defs=[["Sustainability",x=>x.sustain],[`Central forecast after ${o.years} years`,x=>x.central],
@@ -3536,7 +3673,17 @@ const buildExplorerWordDoc=()=>wordFromHTML(buildExplorerPrintDoc());
    reached a client document. Flag, never silently correct, and never block.
 */
 const L_KEY="apb-lists-v1", L_BANDS=[3,4,5,6];
+/* A view is a complete named set of the four bands, so an adviser can keep a cautious panel, a
+   client shortlist and a working draft side by side and switch between them. LISTS is a live
+   reference to the active view's own bands, which is what lets every other function on this tab
+   (adding, dragging, sorting, removing, the Word document, the Excel copy) stay exactly as it was.
+   Rebind it in lUse(), never copy out of it. */
+let L_VIEWS=[], L_ACTIVE=null;
 let LISTS={3:[],4:[],5:[],6:[]}, L={end:null, sort:{3:null,4:null,5:null,6:null}};
+/* renderLists() finishes by writing the warning line, so a message set before it is wiped by the
+   render that follows: the same trap the saved-portfolios panel hit. Anything to say goes here and
+   the render picks it up. */
+let L_MSG="";
 /* Sorting is a view, never a rewrite: the order within a band is the user's own work, set by
    dragging, and a stray click on a heading must not destroy it. A sorted band turns dragging off
    and offers Manual order to come back. The sort is held in memory only, so a reload returns to
@@ -3558,15 +3705,85 @@ function lSortBy(b,k){
   renderLists();
 }
 
+const lId=()=>"v"+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+const lBands=o=>{ const b={}; L_BANDS.forEach(x=>{ b[x]=Array.isArray(o&&o[x])?o[x].filter(n=>typeof n==="string"):[]; }); return b; };
+const lView=()=>L_VIEWS.find(v=>v.id===L_ACTIVE)||null;
+/* Never overwrite a view that is already there, on import or on a new name: the user's own work is
+   not something to replace quietly. A clash takes a suffix and is said out loud. */
+function lUniqueName(base){
+  const want=(String(base||"").trim()||"Untitled").slice(0,60);
+  const taken=new Set(L_VIEWS.map(v=>v.name.toLowerCase()));
+  if(!taken.has(want.toLowerCase())) return want;
+  for(let i=2;i<999;i++){ const n=`${want} (${i})`; if(!taken.has(n.toLowerCase())) return n; }
+  return want+" "+lId();
+}
 function lLoad(){
   try{
     const r=JSON.parse(localStorage.getItem(L_KEY)||"null");
-    if(r && r.v===1 && r.bands) L_BANDS.forEach(b=>{ LISTS[b]=Array.isArray(r.bands[b])?r.bands[b].slice():[]; });
+    if(r && r.v===2 && Array.isArray(r.views)){
+      L_VIEWS=r.views.filter(v=>v&&typeof v.name==="string")
+                     .map(v=>({id:v.id||lId(), name:v.name, bands:lBands(v.bands)}));
+      L_ACTIVE=r.active;
+    } else if(r && r.v===1 && r.bands){
+      L_VIEWS=[{id:lId(), name:"My list", bands:lBands(r.bands)}];   // the single list from before views existed
+    }
   }catch(e){}                                    // storage is unavailable in some contexts; start empty
+  if(!L_VIEWS.length) L_VIEWS=[{id:lId(), name:"My list", bands:lBands(null)}];
+  const act=lView()||L_VIEWS[0];
+  L_ACTIVE=act.id; LISTS=act.bands;
 }
 function lSave(){
-  try{ localStorage.setItem(L_KEY, JSON.stringify({v:1, saved:new Date().toISOString(), bands:LISTS})); }
-  catch(e){ lNote("Could not save to this browser. Use Save to file to keep this list."); }
+  try{ localStorage.setItem(L_KEY, JSON.stringify({v:2, saved:new Date().toISOString(), active:L_ACTIVE, views:L_VIEWS})); }
+  catch(e){ lNote("Could not save to this browser. Use Save view to keep this list."); }
+}
+/* Switching view rebinds LISTS and drops the sort, which is a way of looking at one view's order
+   rather than something that belongs to the next one. */
+function lUse(id){
+  const v=L_VIEWS.find(x=>x.id===id); if(!v) return;
+  L_ACTIVE=v.id; LISTS=v.bands;
+  L.sort={3:null,4:null,5:null,6:null};
+  lSave(); renderLists();
+}
+function lNewView(bands, name){
+  const v={id:lId(), name:lUniqueName(name||`List ${L_VIEWS.length+1}`), bands:lBands(bands)};
+  L_VIEWS.push(v); return v;
+}
+function lViewAction(what){
+  const v=lView(); if(!v) return;
+  if(what==="new"){
+    const n=prompt("Name this view", `List ${L_VIEWS.length+1}`); if(n===null) return;
+    const nv=lNewView(null, n); L_MSG=`Created <strong>${esc(nv.name)}</strong>, empty.`; return lUse(nv.id);
+  }
+  if(what==="rename"){
+    const n=prompt("Rename this view", v.name); if(n===null) return;
+    const want=String(n).trim(); if(!want || want===v.name) return;
+    const was=v.name;
+    const taken=L_VIEWS.some(x=>x!==v && x.name.toLowerCase()===want.toLowerCase());
+    v.name = taken ? lUniqueName(want) : want.slice(0,60);
+    L_MSG=`Renamed <strong>${esc(was)}</strong> to <strong>${esc(v.name)}</strong>${taken?", since that name was taken":""}.`;
+    lSave(); return renderLists();
+  }
+  if(what==="dup"){
+    const nv=lNewView(v.bands, v.name+" copy");
+    L_MSG=`Copied <strong>${esc(v.name)}</strong> to <strong>${esc(nv.name)}</strong>.`; return lUse(nv.id);
+  }
+  if(what==="delete"){
+    const n=L_BANDS.reduce((a,b)=>a+v.bands[b].length,0);
+    if(!confirm(`Delete the view "${v.name}"${n?` and its ${n} fund${n>1?"s":""}`:""}?`)) return;
+    L_VIEWS=L_VIEWS.filter(x=>x!==v);
+    if(!L_VIEWS.length) lNewView(null, "My list");        // there is always one view to be looking at
+    L_MSG=`Deleted <strong>${esc(v.name)}</strong>.`;
+    return lUse(L_VIEWS[0].id);
+  }
+}
+function lRenderViews(){
+  const sel=document.getElementById("lView");
+  sel.innerHTML=L_VIEWS.map(v=>{
+    const n=L_BANDS.reduce((a,b)=>a+v.bands[b].length,0);
+    return `<option value="${esc(v.id)}"${v.id===L_ACTIVE?" selected":""}>${esc(v.name)} · ${n?`${n} fund${n>1?"s":""}`:"empty"}</option>`;
+  }).join("");
+  document.getElementById("lDel").disabled = L_VIEWS.length<2 && !L_BANDS.some(b=>LISTS[b].length);
+  document.getElementById("lExportAll").disabled = L_VIEWS.length<2;
 }
 function lNote(msg){
   const el=document.getElementById("lWarn");
@@ -3597,6 +3814,7 @@ function renderLists(){
     if(keep.length!==LISTS[b].length) LISTS[b]=keep;
   });
   if(gone.length) lSave();
+  lRenderViews();                                // after the pruning, so the per-view counts are what is really there
 
   L_BANDS.forEach(b=>{
     const fs=lOrdered(b), srt=L.sort[b];
@@ -3635,6 +3853,7 @@ function renderLists(){
   });
 
   const bits=[];
+  if(L_MSG){ bits.push(L_MSG); L_MSG=""; }
   if(gone.length) bits.push(`<strong>${gone.length} fund${gone.length>1?"s":""} removed</strong> from your lists: no longer in the data (${gone.map(esc).join(", ")}).`);
   if(moved.length) bits.push(`<strong>${moved.length} fund${moved.length>1?"s sit":" sits"} in a band other than its published rating</strong>: ${moved.join("; ")}. Marked with ! in the table and named in anything you copy.`);
   lNote(bits.join(" "));
@@ -3768,12 +3987,15 @@ function lRemove(b, name){
 
 /* The file is the real backup: browser storage is per machine, per browser, and goes when site data
    is cleared. Everything stays local either way, which keeps the data licence where it is. */
-function lExport(){
-  const blob=new Blob([JSON.stringify({v:1, saved:new Date().toISOString(), asOf:DATA.asOf, bands:LISTS}, null, 2)],
+const lSlug=n=>String(n).toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,40)||"view";
+function lExport(all){
+  const v=lView(); if(!v) return;
+  const views=(all?L_VIEWS:[v]).map(x=>({name:x.name, bands:x.bands}));   // no ids in the file: an import always gets a fresh one
+  const blob=new Blob([JSON.stringify({v:2, saved:new Date().toISOString(), asOf:DATA.asOf, views}, null, 2)],
                       {type:"application/json"});
   const a=document.createElement("a");
   a.href=URL.createObjectURL(blob);
-  a.download=`fund-lists-${new Date().toISOString().slice(0,10)}.json`;
+  a.download=`fund-lists-${all?"all-views":lSlug(v.name)}-${new Date().toISOString().slice(0,10)}.json`;
   a.click(); URL.revokeObjectURL(a.href);
 }
 function lImport(file){
@@ -3781,9 +4003,14 @@ function lImport(file){
   r.onload=()=>{
     try{
       const d=JSON.parse(r.result);
-      if(!d || d.v!==1 || !d.bands) throw new Error("not a fund list file");
-      L_BANDS.forEach(b=>{ LISTS[b]=Array.isArray(d.bands[b])?d.bands[b].filter(n=>typeof n==="string"):[]; });
-      lSave(); renderLists();
+      let incoming=[];
+      if(d && d.v===2 && Array.isArray(d.views)) incoming=d.views.filter(x=>x).map(x=>({name:x.name, bands:x.bands}));
+      else if(d && d.v===1 && d.bands) incoming=[{name:"Imported list", bands:d.bands}];   // a file saved before views existed
+      else throw new Error("not a fund list file");
+      if(!incoming.length) throw new Error("that file holds no views");
+      const added=incoming.map(x=>lNewView(x.bands, x.name).name);
+      L_MSG=`Added ${added.length} view${added.length>1?"s":""}: <strong>${added.map(esc).join("</strong>, <strong>")}</strong>. Nothing you already had was changed.`;
+      lUse(L_VIEWS[L_VIEWS.length-1].id);
     }catch(e){ lNote(`Could not read that file: ${esc(e.message)}. Your lists are unchanged.`); }
   };
   r.onerror=()=>lNote("Could not read that file. Your lists are unchanged.");
@@ -3794,8 +4021,9 @@ function lImport(file){
    export is, so all three Word documents come out with one set of rules. */
 function buildListsPrintDoc(){
   const today=new Date().toLocaleDateString("en-IE",{day:"2-digit",month:"2-digit",year:"numeric"});
-  let h=`<div class="pd-page1">${PD_BAND("My fund lists", today)}
-  <div class="pd-titlerow">${XPD_TILE}<div><div class="pd-eyebrow">Portfolio Builder</div><div class="pd-title">My Fund Lists</div></div></div>
+  const vn=(lView()||{name:"My fund lists"}).name;    // the document is named after the view it was built from
+  let h=`<div class="pd-page1">${PD_BAND(vn, today)}
+  <div class="pd-titlerow">${XPD_TILE}<div><div class="pd-eyebrow">Portfolio Builder · My Fund Lists</div><div class="pd-title">${esc(vn)}</div></div></div>
   <p class="pd-sub">Performance data to ${pLbl(L.end)} · EUR · Returns gross of AMC</p>
   <p class="pd-note">A selection of funds chosen by the user for each ESMA band. Not a recommendation and not a fund panel: the tool selects nothing.</p>`;
   let any=false, off=[];
@@ -3851,7 +4079,11 @@ document.getElementById("lWordBtn").onclick=async function(){
     await wdCopy(html, wdPlain(tmp), btn, orig);
   }catch(e){ btn.textContent="Copy failed"; setTimeout(()=>{btn.textContent=orig;},2000); console.error(e); }
 };
-document.getElementById("lExport").onclick=lExport;
+document.getElementById("lExport").onclick=()=>lExport(false);
+document.getElementById("lExportAll").onclick=()=>lExport(true);
+document.getElementById("lView").onchange=function(){ lUse(this.value); };
+[["lNew","new"],["lRename","rename"],["lDup","dup"],["lDel","delete"]]
+  .forEach(([id,what])=>document.getElementById(id).onclick=()=>lViewAction(what));
 document.getElementById("lImport").onclick=()=>document.getElementById("lFile").click();
 document.getElementById("lFile").onchange=function(){ if(this.files[0]) lImport(this.files[0]); this.value=""; };
 lLoad();

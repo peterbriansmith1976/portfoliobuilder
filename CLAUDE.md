@@ -407,7 +407,77 @@ none of the other tabs do. Screen only, hidden in print, and it carries the warn
 - **Print carries its own condensed notes**, not the screen's methodology: reusing it pushed the stressed
   three-selection sheet to 1014px, over the one-page limit. With the shorter version every combination tested
   measures 896 to 965px (one and three selections, stress on and off, 40 years, inflation linked).
-- **Verified:** the other four tabs byte-identical (both builders, both explorer tables and notes, print and
+- **Every selection is calibrated over the same months** (11 Oct 2026), `IN.cal`: 5 years, 10 years or
+  full history, default **10 years**, clamped to the shortest selection and saying so, the rule the
+  compare screen already applies. `iWindow()` decides it and `iRuns()` is the single path both the
+  screen and `iBundle()` go through, so the sheet cannot be calibrated differently from the card.
+  **Why**: fitting each selection to its own whole history put three comparable multi-asset funds on
+  155, 248 and 135 months and produced a 2.4x spread in the central forecast (€4.5m against €1.9m and
+  €2.0m) purely because one record started after 2008. On a common 10 years the same three return
+  11.15%, 10.84% and 10.09%, the spread falls to 1.4x and the ranking reverses: the Aviva fund the old
+  card showed at less than half now edges ahead on sustainability. Do not go back to per-selection
+  histories.
+- **The projected drift is shrunk toward a long-run assumption** (11 Oct 2026, at the user's
+  decision), `iShrink(f)`: `w = tau²/(tau² + se²)` where `se` is the standard error of the
+  selection's own annualised mean and `tau` is **1.5pp** (`I_TAU`), and the projection runs at
+  `w·measured + (1-w)·anchor`. **Why**: the standard error on these funds' annualised mean is 4.0 to
+  4.5pp over ten years, far larger than the differences the tab was reporting, so a measured 11.15%
+  is not distinguishable from a measured 10.09% and should not drive a forecast. At that standard
+  error the weight lands near 10% to 12% on a volatile fund, so the figure is mostly the anchor; the
+  card says so in words, naming the weight, the anchor and that Slate Labs set it. Volatility is
+  left as a point estimate, its relative standard error being about `1/sqrt(2n)`, roughly 6% at ten
+  years.
+- **The anchor is interpolated on measured volatility, never keyed on the ESMA band**
+  (`I_KNOTS`, `iAnchor()`): four points set by the user, **3.5% / 5.0% / 6.5% / 7.5%** at
+  **3.5% / 7.5% / 12.5% / 20%** volatility, which are the bands' volatility midpoints, linear in
+  between and held outside. **Why**: it was keyed on the band for one day and that made the band
+  boundary the biggest single driver of the answer. Zurich Prisma 4 at 8.9% volatility and Irish
+  Life Multi Asset Portfolio 5 at 9.4% projected 1.50pp apart, central forecasts €590,000 against
+  €1,100,000, while three funds inside band 5 differing by 1.4pp of volatility all projected at
+  exactly 6.5%. A step function crushes differences inside a band and invents one at its edge.
+  Interpolating keeps the same four assumptions: that pair now sits 0.17pp apart (€700,000 against
+  €770,000, same safe income) and the three band 5 funds separate on their own risk, 6.88 / 6.68 /
+  6.87. It also drops the dependence on a rating that is variously published, calculated, taken from
+  a name or set by the user. **Known cost**: the anchor sees volatility only, so a bond fund and a
+  multi-asset fund at the same volatility get the same anchor. Aviva Bond, measured 3.09% at 6.8%
+  volatility, is shrunk **up** to 3.89%. Shrinkage pulls both ways by design, but do not assume the
+  knots, which were set against multi-asset funds, describe a bond fund equally well.
+- **Both projection engines go through `iFit` and `iShrink`**, which live beside `simulate()` rather
+  than in the income section. The builder's projection chart was left unshrunk for one day and the
+  same portfolio read **€2,461,675** on the builder and **€1,969,724** on the income tab, two clicks
+  apart, with nothing on screen explaining it; they now agree to 0.25%, which is only the two
+  different random pools. The builder's note names the measured figure, the projected figure, the
+  anchor and the weight. Effect on the builder's own 20-year medians: Cash 0%, Aviva Bond **+18%**,
+  Fixed ESG 40 -3%, Multi Asset ESG Passive Plus 5 **-25%**, Global Equity ESG Passive **-28%**.
+  Print, email and the Word exports do not carry the projection and are byte-identical.
+- **A per-path drift draw was built and reverted the same day.** Drawing `mu_p = mu + se·z` per path
+  is the textbook way to carry parameter uncertainty, and it worked as designed: it roughly
+  quadrupled the variance of the 30-year log return (observed 1.741 against a closed-form
+  1.738 = `T*sd^2 + T^2*se^2`). But it put the 95th percentile at **€58,000,000**, which asserts
+  18.3% a year for thirty years, and the user rejected it as a figure no adviser could show a
+  client. Shrinking the central estimate was chosen instead. Do not reintroduce the per-path draw
+  without solving that upper tail.
+- **The 90% range stays 5/95 and stays wide**, at the user's decision (11 Oct 2026). The card carries
+  a line saying the figures rest on an estimated return, so the width reads as deliberate rather than
+  broken. Showing the middle 50% instead was offered and declined.
+- **Figures are rounded to two significant figures** (`iE`), the solved income to the nearest €100
+  (`iE100`), on screen, in print and in email. A drift with a 4pp standard error does not support
+  €4,534,314.
+- **Verified:** one selection on full history with shrinkage disabled reproduces the pre-change build
+  **to the euro** (€4,534,314 / €1,001,913 / €16,174,149 / €33,295), which is the proof the refactor
+  changed nothing on its own; the shrinkage ties to closed form when the anchor equals the measured
+  return; a band with no anchor keeps weight 1; a constant-return series still ties to the cent;
+  clamping fits both selections on 40 months and says so; print and email carry the basis, the
+  shrinkage disclosure and the same rounded figures as the screen; and the other five tabs, print,
+  email and all three Word exports hash identically. The three funds that exposed the fault now read
+  **94% / 95% / 94%** sustainable with central forecasts of **€1.1m / €1.0m / €1.1m** (against a 2.4x
+  spread before) and safe incomes of €21,700 / €22,100 / €21,200. `iAnchor` was checked against an
+  independent interpolation at 700 points with no mismatch, the knots reproduce exactly, the curve is
+  monotone, and it clamps at both ends; Aviva Cash at 0.5% volatility keeps 99% of its own record and
+  never sees the 3.5% anchor. Only the projection note, the projection table and the fan chart changed
+  on the builder: its summary cards, building blocks, both explorer tables, the compare screen, the
+  lists tab, print, email and the Word export all hash identically.
+- **Verified (earlier):** the other four tabs byte-identical (both builders, both explorer tables and notes, print and
   email); the tab reproduces the reviewed prototype's figures exactly for the same inputs; a constant-return
   series matches closed-form arithmetic to the cent for fixed and inflation-linked income, and the depletion
   year is exact.
@@ -601,10 +671,34 @@ risk band, kept between visits and copied out as a document.
 - **Figures come from `xRow(f, L.end)`**, the explorer's own row builder, so a fund reads identically on
   both tabs. Verified cell by cell: every figure for every listed fund matches the All Funds Explorer at
   the same end month, 0 differences.
-- **Saved in `localStorage` under `apb-lists-v1`**, wrapped in try/catch, with Save to file and Load
-  from file as JSON. The file is the real backup: browser storage is per machine, per browser, and goes
-  when site data is cleared. Everything stays local, which keeps the data licence where it is. The
-  About page's privacy section says all of this, and says plainly that the lists are not a record.
+- **Several named views**, built 11 Oct 2026 at the user's request. A view is a complete named set of
+  all four bands, so a cautious panel, a client shortlist and a working draft sit side by side and the
+  dropdown switches between them. `LISTS` is a **live reference** to the active view's own `bands`
+  object, rebound in `lUse()`, which is what lets every other function on the tab (adding, dragging,
+  sorting, removing, the Word document, the Excel copy) stay exactly as it was. Never copy out of
+  `LISTS`; rebind it. Switching a view drops `L.sort`, which describes one view's order and does not
+  belong to the next.
+  **A name is never silently overwritten**: `lUniqueName()` suffixes a clash as "Growth (2)" on New,
+  Rename and import, and the message says why. Deleting the last view leaves a fresh empty one, since
+  there is always a view to be looking at. Naming uses `prompt()` and deleting `confirm()`, matching
+  the saved-portfolios panel.
+  **`renderLists()` ends by writing the warning line**, so a message set before it is wiped by the
+  render that follows: the same trap the saved-portfolios panel hit with `pMsg()`. Anything to say
+  goes in `L_MSG` and the render picks it up. `lRenderViews()` runs **after** the pruning loop, or the
+  per-view fund counts in the dropdown are stale by one render.
+- **Saved in `localStorage` under `apb-lists-v1`**, wrapped in try/catch. The shape is now
+  `{v:2, active, views:[{id, name, bands}]}`; a `v:1` payload (the single list from before views) is
+  migrated on load into one view called "My list", and a `v:1` **file** still imports, as "Imported
+  list". Two exports: **Save view** writes the active view alone, named after it
+  (`fund-lists-cautious-panel-2026-10-11.json`), and **Save all views** writes every view as one
+  backup. Ids are left out of the file so an import always gets a fresh one. **Load from file always
+  adds, never overwrites**, at the user's decision, switches to the last view added and says what it
+  added. The file is the real backup: browser storage is per machine, per browser, and goes when site
+  data is cleared. Everything stays local, which keeps the data licence where it is. The About page's
+  privacy section says all of this, names the views, and says plainly that the lists are not a record.
+- **The Word document is named after the view** it was built from: the view's name is the title and
+  the brand band's caption, with "Portfolio Builder · My Fund Lists" as the eyebrow. Verified: from
+  "Performance data to" onwards the document is byte-identical to the build before views existed.
 - **Order within a band is the user's: drag the row.** `lDragBind` uses pointer events rather than
   HTML5 drag and drop, which gives no touch support and an unusable drag image for a table row. Rows
   are moved in the DOM as the pointer passes their midpoints, which is its own feedback and needs no
@@ -639,8 +733,16 @@ risk band, kept between visits and copied out as a document.
 - **Verified:** all five existing tabs, print, email and the builder's Word export hash identically to
   the build before this tab existed. Console clean. Lists survive a reload, a removal persists, and a
   deliberate mismatch is caught and named in both the screen warning and the document.
-- **Not built, and not to be added without asking:** several named list sets (the storage shape allows
-  it without a migration), reordering within a band, and bands outside 3 to 6.
+- **Verified (views):** a `v:1` payload migrates to one view holding its funds; a new view opens empty
+  and leaves the first untouched; switching restores each view's own contents; Duplicate copies and is
+  then independently editable; views and the active choice survive a reload; Save view and Save all
+  write 1 and 3 views with the right filenames and no ids; re-importing a view adds "My list (2)" and
+  changes nothing existing; a pre-views file imports; a malformed file changes nothing and says so;
+  deleting every view leaves one empty usable view; a cancelled delete changes nothing; name clashes
+  suffix on both New and Rename. The builder, both explorers, the compare screen, the income tab,
+  print, email and the builder's Word export all hash identically.
+- **Not built, and not to be added without asking:** bands outside 3 to 6, and one combined file for
+  views and saved portfolios.
 
 ## Asset mix
 
