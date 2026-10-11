@@ -135,16 +135,29 @@ Keychain access from launchd works fine; only the folder was the problem.
 - `fetch_inside.py` — "What's inside" breakdowns, staged to `work/inside.staged.json`. Runs after the
   asset mix in `refresh_daily.sh` and can never block prices; `promote.sh` shows a summary and copies it
   to `data/inside.json` with the month, or with `./promote.sh --allocation`.
-- `correct_month.py` — the controlled way to accept a provider restatement of an already-published month,
+- `correct_month.py` — the controlled way to accept a provider restatement of already-published months,
   built 22 Sep 2026 so that taking one is as reviewed as a normal refresh. `python3 correct_month.py 2026-09`
   shows what would change and stages nothing; `--stage` writes `work/correction.*.json`, and
   `./promote.sh --correction` shows the differences again, asks, then copies to `data/`, refreshes the dated
-  archive copy and publishes. It stops on: a month that is not the latest published one (the dated archives
-  would disagree), a fund appearing or disappearing, a missing price, a stamp that is not the 1st, a
+  archive copy and publishes. It stops on: a range that does not end at the latest
+  published month, a fund appearing or disappearing, a missing price, a stamp that is not the 1st, a
   **month-end price that still spikes** (a correction must never import another bad print, and `--force` does
-  not override this), and any per-fund change above 5pp unless `--force` is given. Only the named month is
-  ever touched. Verified against a simulated restatement of two Aviva funds: it found those two and nothing
-  else, the review step cancelled cleanly, and both payloads restored to their original checksums.
+  not override this), and any per-figure change above 5pp unless `--force` is given. Nothing outside
+  the range named is ever touched. Verified against a simulated restatement of two Aviva funds: it found
+  those two and nothing else, the review step cancelled cleanly, and both payloads restored to their
+  original checksums.
+- **It takes a range, `2026-08..2026-09`, because the unit of a restatement is a price, not a month.**
+  Under D+1 a price stamped the 1st of M+1 is M's month end, so it is the **numerator of M's return and the
+  denominator of M+1's**: restating it moves two published figures, and correcting one leaves the pair
+  inconsistent. Added 11 Oct 2026 when CSS moved the 01/09/2026 stamp a second time. The range must end at
+  the payload's latest published month, and an **archived** month earlier in the range that actually changes
+  stops the run, since rewriting `data/2026-08.json` means truncating a corrected payload back to that
+  month. Only `latest.json` is archived (`JOBS` carries an `archived` flag); `others.json` has no dated
+  copies, so a range over it is unrestricted. `promote.sh --correction` diffs the **whole** returns array
+  rather than the last month alone, or it under-reports a range, and names the archive copy from the
+  payload's own as-at rather than the range label. Verified: both range guards stop a real run, the archive
+  guard fires on a stubbed archived payload and lets the unarchived one through, and the derivation is
+  right to the figure.
 - `watch_history.py` — the daily watch on already-published months. Runs on the days `month_ready.py` says
   there is no new month, re-derives the last 12 published months of both payloads from fresh prices and
   notifies if any figure moved. Reads only: it never stages, never edits, never publishes. Added 22 Sep 2026
@@ -233,6 +246,14 @@ Stewardship Ethical Equity before 2010, max 6e-4, old prices quoted to few decim
   +5.16% a bad denominator gave. Taking it needs `correct_month.py 2026-08 --force`: the move is 5.09pp to
   5.13pp and the 5pp guard is doing its job, so **say why in the commit** rather than treating `--force` as
   routine. The guard is not the thing to weaken; the evidence is what clears it.
+- **CSS then moved the same stamp a second time, on 11 Oct 2026, by a hair.** The daily watch flagged 8
+  figures: MyFolio Active I, III, IV and V (II stayed inside tolerance), August down 0.04pp to 0.07pp and
+  September up by the same amount, which is the signature of one price moving rather than a series being
+  rebuilt. It blocked `fetch_others.py` outright ("2 already-published month(s) changed value, first at
+  2026-08"), so the All Funds payload could not have refreshed in November until it was taken. Taken with
+  `correct_month.py 2026-08..2026-09 --stage`, no `--force` needed at 0.07pp. **Expect more of these**:
+  this stamp has now moved twice, and even a sub-0.1pp move is a hard stop on the whole others pipeline,
+  by design.
 - **Longboat publishes net of AMC; the dashboard stores gross.** Comparing the wrong basis
   manufactures a ~4.6pp error that looks like a real fault.
 - **Stamping is D+1.** A price stamped date D is the price for D-1, so the stamp on the 1st of
@@ -282,6 +303,20 @@ public.
   (AMC, "Risk Profile ESMA", Category). Adding a fund means adding it to **both** reports; nothing in the
   code lists funds. `fetch_others.py` stops if the two reports disagree, or if 111323's columns are not
   exactly Name, AMC, Risk Profile ESMA, Category.
+- **Adding a fund: the user edits both reports, then runs the fetch as a dry run.** `python3 fetch_others.py`
+  is safe to run at any time: it reads the reports and writes only `work/others.staged.json`, never `data/`
+  and never the site. It prints every fund with its provider, asset class, ESMA, AMC and history span, so
+  the new fund's classification is visible immediately, and it stops with a named reason if anything is
+  unplaced. Three outcomes: the table prints and nothing more is needed, the fund going live at the next
+  monthly refresh with its **full** history; or it stops on **"no known provider prefix"** or
+  **"category X is not placed by any rule"**, which needs `PROVIDERS` or `CLASS_SET_BY_OWNER` edited, so
+  Claude is told; or it prints the fund with ESMA "-", meaning no published rating and under 60 months, which
+  needs a decision. `rm work/others.staged.json` after a dry run so nothing stale can be promoted. **The
+  daily watch is unaffected** by a fund sitting in the reports but not yet published: `watch_history.py`
+  iterates the published payload and looks each fund up in the report, so an extra fund in the report is
+  never looked at and raises no alert (verified 11 Oct 2026). Only the END month must match across funds, so
+  a shorter history is fine. Adding an **Aviva-range** fund is a different path: report 111116 "AA Price",
+  `fetch_month.py`, and an entry in `fund_map.json` for the asset-mix fetch.
 - **Same conventions as `latest.json`**: month-end prices via `fundfocus.prices()` (D+1 stamping), grossed up
   geometrically by AMC, 6 decimals, no simulated history, `liveStart` the first priced month.
 - **Royal London publishes 0.00% AMC.** By the user's decision their prices carry no AMC, so nothing is
@@ -294,8 +329,10 @@ public.
   → Equity (New Ireland PRIME Equities, iFunds Equities, both by the user's decision); category containing
   "Managed" or "Fund of Funds" → Multi-Asset; "Bond" → Fixed Income; "Equity" → Equity. An unplaced
   category stops the run. Standard Life's five **Global Index 20/40/60/80/100** sit in category "Specialist
-  Funds", which no rule places; all five are **Multi-Asset** by the user's decision (`CLASS_SET_BY_OWNER`),
-  including 100. The 10 MyFolio funds are placed by the "Managed" rule and carry published ESMA ratings.
+  Funds", which no rule places, so all five are set by hand (`CLASS_SET_BY_OWNER`): **20/40/60/80 are
+  Multi-Asset and 100 is Equity**, since it holds 100% equity unlike the rest of the range. (This entry
+  read "all five Multi-Asset, including 100" until 11 Oct 2026; the code and the published data always
+  had 100 as Equity, so the note was the thing that was wrong.) The 10 MyFolio funds are placed by the "Managed" rule and carry published ESMA ratings.
 - **ESMA:** published where Fund Focus has it. Otherwise, with 60 months, an indicative band from the
   fund's own 5-year volatility, `esmaSource: "calculated"`, shown with "≈" and a title (the four Royal
   London multi-asset funds). Two hand-set sources, both used only where Fund Focus publishes nothing, so a
